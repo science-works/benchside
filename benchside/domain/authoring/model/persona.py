@@ -4,6 +4,7 @@ Read-only at runtime. Personas change by editing content/personas/ and
 recompiling, never by a command from a consultation.
 """
 
+from benchside.domain.authoring.model.flow import Flow
 from benchside.domain.authoring.model.value import (
     FailureMode,
     ForcingQuestion,
@@ -23,6 +24,7 @@ class Persona(Aggregate):
     forcing_questions: tuple[ForcingQuestion, ...] = ()
     failure_modes: tuple[FailureMode, ...] = ()
     escalation_rules: tuple[str, ...] = ()
+    flow: Flow = Flow()
 
     def rubric(self) -> Rubric:
         """Derive the judge rubric from this persona's failure modes.

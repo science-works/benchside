@@ -121,6 +121,7 @@ class JournalConsultationRepository:
                             id=event.consultation_id,
                             project_id=event.project_id,
                             persona_id=event.persona_id,
+                            close_requires=event.close_requires,
                         )
                 case HypothesisStated() if event.consultation_id in sittings:
                     sittings[event.consultation_id].probe()

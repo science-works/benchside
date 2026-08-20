@@ -50,9 +50,38 @@ class PlaceholderRenderer:
             "PERSONA_VOICE": lambda: persona.voice,
             "PERSONA_EXPERTISE": lambda: ", ".join(persona.expertise),
             "FORCING_QUESTIONS": lambda: _forcing_questions(persona),
+            "FLOW": lambda: _flow(persona),
             "FAILURE_MODES": lambda: _failure_modes(persona),
             "ESCALATION_RULES": lambda: _escalation_rules(persona),
         }
+
+
+_CAPTURE_CALL = {
+    "hypothesis": "bench hypothesis \"<statement>\"",
+    "critique": "bench critique --target <claim|method|interpretation> ...",
+    "resolution": "bench resolve <critique-id> --as <resolution>",
+    "decision": "bench decide \"<decision>\" --because \"<rationale>\"",
+    "gap": "bench gap <kind> ...",
+}
+
+
+def _flow(persona: Persona) -> str:
+    """Render the persona's phases as numbered sections with explicit
+    bench-call obligations derived from each phase's captures."""
+    if not persona.flow.phases:
+        return "_No flow declared._"
+    parts = []
+    for i, phase in enumerate(persona.flow.phases, start=1):
+        section = [f"### Phase {i} — `{phase.id}`: {phase.goal}", "", phase.guidance.rstrip()]
+        for kind in phase.captures:
+            call = _CAPTURE_CALL[kind.value]
+            section.append(
+                f"\n**Before moving on, record it:** run `{call}`."
+            )
+        if phase.exit_when:
+            section.append(f"\n**Move on when:** {phase.exit_when}")
+        parts.append("\n".join(section))
+    return "\n\n".join(parts)
 
 
 def _forcing_questions(persona: Persona) -> str:

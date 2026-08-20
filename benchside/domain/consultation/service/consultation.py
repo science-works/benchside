@@ -33,6 +33,7 @@ from benchside.domain.consultation.port.repository import (
 )
 from benchside.domain.shared.error import InvalidStateError, NotFoundError
 from benchside.domain.shared.event import new_event_id
+from benchside.domain.shared.model.capture import CaptureKind, CloseRequirement
 from benchside.domain.shared.model.gap import Gap
 from benchside.domain.shared.model.ids import (
     ConsultationId,
@@ -60,6 +61,7 @@ class ConsultationService(Service):
         consultation_id: ConsultationId,
         project_id: ProjectId,
         persona_id: PersonaId,
+        close_requires: tuple[CloseRequirement, ...] = (),
     ) -> Consultation:
         if self.consultations.get(consultation_id) is not None:
             raise InvalidStateError(f"Consultation already exists: {consultation_id}")
@@ -67,6 +69,7 @@ class ConsultationService(Service):
             id=consultation_id,
             project_id=project_id,
             persona_id=persona_id,
+            close_requires=close_requires,
         )
         self.journal.append(
             project_id,
@@ -75,6 +78,7 @@ class ConsultationService(Service):
                 consultation_id=consultation_id,
                 project_id=project_id,
                 persona_id=persona_id,
+                close_requires=close_requires,
             ),
         )
         return consultation
@@ -215,6 +219,7 @@ class ConsultationService(Service):
     ) -> Consultation:
         consultation = self._load_consultation(consultation_id)
         if converged:
+            self._enforce_close_requirements(consultation)
             consultation.converge(detail)
         else:
             consultation.abandon(detail)
@@ -247,6 +252,41 @@ class ConsultationService(Service):
         if consultation is None:
             raise NotFoundError(f"Consultation not found: {consultation_id}")
         return consultation
+
+    def _enforce_close_requirements(self, consultation: Consultation) -> None:
+        """A converged close must meet the requirements snapshotted at open.
+
+        Counts are derived from the sitting's own journal events, so this is
+        the mechanism that prevents empty journals: you cannot cleanly finish
+        a sitting you never recorded.
+        """
+        if not consultation.close_requires:
+            return
+        counts = self._capture_counts(consultation)
+        missing = [
+            f"{req.kind.value} (have {counts.get(req.kind, 0)}, need {req.minimum})"
+            for req in consultation.close_requires
+            if counts.get(req.kind, 0) < req.minimum
+        ]
+        if missing:
+            raise InvalidStateError(
+                "Cannot close converged; requirements unmet: " + ", ".join(missing)
+            )
+
+    def _capture_counts(self, consultation: Consultation) -> dict[CaptureKind, int]:
+        counts: dict[CaptureKind, int] = {}
+        kind_by_event = {
+            HypothesisStated: CaptureKind.HYPOTHESIS,
+            CritiqueRaised: CaptureKind.CRITIQUE,
+            CritiqueResolved: CaptureKind.RESOLUTION,
+            DecisionRecorded: CaptureKind.DECISION,
+            GapObserved: CaptureKind.GAP,
+        }
+        for event in self.journal.read(consultation.project_id):
+            kind = kind_by_event.get(type(event))
+            if kind is not None and event.consultation_id == consultation.id:
+                counts[kind] = counts.get(kind, 0) + 1
+        return counts
 
     def _load_pair(self, consultation_id: ConsultationId) -> tuple[Consultation, Project]:
         consultation = self._load_consultation(consultation_id)

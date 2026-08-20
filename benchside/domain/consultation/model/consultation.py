@@ -16,6 +16,7 @@ from benchside.domain.consultation.model.value import (
 )
 from benchside.domain.shared.error import InvalidStateError
 from benchside.domain.shared.model.aggregate import Aggregate
+from benchside.domain.shared.model.capture import CloseRequirement
 from benchside.domain.shared.model.ids import ConsultationId, CritiqueId, PersonaId, ProjectId
 
 
@@ -24,6 +25,7 @@ class Consultation(Aggregate):
     project_id: ProjectId
     persona_id: PersonaId
     state: State = Framing()
+    close_requires: tuple[CloseRequirement, ...] = ()
 
     def _require_live(self) -> None:
         if self.state.kind in TERMINAL:
