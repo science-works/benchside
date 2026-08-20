@@ -128,6 +128,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.set_defaults(run=cmd_export)
 
+    p = sub.add_parser("init", help="initialize this directory as a benchside project")
+    p.add_argument("--yes", action="store_true", help="consent non-interactively")
+    p.add_argument("--project", default=None)
+    p.set_defaults(run=cmd_init_dispatch)
+
+    p = sub.add_parser("hook", help="Claude Code hook entry points (stdin JSON)")
+    p.add_argument("event", choices=["session-start", "session-end"])
+    p.set_defaults(run=cmd_hook_dispatch)
+
     p = sub.add_parser("compile", help="compile personas into skills")
     p.add_argument("--check", action="store_true", help="dry-run freshness check")
     p.set_defaults(run=cmd_compile)
@@ -439,6 +448,18 @@ def cmd_compile(args) -> int:
         + ("" if result.is_fresh else "; STALE OUTPUT — run bench compile")
     )
     return 0 if result.is_fresh or not args.check else 1
+
+
+def cmd_init_dispatch(args) -> int:
+    from benchside.cli.install import cmd_init
+
+    return cmd_init(args)
+
+
+def cmd_hook_dispatch(args) -> int:
+    from benchside.cli.hooks import cmd_hook
+
+    return cmd_hook(args)
 
 
 if __name__ == "__main__":
