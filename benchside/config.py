@@ -24,7 +24,7 @@ class Paths(BaseModel):
 
     @property
     def content_dir(self) -> Path:
-        return self.repo_root / "content"
+        return resolve_content_root()
 
     @property
     def personas_dir(self) -> Path:
@@ -40,6 +40,23 @@ class Paths(BaseModel):
 
     def journal_file(self, project_id: str) -> Path:
         return self.journal_dir / project_id / "journal.jsonl"
+
+
+def resolve_content_root() -> Path:
+    """Locate authored content (personas, templates).
+
+    Order: BENCHSIDE_REPO env override -> the repo checkout this module sits
+    in (development) -> content packaged into the wheel (installed users).
+    The packaged copy exists because pyproject force-includes content/ as
+    benchside/_content/ (bug B4: installed users have no checkout).
+    """
+    override = os.environ.get("BENCHSIDE_REPO")
+    if override:
+        return Path(override).expanduser() / "content"
+    checkout = Path(__file__).resolve().parent.parent / "content"
+    if checkout.is_dir():
+        return checkout
+    return Path(__file__).resolve().parent / "_content"
 
 
 def resolve_paths() -> Paths:

@@ -25,6 +25,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["benchside"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"content" = "benchside/_content"
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.1",
