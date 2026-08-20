@@ -262,7 +262,7 @@ class ConsultationService(Service):
         """
         if not consultation.close_requires:
             return
-        counts = self._capture_counts(consultation)
+        counts = self.capture_counts(consultation)
         missing = [
             f"{req.kind.value} (have {counts.get(req.kind, 0)}, need {req.minimum})"
             for req in consultation.close_requires
@@ -273,7 +273,8 @@ class ConsultationService(Service):
                 "Cannot close converged; requirements unmet: " + ", ".join(missing)
             )
 
-    def _capture_counts(self, consultation: Consultation) -> dict[CaptureKind, int]:
+    def capture_counts(self, consultation: Consultation) -> dict[CaptureKind, int]:
+        """What this sitting has recorded, by capture kind (drives status/close)."""
         counts: dict[CaptureKind, int] = {}
         kind_by_event = {
             HypothesisStated: CaptureKind.HYPOTHESIS,
@@ -291,4 +292,3 @@ class ConsultationService(Service):
     def _load_pair(self, consultation_id: ConsultationId) -> tuple[Consultation, Project]:
         consultation = self._load_consultation(consultation_id)
         return consultation, self.get_project(consultation.project_id)
-
