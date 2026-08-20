@@ -31,10 +31,13 @@ from benchside.domain.export.event.consent_revoked import ConsentRevoked
 from benchside.domain.export.event.observations_exported import ObservationsExported
 from benchside.domain.export.model.ledger import ConsentLedger
 from benchside.domain.export.model.value import ExportRecord, Grant, Observation
-from benchside.domain.shared.model.ids import ConsultationId, ObservationId, ProjectId
+from benchside.domain.shared.model.ids import (
+    CONSENT_LEDGER_PROJECT,
+    ConsultationId,
+    ObservationId,
+    ProjectId,
+)
 from benchside.domain.shared.port.journal import Journal
-
-CONSENT_LEDGER_PROJECT = ProjectId("consent-ledger")
 
 
 class JournalProjectRepository:

@@ -11,15 +11,14 @@ from benchside.domain.export.event.consent_granted import ConsentGranted
 from benchside.domain.export.event.consent_revoked import ConsentRevoked
 from benchside.domain.export.model.value import Grant
 from benchside.domain.export.port.repository import ConsentRepository
+from benchside.domain.shared.event import new_event_id
 from benchside.domain.shared.model.gap import GAP_KINDS
-from benchside.domain.shared.model.ids import GrantId, ProjectId
+from benchside.domain.shared.model.ids import CONSENT_LEDGER_PROJECT, GrantId
 from benchside.domain.shared.port.journal import Journal
 from benchside.domain.shared.service import Service
 
 logger = logging.getLogger(__name__)
 
-CONSENT_LEDGER_PROJECT = ProjectId("consent-ledger")
-"""Consent is machine-wide, not per project, so its events get their own stream."""
 
 
 class ConsentService(Service):
@@ -41,7 +40,7 @@ class ConsentService(Service):
         ledger.grant(grant)
         self.journal.append(
             CONSENT_LEDGER_PROJECT,
-            ConsentGranted(id=f"grant:{grant_id}", grant_id=grant_id, gap_kinds=gap_kinds),
+            ConsentGranted(id=new_event_id(), grant_id=grant_id, gap_kinds=gap_kinds),
         )
         return grant
 
@@ -50,6 +49,6 @@ class ConsentService(Service):
         revoked = ledger.revoke(datetime.now(UTC))
         self.journal.append(
             CONSENT_LEDGER_PROJECT,
-            ConsentRevoked(id=f"revoke:{revoked.id}", grant_id=revoked.id),
+            ConsentRevoked(id=new_event_id(), grant_id=revoked.id),
         )
         return revoked

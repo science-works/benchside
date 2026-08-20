@@ -18,6 +18,7 @@ from benchside.domain.export.port.repository import ConsentRepository, Observati
 from benchside.domain.export.port.sink import ExportSink
 from benchside.domain.export.service.consent import CONSENT_LEDGER_PROJECT, ConsentService
 from benchside.domain.shared.error import ConsentRequiredError
+from benchside.domain.shared.event import new_event_id
 from benchside.domain.shared.model.ids import GrantId
 from benchside.domain.shared.port.journal import Journal
 from benchside.domain.shared.service import Service
@@ -81,7 +82,7 @@ class ExportService(Service):
 
         observation_ids = tuple(o.id for o in covered)
         event = ObservationsExported(
-            id=f"export:{digest[:12]}",
+            id=new_event_id(),
             grant_id=GrantId(grant.id),
             observation_ids=observation_ids,
             payload_sha256=digest,

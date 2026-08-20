@@ -32,6 +32,7 @@ from benchside.domain.consultation.port.repository import (
     ProjectRepository,
 )
 from benchside.domain.shared.error import InvalidStateError, NotFoundError
+from benchside.domain.shared.event import new_event_id
 from benchside.domain.shared.model.gap import Gap
 from benchside.domain.shared.model.ids import (
     ConsultationId,
@@ -70,7 +71,7 @@ class ConsultationService(Service):
         self.journal.append(
             project_id,
             ConsultationOpened(
-                id=_event_id(consultation_id, "opened"),
+                id=new_event_id(),
                 consultation_id=consultation_id,
                 project_id=project_id,
                 persona_id=persona_id,
@@ -94,7 +95,7 @@ class ConsultationService(Service):
         self.journal.append(
             project.id,
             HypothesisStated(
-                id=_event_id(consultation_id, f"hyp-{hypothesis_id}"),
+                id=new_event_id(),
                 project_id=project.id,
                 consultation_id=consultation_id,
                 hypothesis_id=hypothesis_id,
@@ -117,7 +118,7 @@ class ConsultationService(Service):
         self.journal.append(
             project.id,
             CritiqueRaised(
-                id=_event_id(consultation_id, f"crit-{critique_id}"),
+                id=new_event_id(),
                 project_id=project.id,
                 consultation_id=consultation_id,
                 critique_id=critique_id,
@@ -139,7 +140,7 @@ class ConsultationService(Service):
         self.journal.append(
             project.id,
             CritiqueResolved(
-                id=_event_id(consultation_id, f"res-{critique_id}"),
+                id=new_event_id(),
                 project_id=project.id,
                 consultation_id=consultation_id,
                 critique_id=critique_id,
@@ -170,7 +171,7 @@ class ConsultationService(Service):
         self.journal.append(
             project.id,
             DecisionRecorded(
-                id=_event_id(consultation_id, f"dec-{decision_id}"),
+                id=new_event_id(),
                 project_id=project.id,
                 consultation_id=consultation_id,
                 decision_id=decision_id,
@@ -197,7 +198,7 @@ class ConsultationService(Service):
         self.journal.append(
             consultation.project_id,
             GapObserved(
-                id=_event_id(consultation_id, f"gap-{observation_id}"),
+                id=new_event_id(),
                 project_id=consultation.project_id,
                 consultation_id=consultation_id,
                 observation_id=observation_id,
@@ -220,7 +221,7 @@ class ConsultationService(Service):
         self.journal.append(
             consultation.project_id,
             ConsultationClosed(
-                id=_event_id(consultation_id, "closed"),
+                id=new_event_id(),
                 project_id=consultation.project_id,
                 consultation_id=consultation_id,
                 state="converged" if converged else "abandoned",
@@ -251,6 +252,3 @@ class ConsultationService(Service):
         consultation = self._load_consultation(consultation_id)
         return consultation, self.get_project(consultation.project_id)
 
-
-def _event_id(consultation_id: ConsultationId, suffix: str) -> str:
-    return f"{consultation_id}:{suffix}"

@@ -50,3 +50,15 @@ class PersonaId(RootValueObject[str]):
         if not _SLUG.match(v):
             raise ValueError("invalid PersonaId (expected a lowercase slug)")
         return v
+
+
+CONSENT_LEDGER_PROJECT = ProjectId("consent-ledger")
+"""Reserved stream for machine-wide consent events. Not a user project."""
+
+
+def user_project_id(raw: str) -> ProjectId:
+    """Parse a user-supplied project id, rejecting reserved names."""
+    project_id = ProjectId(raw)
+    if project_id == CONSENT_LEDGER_PROJECT:
+        raise ValueError(f"'{raw}' is reserved for the consent ledger")
+    return project_id

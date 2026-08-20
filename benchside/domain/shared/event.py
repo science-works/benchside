@@ -7,10 +7,16 @@ state, the lab notebook, and the eval assertions are all derived from it.
 
 from datetime import UTC, datetime
 from typing import ClassVar, NewType, Self
+from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
 EventId = NewType("EventId", str)
+
+
+def new_event_id() -> EventId:
+    """Opaque unique event id. Always generated here, never by the model."""
+    return EventId(str(uuid4()))
 
 
 class Event(BaseModel):
