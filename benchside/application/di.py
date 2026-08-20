@@ -14,7 +14,7 @@ from dishka import Provider as DishkaProvider
 from benchside.domain.authoring.util.di import AuthoringProvider
 from benchside.domain.consultation.util.di import ConsultationProvider
 from benchside.domain.export.util.di import ExportProvider
-from benchside.infrastructure.memory.di import MemoryProvider
+from benchside.infrastructure.journal.di import FileProvider
 from benchside.util.di import Scope
 
 
@@ -26,8 +26,7 @@ def create_container(*extra_providers: DishkaProvider) -> Container:
             provision to replace a default binding.
     """
     return make_container(
-        # Placeholder port bindings until the file-backed adapters land.
-        MemoryProvider(),
+        FileProvider(),
         ConsultationProvider(),
         AuthoringProvider(),
         ExportProvider(),

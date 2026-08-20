@@ -1,13 +1,14 @@
 """Writing compiled skills to skills/<persona>/SKILL.md."""
 
-from benchside.config import Paths
+from pathlib import Path
+
 from benchside.domain.authoring.model.skill import SkillDocument
 from benchside.domain.shared.error import StorageUnavailableError
 
 
 class FileSkillWriter:
-    def __init__(self, paths: Paths) -> None:
-        self._dir = paths.skills_dir
+    def __init__(self, target_dir: Path) -> None:
+        self._dir = target_dir
 
     def write(self, document: SkillDocument) -> None:
         path = self._path(document.filename)
