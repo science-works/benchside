@@ -73,6 +73,7 @@ def _git_remote_slug(cwd: Path) -> str | None:
             capture_output=True,
             text=True,
             timeout=5,
+            check=False,  # non-repo dirs are an expected, handled case
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
