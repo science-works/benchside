@@ -9,6 +9,7 @@ which would reopen a scan-versus-send gap.
 import hashlib
 import json
 import logging
+from datetime import UTC, datetime
 
 from benchside.domain.export.event.observations_exported import ObservationsExported
 from benchside.domain.export.model.value import ExportPreview, ExportRecord, Observation
@@ -44,10 +45,12 @@ class ExportService(Service):
         covered = [o for o in unshared if grant is not None and grant.covers(o.gap)]
         withheld = [o.id for o in unshared if o not in covered]
 
-        payload = self._payload(covered)
+        # Scan the exact bytes that will be shown/sent: redact first, then
+        # scan the result (B7). Findings describe what leaves the machine.
+        payload = self.redactor.apply(self._payload(covered))
         findings = self.redactor.scan(payload)
         return ExportPreview(
-            payload=self.redactor.apply(payload),
+            payload=payload,
             observation_ids=tuple(o.id for o in covered),
             withheld=tuple(withheld),
             redaction_findings=tuple(f"{f.tier}:{f.category} in {f.field}" for f in findings),
@@ -59,6 +62,16 @@ class ExportService(Service):
             raise ConsentRequiredError("No active consent grant; nothing was shared")
 
         covered = [o for o in self.observations.list_unshared() if grant.covers(o.gap)]
+        if not covered:
+            # Nothing to share: never touch the sink, never record an export (B2).
+            logger.info("Export requested but no unshared observations are covered")
+            return ExportRecord(
+                grant_id=grant.id,
+                observation_ids=(),
+                payload_sha256="",
+                exported_at=datetime.now(UTC),
+            )
+
         payload = self.redactor.apply(self._payload(covered))
         digest = self._digest(payload)
 
@@ -67,21 +80,20 @@ class ExportService(Service):
         self.sink.send(payload)
 
         observation_ids = tuple(o.id for o in covered)
-        self.journal.append(
-            CONSENT_LEDGER_PROJECT,
-            ObservationsExported(
-                id=f"export:{digest[:12]}",
-                grant_id=GrantId(grant.id),
-                observation_ids=observation_ids,
-                payload_sha256=digest,
-            ),
+        event = ObservationsExported(
+            id=f"export:{digest[:12]}",
+            grant_id=GrantId(grant.id),
+            observation_ids=observation_ids,
+            payload_sha256=digest,
         )
+        self.journal.append(CONSENT_LEDGER_PROJECT, event)
         logger.info("Exported %d observations under grant %s", len(covered), grant.id)
+        # The record mirrors the event just appended (B1) — never a grant field.
         return ExportRecord(
             grant_id=grant.id,
             observation_ids=observation_ids,
             payload_sha256=digest,
-            exported_at=self.ledger.load().grants[-1].granted_at,
+            exported_at=event.recorded_at,
         )
 
     @staticmethod
