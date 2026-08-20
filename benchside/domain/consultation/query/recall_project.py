@@ -37,9 +37,7 @@ class RecallProjectHandler(QueryHandler[RecallProject, ProjectRecall]):
             project_id=project.id,
             title=project.title,
             current_hypothesis=current.statement if current else None,
-            open_questions=[
-                describe_target(c.target) for c in project.critiques if c.is_open
-            ],
+            open_questions=[describe_target(c.target) for c in project.critiques if c.is_open],
             recent_decisions=project.decisions[-5:],
             last_sitting_state=latest.state.kind if latest else None,
         )

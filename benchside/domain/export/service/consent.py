@@ -20,7 +20,6 @@ from benchside.domain.shared.service import Service
 logger = logging.getLogger(__name__)
 
 
-
 class ConsentService(Service):
     repository: ConsentRepository
     journal: Journal

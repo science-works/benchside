@@ -9,7 +9,6 @@ millions). If that stops being true, the answer is a snapshot cache behind the
 same ports, not a change to the domain.
 """
 
-
 from benchside.domain.consultation.event.closed import ConsultationClosed
 from benchside.domain.consultation.event.critique_raised import CritiqueRaised
 from benchside.domain.consultation.event.critique_resolved import CritiqueResolved
@@ -222,5 +221,3 @@ class JournalConsentRepository:
                         )
                     )
         return ledger
-
-

@@ -32,7 +32,9 @@ class PlaceholderRenderer:
             text = _TOKEN.sub(lambda m: self._resolve(m.group(1), resolvers), text)
         remaining = _TOKEN.findall(text)
         if remaining:
-            raise ValidationError(f"Unresolved placeholders after {_MAX_PASSES} passes: {remaining}")
+            raise ValidationError(
+                f"Unresolved placeholders after {_MAX_PASSES} passes: {remaining}"
+            )
         return text
 
     def _resolve(self, name: str, resolvers: dict[str, Callable[[], str]]) -> str:
@@ -57,10 +59,10 @@ class PlaceholderRenderer:
 
 
 _CAPTURE_CALL = {
-    "hypothesis": "bench hypothesis \"<statement>\"",
+    "hypothesis": 'bench hypothesis "<statement>"',
     "critique": "bench critique --target <claim|method|interpretation> ...",
     "resolution": "bench resolve <critique-id> --as <resolution>",
-    "decision": "bench decide \"<decision>\" --because \"<rationale>\"",
+    "decision": 'bench decide "<decision>" --because "<rationale>"',
     "gap": "bench gap <kind> ...",
 }
 
@@ -75,9 +77,7 @@ def _flow(persona: Persona) -> str:
         section = [f"### Phase {i} — `{phase.id}`: {phase.goal}", "", phase.guidance.rstrip()]
         for kind in phase.captures:
             call = _CAPTURE_CALL[kind.value]
-            section.append(
-                f"\n**Before moving on, record it:** run `{call}`."
-            )
+            section.append(f"\n**Before moving on, record it:** run `{call}`.")
         if phase.exit_when:
             section.append(f"\n**Move on when:** {phase.exit_when}")
         parts.append("\n".join(section))
