@@ -12,11 +12,29 @@ from benchside.domain.authoring.model.value import Rubric
 from benchside.domain.authoring.port.renderer import TemplateRenderer
 from benchside.domain.authoring.port.repository import PersonaRepository, TemplateRepository
 from benchside.domain.authoring.port.skill_writer import SkillWriter
-from benchside.domain.shared.error import NotFoundError
+from benchside.domain.shared.error import NotFoundError, ValidationError
 from benchside.domain.shared.model.ids import PersonaId
 from benchside.domain.shared.service import Service
 
 logger = logging.getLogger(__name__)
+
+_FENCE = "---"
+
+
+def _split_frontmatter(text: str, persona_id: str) -> tuple[str, str]:
+    stripped = text.lstrip()
+    if not stripped.startswith(_FENCE):
+        raise ValidationError(
+            f"Rendered skill for {persona_id} has no frontmatter fence", field="template"
+        )
+    rest = stripped[len(_FENCE) :]
+    end = rest.find(f"\n{_FENCE}")
+    if end == -1:
+        raise ValidationError(
+            f"Rendered skill for {persona_id} has an unterminated frontmatter fence",
+            field="template",
+        )
+    return rest[:end].strip("\n"), rest[end + len(_FENCE) + 1 :].lstrip("\n")
 
 
 class AuthoringService(Service):
@@ -66,4 +84,16 @@ class AuthoringService(Service):
         )
 
     def _render(self, persona: Persona, template: str) -> SkillDocument:
-        raise NotImplementedError("frontmatter/body split lands with the renderer adapter")
+        """Render a persona into a skill document.
+
+        The template carries its own YAML frontmatter fence; splitting here
+        rather than in the renderer keeps the renderer a pure text expander.
+        """
+        text = self.renderer.render(template, persona)
+        frontmatter, body = _split_frontmatter(text, persona.id.root)
+        return SkillDocument(
+            persona_id=persona.id.root,
+            filename=f"{persona.id.root}/SKILL.md",
+            frontmatter=frontmatter,
+            body=body,
+        )

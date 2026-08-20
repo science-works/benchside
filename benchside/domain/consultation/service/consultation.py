@@ -31,7 +31,7 @@ from benchside.domain.consultation.port.repository import (
     ConsultationRepository,
     ProjectRepository,
 )
-from benchside.domain.shared.error import NotFoundError
+from benchside.domain.shared.error import InvalidStateError, NotFoundError
 from benchside.domain.shared.model.gap import Gap
 from benchside.domain.shared.model.ids import (
     ConsultationId,

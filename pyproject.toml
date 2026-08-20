@@ -11,6 +11,8 @@ dependencies = [
     "dishka>=1.9.1",
     "pydantic>=2.12.4",
     "pydantic-settings>=2.12.0",
+    "pyyaml>=6.0.3",
+    "types-pyyaml>=6.0.12.20260815",
 ]
 
 [project.scripts]
