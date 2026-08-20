@@ -60,6 +60,8 @@ class ConsultationService(Service):
         project_id: ProjectId,
         persona_id: PersonaId,
     ) -> Consultation:
+        if self.consultations.get(consultation_id) is not None:
+            raise InvalidStateError(f"Consultation already exists: {consultation_id}")
         consultation = Consultation(
             id=consultation_id,
             project_id=project_id,

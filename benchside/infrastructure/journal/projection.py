@@ -111,11 +111,14 @@ class JournalConsultationRepository:
         for event in self._journal.read(project_id):
             match event:
                 case ConsultationOpened():
-                    sittings[event.consultation_id] = Consultation(
-                        id=event.consultation_id,
-                        project_id=event.project_id,
-                        persona_id=event.persona_id,
-                    )
+                    # Ignore duplicate opens: replaying one must never replace
+                    # (and thereby reset) an existing sitting (bug B3).
+                    if event.consultation_id not in sittings:
+                        sittings[event.consultation_id] = Consultation(
+                            id=event.consultation_id,
+                            project_id=event.project_id,
+                            persona_id=event.persona_id,
+                        )
                 case HypothesisStated() if event.consultation_id in sittings:
                     sittings[event.consultation_id].probe()
                 case CritiqueRaised() if event.consultation_id in sittings:
