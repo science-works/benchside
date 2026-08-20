@@ -9,9 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import ValidationError as PydanticValidationError
 
-from benchside.config import Paths
+from benchside.domain.authoring.model.flow import Flow, Phase
 from benchside.domain.authoring.model.persona import Persona
 from benchside.domain.authoring.model.value import FailureMode, ForcingQuestion
 from benchside.domain.shared.error import ValidationError
@@ -21,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 class YamlPersonaRepository:
-    def __init__(self, paths: Paths) -> None:
-        self._dir = paths.personas_dir
+    def __init__(self, personas_dir: Path) -> None:
+        self._dir = personas_dir
 
     def get(self, persona_id: PersonaId) -> Persona | None:
         path = self._dir / f"{persona_id.root}.yaml"
@@ -56,14 +55,36 @@ class YamlPersonaRepository:
                     for f in raw.get("failure_modes", ())
                 ),
                 escalation_rules=tuple(raw.get("escalation_rules", ())),
+                flow=_parse_flow(raw.get("flow", {})),
             )
-        except (KeyError, TypeError, PydanticValidationError) as err:
+        except (KeyError, TypeError, ValueError) as err:
             raise ValidationError(f"Malformed persona record at {path}: {err}") from err
 
 
+def _parse_flow(raw: dict[str, Any]) -> Flow:
+    from benchside.domain.shared.model.capture import CaptureKind, CloseRequirement
+
+    return Flow(
+        phases=tuple(
+            Phase(
+                id=p["id"],
+                goal=p["goal"],
+                guidance=p.get("guidance", ""),
+                captures=tuple(CaptureKind(c) for c in p.get("captures", ())),
+                exit_when=p.get("exit_when", ""),
+            )
+            for p in raw.get("phases", ())
+        ),
+        close_requires=tuple(
+            CloseRequirement(kind=CaptureKind(r["kind"]), minimum=int(r.get("minimum", 1)))
+            for r in raw.get("close_requires", ())
+        ),
+    )
+
+
 class FileTemplateRepository:
-    def __init__(self, paths: Paths) -> None:
-        self._dir = paths.templates_dir
+    def __init__(self, templates_dir: Path) -> None:
+        self._dir = templates_dir
 
     def skill_template(self) -> str:
         path = self._dir / "skill.md.tmpl"
