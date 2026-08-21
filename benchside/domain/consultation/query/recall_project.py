@@ -8,8 +8,8 @@ from pydantic import Field
 
 from benchside.domain.consultation.model.value import Decision, Target
 from benchside.domain.consultation.service.consultation import ConsultationService
-from benchside.domain.shared.error import NotFoundError
 from benchside.domain.shared.command import Result
+from benchside.domain.shared.error import NotFoundError
 from benchside.domain.shared.model.ids import ProjectId
 from benchside.domain.shared.query import Query, QueryHandler
 
