@@ -95,3 +95,34 @@ class TestSetup:
         assert "bench init" in skill.read_text()
         # idempotent
         assert run("setup")[0] == 0
+
+
+class TestFreshProjectRecall:
+    """A just-inited project has no journal. Recall must say so, not error
+    (field bug: SessionStart crashed with NotFoundError on fresh projects,
+    silently skipping context injection)."""
+
+    def test_recall_on_fresh_project_reports_no_history(self, env):
+        run, _, _ = env
+        run("init", "--yes")
+        code, out = run("recall")
+        assert code == 0
+        assert "no recorded history" in out.lower()
+
+    def test_session_start_hook_survives_fresh_project(self, env, tmp_path):
+        import json
+
+        run, workdir, _ = env
+        run("init", "--yes")
+        import io, sys
+
+        stdin = json.dumps({"session_id": "s1", "cwd": str(workdir), "source": "startup"})
+        sys_stdin = sys.stdin
+        sys.stdin = io.StringIO(stdin)
+        try:
+            code = main(["hook", "session-start"])
+        finally:
+            sys.stdin = sys_stdin
+        assert code == 0
+        errlog = tmp_path / "home" / "hook-errors.log"
+        assert not errlog.exists(), f"hook logged an error on a fresh project: {errlog.read_text()[:200] if errlog.exists() else ''}"
