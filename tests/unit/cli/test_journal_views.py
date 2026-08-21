@@ -60,9 +60,21 @@ class TestJournalShow:
         assert code == 0
         assert out == "", "journal chrome belongs on stderr"
         assert "── lab" in err, "view opens with a project header rule"
+        assert "HYPOTHESIS" in err, "sections carry uppercase labels"
+        assert "│ " in err, "long text renders in a guttered block"
         assert "H2 refined" in err
         assert "2 hypotheses" in err and "1 open" in err
         assert "run known-answer test" in err
+
+    def test_show_pluralizes_correctly(self, env):
+        _, _, err = env("journal", "show")
+        assert "1 decision" in err and "1 decisions" not in err
+        assert "1 sitting" in err and "1 sittings" not in err
+
+    def test_show_never_wraps_mid_word_in_plain(self, env):
+        _, _, err = env("journal", "show")
+        for line in err.splitlines():
+            assert len(line) <= 100, f"overlong plain line: {line!r}"
 
     def test_show_flags_open_critiques_as_warnings(self, env):
         _, _, err = env("journal", "show")

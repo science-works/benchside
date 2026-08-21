@@ -4,6 +4,7 @@ The contract: plain and rich renderers produce identical wording; they differ
 only in ANSI and styling. Plain output is exact-string testable.
 """
 
+import textwrap
 from typing import IO, Protocol
 
 from benchside.cli.ui._glyphs import default_glyphs
@@ -11,6 +12,8 @@ from benchside.cli.ui._glyphs import default_glyphs
 
 class Renderer(Protocol):
     def header(self, text: str) -> None: ...
+    def section(self, title: str, *, meta: str | None = None) -> None: ...
+    def block(self, text: str, *, dim: bool = False) -> None: ...
     def info(self, text: str) -> None: ...
     def detail(self, text: str) -> None: ...
     def success(self, text: str) -> None: ...
@@ -31,6 +34,18 @@ class PlainRenderer:
 
     def header(self, text: str) -> None:
         self._line(f"── {text}")
+
+    def section(self, title: str, *, meta: str | None = None) -> None:
+        suffix = f"  {meta}" if meta else ""
+        self._line("")
+        self._line(f"{title.upper()}{suffix}")
+
+    def block(self, text: str, *, dim: bool = False) -> None:
+        lines = textwrap.wrap(text, width=76, break_long_words=False, break_on_hyphens=False) or [
+            ""
+        ]
+        for line in lines:
+            self._line(f"│ {line}")
 
     def info(self, text: str) -> None:
         self._line(text)
@@ -69,6 +84,12 @@ class RecordingRenderer:
 
     def header(self, text: str) -> None:
         self.events.append(("header", {"text": text}))
+
+    def section(self, title: str, *, meta: str | None = None) -> None:
+        self.events.append(("section", {"title": title, "meta": meta}))
+
+    def block(self, text: str, *, dim: bool = False) -> None:
+        self.events.append(("block", {"text": text, "dim": dim}))
 
     def info(self, text: str) -> None:
         self.events.append(("info", {"text": text}))

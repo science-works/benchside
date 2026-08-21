@@ -41,6 +41,12 @@ class UI:
     def header(self, text: str) -> None:
         self._renderer.header(text)
 
+    def section(self, title: str, *, meta: str | None = None) -> None:
+        self._renderer.section(title, meta=meta)
+
+    def block(self, text: str, *, dim: bool = False) -> None:
+        self._renderer.block(text, dim=dim)
+
     def info(self, text: str) -> None:
         self._renderer.info(text)
 

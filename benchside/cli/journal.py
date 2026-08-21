@@ -49,27 +49,51 @@ def cmd_journal(args) -> int:
     return 0
 
 
+def _plural(n: int, word: str, plural: str | None = None) -> str:
+    return f"{n} {word if n == 1 else (plural or word + 's')}"
+
+
 def _show(ui: UI, project, sittings) -> None:
+    """The dashboard: what is claimed, what stands against it, what was decided."""
     ui.header(project.title)
-    current = project.current_hypothesis
-    if current:
-        ui.info(f"hypothesis  {current.statement}")
-    else:
-        ui.warn("no hypothesis on the table yet")
 
     open_critiques = [c for c in project.critiques if c.is_open]
     ui.detail(
-        f"{len(project.hypotheses)} hypotheses · "
-        f"{len(project.critiques)} critiques ({len(open_critiques)} open) · "
-        f"{len(project.decisions)} decisions · {len(sittings)} sittings"
+        "  ·  ".join(
+            [
+                _plural(len(project.hypotheses), "hypothesis", "hypotheses"),
+                f"{_plural(len(project.critiques), 'critique')} ({len(open_critiques)} open)",
+                _plural(len(project.decisions), "decision"),
+                _plural(len(sittings), "sitting"),
+            ]
+        )
     )
-    for critique in open_critiques:
-        ui.warn(f"open: {_target_line(critique.target)}")
-    for decision in project.decisions[-3:]:
-        ui.detail(f"decided: {decision.decision} — {decision.rationale}")
+
+    current = project.current_hypothesis
+    if current:
+        ui.section("hypothesis", meta=current.id)
+        ui.block(current.statement)
+    else:
+        ui.warn("no hypothesis on the table yet")
+
     live = [s for s in sittings if s.state.kind not in ("converged", "abandoned")]
-    for sitting in live:
-        ui.warn(f"sitting {sitting.id} is still open ({sitting.state.kind})")
+    if open_critiques or live:
+        ui.section("needs attention")
+        for critique in open_critiques:
+            ui.warn(f"{critique.id}  {_target_line(critique.target)}")
+        for sitting in live:
+            ui.warn(f"sitting {sitting.id} is still open ({sitting.state.kind})")
+    else:
+        ui.section("standing")
+        ui.success("all critiques settled; no sitting left open")
+
+    if project.decisions:
+        decision = project.decisions[-1]
+        ui.section("latest decision", meta=decision.id)
+        ui.block(decision.decision)
+        ui.block(f"because — {decision.rationale}", dim=True)
+        if len(project.decisions) > 1:
+            ui.detail(f"({len(project.decisions) - 1} earlier — bench journal decisions)")
 
 
 def _sittings(ui: UI, sittings) -> None:

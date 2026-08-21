@@ -73,3 +73,30 @@ class TestRecordingRenderer:
         ui.error("b", hint="h")
         assert [event for event, _ in recorder.events] == ["info", "error"]
         assert recorder.events[1][1]["hint"] == "h"
+
+
+class TestSectionAndBlock:
+    def test_section_with_meta(self):
+        ui, buffer = make_plain()
+        ui.section("hypothesis", meta="h-6f8316")
+        assert buffer.getvalue() == "\nHYPOTHESIS  h-6f8316\n"
+
+    def test_block_wraps_on_word_boundaries_with_gutter(self):
+        ui, buffer = make_plain()
+        ui.block(
+            "Under a metabolic cost on voltage, a freely-optimized v1 trajectory "
+            "becomes spike-like only when it must satisfy two setpoints requiring "
+            "opposite sides of threshold; with either setpoint alone the optimum is smooth."
+        )
+        lines = buffer.getvalue().splitlines()
+        assert all(line.startswith("│ ") for line in lines)
+        assert all(len(line) <= 78 for line in lines)
+        # no mid-word breaks: every line ends at a word boundary
+        words = " ".join(line[2:] for line in lines).split()
+        assert "freely-optimized" in words and "spike-like" in words
+
+    def test_block_never_splits_long_tokens(self):
+        ui, buffer = make_plain()
+        ui.block("id " + "x" * 120)
+        joined = "".join(line[2:] for line in buffer.getvalue().splitlines())
+        assert "x" * 120 in joined
