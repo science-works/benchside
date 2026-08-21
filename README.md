@@ -1,275 +1,241 @@
-# benchside
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img src="docs/assets/logo-light.svg" alt="benchside" width="110">
+  </picture>
 
-An AI workspace for doing science, delivered as a suite of Claude Code skills.
+  <h1>benchside</h1>
 
-Each skill simulates a role or ritual from real scientific practice — a supervisor
-meeting, an adversarial review, designing an experiment with a specialist. The
-scientist stays in charge throughout; the personas recommend, they never decide.
+  <p><b>An AI workspace for doing science.</b></p>
 
-There is a second product underneath the first. While a scientist works, benchside
-builds a structured record of where the scientific workflow broke down: missing
-tooling, dead ends, manual toil, data that couldn't be found. Those observations
-show a science-policy nonprofit where new tools are needed. **Sharing them is
-opt-in, revocable, and nothing leaves the machine without an explicit grant.**
+  <p>
+    Claude&nbsp;Code skills that simulate the roles and rituals of real scientific practice —<br>
+    a supervisor meeting, an adversarial review, an experiment co-designed with a specialist.<br>
+    <i>The scientist stays sovereign: personas recommend, they never decide.</i>
+  </p>
 
-> **Status: greenfield.** The domain model and its wiring are built and tested;
-> no skill runs yet. See [Current state](#current-state).
+  <p>
+    <img alt="Python 3.13+" src="https://img.shields.io/badge/python-3.13%2B-4dd0e1?style=flat-square">
+    <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-8b949e?style=flat-square">
+    <img alt="Development" src="https://img.shields.io/badge/TDD-strict-0e7c86?style=flat-square">
+    <img alt="Status" src="https://img.shields.io/badge/status-prototype-f0a832?style=flat-square">
+  </p>
+
+  <p>
+    <a href="#quick-start">Quick start</a> ·
+    <a href="#the-skills">Skills</a> ·
+    <a href="#the-bench-cli">CLI</a> ·
+    <a href="#architecture">Architecture</a> ·
+    <a href="#your-data">Your data</a> ·
+    <a href="#development">Development</a>
+  </p>
+</div>
 
 ---
+
+## Two products, one workspace
+
+**A colleague on demand.** Invoke `/pi` and get a supervisor meeting: what's the actual question,
+what would change your mind, what's the cheapest experiment that could kill your hypothesis.
+The conversation is prose; the *record* is typed — every hypothesis, critique, decision, and
+resolution lands in an append-only journal that the next sitting remembers.
+
+**A map of where science breaks.** While you work, benchside captures the *shape* of workflow
+breakdowns — a tool that doesn't exist, data that can't be found, work done by hand for the
+tenth time. These gap observations help a science-policy nonprofit see where new tools are
+needed. They stay on your machine unless you explicitly, revocably consent to share.
+
+<div align="center">
+  <img src="docs/assets/journal-show.svg" alt="bench journal show — the project record rendered in the terminal" width="760">
+  <br>
+  <sub><code>bench journal show</code> — the record of a project, as the terminal renders it</sub>
+</div>
+
+## Quick start
+
+```bash
+# 1. install the CLI (uv manages python for you)
+uv tool install git+https://github.com/science-works/benchside
+
+# 2. once per machine: install the /bench-init skill
+bench setup
+
+# 3. in your research project directory
+bench init          # or run /bench-init inside a Claude session
+
+# 4. open Claude Code and start a sitting
+❯ /pi
+```
+
+`bench init` writes three things, with your consent: `.bench/config.yaml` (project identity),
+two session hooks in `.claude/settings.json` (memory injection + transcript archival), and the
+`/pi` skill into `.claude/skills/`.
 
 ## The skills
 
-| Skill | What it is |
-|---|---|
-| `/pi` | A supervisor meeting. Direction, priorities, "what's the actual question?" |
-| `/reviewer-2` | An adversarial critic. Finds the flaw you hoped nobody would. |
-| `/exp-design <specialty>` | Co-designing an experiment with a named collaborator archetype, e.g. `bioinformatician`. |
+| Skill | What it is | Status |
+|---|---|---|
+| **`/pi`** | A supervisor meeting — direction, priorities, *"what's the actual question?"* | ✅ working |
+| **`/reviewer-2`** | An adversarial critic. Finds the flaw you hoped nobody would. | 🔜 planned |
+| **`/exp-design <specialty>`** | Co-design an experiment with a collaborator archetype, e.g. `bioinformatician` | 🔜 planned |
 
-Skills are **generated artifacts, not hand-written files**. Each is compiled from a
-persona record plus shared prose blocks, so adding a new specialist means adding a
-data file rather than writing a new skill by hand.
+Skills are **compiled, not hand-written**: a persona is a data record — its stance, voice,
+forcing questions, failure modes, and conversation *flow* — and `bench compile` renders it
+into a skill. The persona's eval rubric is **derived from its declared failure modes**, so a
+persona can never have a rubric that tests something it wasn't built to do. Adding a
+specialist means adding a YAML file.
+
+<details>
+<summary><b>What a persona declares</b> — <code>content/personas/pi.yaml</code></summary>
+<br>
+
+- **Flow** — ordered phases (*context → actual question → pressure → priorities*), each with
+  a goal, guidance, what it must capture, and a prose exit condition
+- **Forcing questions** — each with *ask*, *push until you hear*, and *red flags* that mark a dodge
+- **Failure modes** — cheerleading, methods-before-question, overriding the scientist,
+  tolerating "characterise X"… each doubles as a judge-rubric criterion
+- **Close requirements** — a sitting cannot close *converged* without, e.g., a recorded
+  hypothesis. Snapshotted into the journal at open, so editing the persona never rewrites
+  history.
+
+</details>
 
 ## The `bench` CLI
 
-One binary, two faces. Skills shell out to it mid-conversation; you and CI use it
-at build time.
+One binary, two audiences. The **capture verbs are the model's surface** — flat, terse,
+validated; the model says what happened, the CLI decides what's valid (ids, timestamps,
+state transitions, close requirements). The **journal is yours** — structured, glyphed,
+readable.
 
-```
-# get set up
-bench setup                                    one-time: install the /bench-init skill
-bench init                                     initialize this directory as a project
-
-# manage the sitting
-bench sitting open|status|close
-
-# record what happened (the model's mid-sitting hot path — deliberately flat)
-bench hypothesis|critique|resolve|decide|gap ...
-
-# query the record
-bench journal show|sittings|hypotheses|critiques|decisions|gaps|events
-bench recall                                   what a persona reads on arrival
-
-# sharing (consent + export, one place)
-bench share status|grant|revoke|preview|send
-
-# dev
-bench compile [--check]                        personas + templates -> skills/
+```text
+setup, init, project, compile     get set up (machine, then per project)
+sitting open|status|close         manage the current sitting
+hypothesis, critique, resolve,
+decide, gap                       record what happened (used mid-sitting)
+journal <view>                    query the record: show · sittings · hypotheses
+                                  · critiques · decisions · gaps · events
+share <action>                    consent, preview, and export
+recall                            what a persona reads on arrival
 ```
 
----
+A converged close is **refused** until the sitting's requirements are met — you cannot
+cleanly finish a sitting you never recorded. That refusal, not prompt engineering, is what
+keeps the journal honest.
 
 ## Architecture
 
-### The four components
+Hexagonal, domain-driven, event-sourced — and the domain layer has no I/O and no LLM calls,
+so all of it tests in under two seconds without an API key.
 
-1. **The Python package** (`benchside/`) — layered internally: domain, application,
-   infrastructure, CLI. One deployable unit with a strict import direction.
-2. **The `bench` CLI** (`benchside/cli/`) — the only entry point, and the only
-   writer to on-disk state. That is what makes the consent chokepoint enforceable
-   in one place.
-3. **Content** (`content/`) — persona records, templates, eval fixtures. Data with
-   no logic; the package validates it.
-4. **Generated skills** (`skills/`) — the compiled output Claude Code loads.
-   Regenerable at any time, freshness-gated in CI, never edited by hand.
-
-Runtime state lives on the scientist's machine under `~/.local/share/benchside/`, owned by the
-storage adapter and never in this repo.
-
-### Layers
-
-Dependencies point inward. Nothing in `domain/` imports from `infrastructure/`,
-`application/`, or `cli/`.
-
-```
+```text
 cli/  ──────────▶  application/  ──────────▶  domain/  ◀──────  infrastructure/
 (entry points)     (composition root)         (pure)            (port impls)
 ```
 
-The domain layer has no I/O and no LLM calls, so it is fully testable without an
-API key. The skill surface is an adapter, which means the same `/pi` logic is
-reachable from a skill, a CLI, or a test harness.
+| Bounded context | Owns |
+|---|---|
+| **`consultation`** | `Project` (the durable thread: hypotheses, critiques, decisions) and `Consultation` (one sitting: the state machine `Framing → Probing → Challenged → Converged \| Abandoned`) |
+| **`authoring`** | Personas, flows, templates; compilation into skills and derived judge rubrics |
+| **`export`** | Consent ledger, redaction, preview — the single path off the machine |
+| **`shared`** | Typed ids, the gap taxonomy, the `Journal` port, base classes |
 
-### The domains
+<details>
+<summary><b>Key design decisions</b></summary>
+<br>
 
-Four bounded contexts under `benchside/domain/`:
+- **The journal is the source of truth.** Every durable fact is an append-only event in a
+  per-project JSONL stream. Aggregates are folds; "active" state is always computed, never a
+  mutable flag. Corrections supersede; history is never rewritten.
+- **Conversations are prose; the record is typed.** The skill calls `bench` at transitions,
+  so evals become journal queries instead of paid LLM judgments over transcripts — and the
+  insight pipeline is structured *by construction*.
+- **Illegal states are unrepresentable.** Consultation state is a sum type. A critique must
+  name its target — claim, method step, or interpretation — and method flaws come from a
+  closed taxonomy (`missing_control`, `confound`, `under_powered`, `pseudoreplication`,
+  `selection_bias`, `unvalidated_instrument`) that the planted-flaw eval fixtures are built from.
+- **Hooks are plumbing, never meaning.** SessionStart injects the project's memory into
+  Claude's context deterministically; SessionEnd archives the transcript and retires session
+  pointers. All semantic capture stays in explicit `bench` calls.
+- **Ports are domain-owned; adapters are plumbing.** A JSONL file store is never a domain.
+- **DI via [Dishka](https://github.com/reagento/dishka)**, scopes `APP → UOW`: one `bench`
+  invocation is one unit of work. Tests substitute fakes by appending providers.
 
-**`consultation`** — everything that happens when a scientist meets a persona. Two
-aggregates, split by lifetime:
+</details>
 
-- `Project` — the **durable** thread. Owns hypotheses and their supersession chain,
-  critiques and their resolutions, and decisions with rationale. This is what a
-  scientist means by "my work on X."
-- `Consultation` — one **episode**. Owns only the state machine
-  (`Framing → Probing → Challenged → Converged | Abandoned`) and references its
-  project by id.
+<details>
+<summary><b>Per-domain layout</b></summary>
+<br>
 
-The service keeps them in step: raising a critique mutates the project, then
-reconciles the sitting's state against the project's open-critique set. A sitting
-cannot converge while a critique is open.
-
-**`authoring`** — personas, templates, and compilation into skills and judge
-rubrics. Build-time only. A persona's rubric is *derived* from its declared failure
-modes rather than written separately, so a persona cannot have a rubric that tests
-something it was not built to do.
-
-**`export`** — consent, redaction, preview, and the single path off the machine.
-Separate from `consultation` on purpose: the authority governing what leaves must
-not live inside the code that wants to send it.
-
-**`shared`** — the kernel: typed ids, the `Gap` taxonomy, the `Journal` port, and
-the base classes (`Aggregate`, `Service`, `Command`/`Query`/`Result`, `Event`).
-
-### Per-domain layout
-
-Every domain has the same shape:
-
-```
+```text
 <domain>/
   model/      aggregates, entities, value objects — pure, no I/O
   command/    write side: one file per use case (Command DTO + Result + Handler)
   query/      read side: same shape, must not mutate
   event/      journal events
-  port/       Protocol interfaces (repositories, external services)
-  service/    business logic, injected into handlers
+  port/       Protocol interfaces
+  service/    business logic
   util/di/    this domain's Dishka provider
 ```
 
-There is deliberately **no `adapter/`** inside a domain — implementations live in
-`benchside/infrastructure/`. And no `api/`: domains are protocol-agnostic.
+No `adapter/` inside a domain (implementations live in `infrastructure/`), no `api/`
+(domains are protocol-agnostic). The call chain is uniform:
+`CLI → Handler → Service → Port`.
 
-The call chain is uniform:
+</details>
 
-```
-CLI → CommandHandler → Service → Port
-                               → Journal
-```
+## Your data
 
-Handlers are thin (unpack, one service call, build a result) and never touch a port
-directly.
+Everything lives in <code>~/.local/share/benchside/</code> — journals, transcripts, all of it.
 
----
+- **Local-first.** Nothing leaves your machine without an explicit, revocable grant
+  (`bench share grant`). The default export sink *refuses to send* — the default wiring
+  cannot leak.
+- **The shared unit is a typed gap**, never research content: what you were trying to do,
+  what you reached for, why it failed. Hypotheses, results, and data are structurally absent
+  from the export schema.
+- **The preview is the payload.** `bench share preview` prints the *exact bytes* an export
+  would send. Consent is an event-sourced ledger — grants, revocations, and a content-free
+  record (ids + sha256) of everything that ever left.
 
-## Key design decisions
+## Testing
 
-**The journal is the source of truth.** Every durable fact is an append-only event
-in a per-project stream. Aggregates are folds over that stream; "active" state is
-always computed, never stored as a mutable flag. Corrections are new events that
-supersede old ones — history is never rewritten.
+Three tiers, because skill behaviour is only fully verifiable by running a model — which is
+slow and paid, so most tests must not do that:
 
-**Conversations are prose; the record is typed.** The persona talks to the
-scientist in natural language, but at each transition the skill calls `bench` to
-emit a typed event. That makes evals cheap (query the journal instead of paying an
-LLM judge to read a transcript) and makes the insight pipeline structured *by
-construction* rather than by later summarisation.
+1. **Free static tests** — domain, adapters, CLI, persona validity, compiled-skill freshness.
+   Seconds, no API key, every commit. Strict TDD: red tests precede every fix and feature.
+2. **LLM-judge evals** — does `/pi` press, or does it cheerlead? Scored against rubrics
+   generated from the persona's own failure modes. Cheap, sampled.
+3. **End-to-end** — real Claude sessions, reserved for guardrails (nothing shared without
+   consent) and golden paths.
 
-**Illegal states are unrepresentable.** Consultation state is a sum type, not four
-booleans. A critique must name its target — a claim, a method step, or an
-interpretation — and there is no generic "concern" variant. Method flaws come from
-a closed taxonomy (`missing_control`, `confound`, `under_powered`,
-`pseudoreplication`, `selection_bias`, `unvalidated_instrument`), which is also
-what the planted-flaw eval fixtures are built from.
-
-**Ports are domain-owned; adapters are plumbing.** A JSONL file store is never a
-domain. The `Journal` interface lives in the shared kernel because both
-`consultation` and `export` need it; the thing that opens a file and appends a line
-lives in `infrastructure/`.
-
-**Dependency injection via [Dishka](https://github.com/reagento/dishka).** Scopes
-are `APP → UOW` — benchside is a CLI, so one `bench` invocation is one unit of
-work. Domain providers bind services and handlers; infrastructure providers bind
-ports to implementations via `provides=`. `create_container(*extra_providers)`
-lets tests substitute fakes, since later providers override earlier ones. The
-graph is validated eagerly, so a missing binding fails at startup rather than at
-first use.
-
-## The insight pipeline
-
-Treated as a subsystem with its own boundary, not as logging bolted onto the skills.
-
-- **Local-first.** Observations are written to the scientist's machine. Nothing
-  leaves without an explicit, revocable opt-in.
-- **The shared unit is a typed gap**, captured when it happens: what the scientist
-  was trying to do, what they reached for, why it failed. Never raw research
-  content, hypotheses, or data.
-- **Consent is an event ledger**, not a config flag. Grants and revocations are
-  events; the active grant is computed by folding them. Revocation is meaningful
-  because the ledger records exactly what left and when.
-- **The preview is the payload.** `bench share preview` renders the literal
-  bytes that would be sent, for the scientist to read before deciding. Redaction
-  scans those same bytes — never a string that is then re-rendered.
-- The default export sink **refuses to send**. The default wiring cannot leak.
-
----
-
-## Repository layout
-
-```
-benchside/            the package
-├── domain/           consultation, authoring, export, shared
-├── application/      di.py — the composition root
-├── infrastructure/   port implementations (currently in-memory placeholders)
-├── cli/              the `bench` entry point
-└── util/di/          Provider base and Scope
-content/
-├── personas/         persona records
-├── templates/        skill templates and shared blocks
-└── fixtures/         planted-flaw study designs for evals
-skills/               generated — do not edit
-tests/
-```
-
-`gstack/` is an untracked clone of [gstack](https://github.com/garrytan/gstack),
-kept as a reference for the skill-suite form factor. It is never edited, never
-committed, and is not a dependency.
-
-## Testing posture
-
-Three tiers, because skill behaviour is only fully verifiable by running a model —
-which is slow and paid, so most tests must not do that.
-
-1. **Free static tests** — the domain model, persona record validity, generated
-   skills matching their sources. Seconds, no API key, every change.
-2. **LLM-judge evals** — does `/reviewer-2` actually produce a hard critique rather
-   than praise? Cheap, sampled, scored against rubrics generated from the persona.
-3. **End-to-end** — the skill invoked through a real Claude Code session. Slowest
-   and priciest; reserved for guardrails (nothing shared without consent) and a few
-   golden paths.
-
-A persona skill with no eval is unverified, not merely untested.
+> A persona with no eval is unverified, not merely untested.
 
 ## Development
 
-Requires Python ≥3.13 and [uv](https://docs.astral.sh/uv/).
-
 ```bash
-uv sync              # create the venv and install dependencies
-uv run pytest        # run the test suite
+uv sync                          # venv + deps
+uv run pytest                    # the free tier — run before every commit
 uv run ruff check benchside
-uv run ruff format benchside
+uv run bench compile --check     # compiled skills must match their sources
 ```
 
-## Current state
+`gstack/` (if present, untracked) is a reference clone of
+[gstack](https://github.com/garrytan/gstack) — the skill-suite form factor benchside learns
+from. Never edited, never committed, not a dependency.
 
-Built and verified:
+## Status
 
-- All four domains, with model, ports, services, commands, queries, events, and DI
-  providers.
-- The full consultation flow — open, state a hypothesis, raise and resolve a
-  critique, record a decision, capture a gap, close — with the aggregate correctly
-  refusing to converge while a critique is open.
-- The consent gate: export raises before touching anything when no grant is active.
-- Rubric derivation from a persona's failure modes.
+The `/pi` vertical slice works end to end: persona compilation, sittings with enforced
+capture, session hooks with memory injection and transcript archival, journal views, and
+consent-gated export (preview-only — the real sink and redaction engine are next, along
+with `/reviewer-2` and the eval tiers 2–3).
 
-Not built yet:
+---
 
-- Every port is bound to an **in-memory placeholder**, so nothing persists. The
-  JSONL journal, the content loader, and the redaction engine are the next
-  adapters.
-- The CLI raises `NotImplementedError`.
-- Skill compilation is scaffolded but the renderer is not written, so `skills/` is
-  empty.
-- `content/` holds no personas, templates, or fixtures yet.
-
-## Licence
-
-Apache 2.0. See [LICENSE](LICENSE).
+<div align="center">
+  <sub>
+    Apache 2.0 · built with <a href="https://claude.com/claude-code">Claude Code</a> ·
+    a <a href="https://github.com/science-works">science-works</a> project
+  </sub>
+</div>
