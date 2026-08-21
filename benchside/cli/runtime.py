@@ -115,43 +115,62 @@ def write_pointer(paths: Paths, *, sitting_id: str, project_id: ProjectId, perso
     )
 
 
-def clear_pointer(paths: Paths) -> None:
-    pointer = pointer_dir(paths) / f"{session_name()}.json"
-    pointer.unlink(missing_ok=True)
-
-
-def read_pointer(paths: Paths) -> dict | None:
-    """Resolve the active sitting: env override, this session's pointer, or a
-    single unambiguous live pointer left by another session."""
-    override = os.environ.get("BENCH_SITTING")
+def clear_pointer(paths: Paths, sitting_id: str) -> None:
+    """Remove whichever live pointer references the sitting — not blindly this
+    session's, so cross-project cleanup via BENCH_SITTING clears the right one."""
     directory = pointer_dir(paths)
-    pointers = sorted(directory.glob("*.json")) if directory.is_dir() else []
+    for path in sorted(directory.glob("*.json")) if directory.is_dir() else []:
+        try:
+            if json.loads(path.read_text(encoding="utf-8")).get("sitting_id") == sitting_id:
+                path.unlink(missing_ok=True)
+        except (OSError, json.JSONDecodeError):
+            continue
+
+
+def live_pointers(paths: Paths) -> list[dict]:
+    directory = pointer_dir(paths)
     records = []
-    for path in pointers:
+    for path in sorted(directory.glob("*.json")) if directory.is_dir() else []:
         try:
             records.append(json.loads(path.read_text(encoding="utf-8")))
         except (OSError, json.JSONDecodeError):
             continue
+    return records
+
+
+def read_pointer(paths: Paths, project_id: ProjectId | None = None) -> dict | None:
+    """Resolve the active sitting FOR THIS PROJECT.
+
+    Sittings belong to projects; a pointer left behind by another project must
+    never be adopted (regression: /pi opened in the wrong directory bled into
+    the next project's session). Order: BENCH_SITTING env override (explicit,
+    allowed cross-project so stranded sittings can be cleaned up), then this
+    session's pointer, then a single unambiguous live pointer — the latter two
+    only when they match the current project.
+    """
+    override = os.environ.get("BENCH_SITTING")
+    records = live_pointers(paths)
     if override:
         for record in records:
             if record.get("sitting_id") == override:
                 return record
         return {"sitting_id": override, "project_id": None}
-    mine = directory / f"{session_name()}.json"
-    if mine.is_file():
-        for record in records:
-            if record.get("session") == session_name():
-                return record
+    if project_id is not None:
+        records = [r for r in records if r.get("project_id") == project_id.root]
+    for record in records:
+        if record.get("session") == session_name():
+            return record
     if len(records) == 1:
         return records[0]
     return None
 
 
-def require_pointer(paths: Paths) -> dict:
-    record = read_pointer(paths)
+def require_pointer(paths: Paths, project_id: ProjectId | None = None) -> dict:
+    record = read_pointer(paths, project_id)
     if record is None:
+        where = f" for project '{project_id.root}'" if project_id is not None else ""
         raise NoOpenSittingError(
-            "No open sitting. Start one with `bench open --persona <id>` "
+            f"No open sitting{where}. Start one with `bench open --persona <id>` "
             "(or set BENCH_SITTING to an existing sitting id)."
         )
     return record

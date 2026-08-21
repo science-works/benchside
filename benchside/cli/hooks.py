@@ -50,6 +50,8 @@ def _session_start(payload: dict) -> None:
     lines += recall if recall else ["No recorded history yet."]
 
     for record in _retired_pointers(paths):
+        if record.get("project_id") != project_id.root:
+            continue  # another project's business; never surface it here
         lines.append(
             f"A sitting from an earlier session is still open: {record['sitting_id']} "
             f"(persona {record.get('persona_id', '?')}). Resume it by exporting "

@@ -164,6 +164,16 @@ def cmd_open(args) -> int:
 
     paths = runtime.current_paths()
     project_id = runtime.resolve_project(args.project)
+    for record in runtime.live_pointers(paths):
+        if (
+            record.get("session") == runtime.session_name()
+            and record.get("project_id") == project_id.root
+        ):
+            raise BenchsideError(
+                f"A sitting is already open for this project: {record['sitting_id']}. "
+                f"Resume it (it is this session's active sitting) or close it first "
+                f"with `bench close`."
+            )
     container, uow = _uow()
     with container, uow:
         persona = uow.get(AuthoringService).get(PersonaId(args.persona))
@@ -185,7 +195,7 @@ def cmd_open(args) -> int:
 def cmd_hypothesis(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
-    pointer = runtime.require_pointer(runtime.current_paths())
+    pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     hypothesis_id = runtime.short_id("h")
     container, uow = _uow()
     with container, uow:
@@ -208,7 +218,7 @@ def cmd_critique(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
     target = _build_target(args, TargetsClaim, TargetsMethod, TargetsInterpretation)
-    pointer = runtime.require_pointer(runtime.current_paths())
+    pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     critique_id = runtime.short_id("k")
     container, uow = _uow()
     with container, uow:
@@ -239,7 +249,7 @@ def _require(args, *names: str) -> None:
 def cmd_resolve(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
-    pointer = runtime.require_pointer(runtime.current_paths())
+    pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     container, uow = _uow()
     with container, uow:
         project = uow.get(ConsultationService).resolve_critique(
@@ -254,7 +264,7 @@ def cmd_resolve(args) -> int:
 def cmd_decide(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
-    pointer = runtime.require_pointer(runtime.current_paths())
+    pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     decision_id = runtime.short_id("d")
     container, uow = _uow()
     with container, uow:
@@ -291,7 +301,7 @@ def cmd_gap(args) -> int:
         "dead_end": lambda: DeadEnd(approach=args.approach, cost=args.cost),
         "missing_index": lambda: MissingIndex(question=args.question),
     }[args.kind]()
-    pointer = runtime.require_pointer(runtime.current_paths())
+    pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     observation_id = runtime.short_id("o")
     container, uow = _uow()
     with container, uow:
@@ -305,7 +315,7 @@ def cmd_gap(args) -> int:
 def cmd_status(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
-    pointer = runtime.require_pointer(runtime.current_paths())
+    pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     container, uow = _uow()
     with container, uow:
         service = uow.get(ConsultationService)
@@ -341,7 +351,7 @@ def cmd_close(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
     paths = runtime.current_paths()
-    pointer = runtime.require_pointer(paths)
+    pointer = runtime.require_pointer(paths, runtime.resolve_project(None))
     container, uow = _uow()
     with container, uow:
         sitting = uow.get(ConsultationService).close(
@@ -349,7 +359,7 @@ def cmd_close(args) -> int:
             converged=args.converged,
             detail=args.outcome,
         )
-    runtime.clear_pointer(paths)
+    runtime.clear_pointer(paths, sitting.id)
     print(f"sitting {sitting.id} closed: {sitting.state.kind}")
     return 0
 
