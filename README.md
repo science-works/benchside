@@ -29,13 +29,6 @@ ask the record what happened.
   <img src="docs/assets/journal-show.svg" alt="bench journal show" width="740">
 </div>
 
-There's a second thing going on: while you work, benchside notes where your
-workflow broke — a tool that doesn't exist, data you couldn't find, something
-you did by hand for the tenth time. Those gap observations help a
-science-policy nonprofit figure out what's missing. **They never leave your
-machine unless you explicitly consent**, and you can see the exact bytes
-before anything is sent.
-
 ## Install
 
 ```bash
@@ -87,9 +80,9 @@ CLI, not by hoping the prompt works.
 ## Data
 
 Everything lives in `~/.local/share/benchside/` — journals, transcripts, the
-consent ledger. Sharing is off by default and the default export sink refuses
-to send even if asked. `bench share preview` shows you exactly what an export
-would contain: gap shapes only, never hypotheses, results, or data.
+consent ledger. Nothing is shared anywhere by default; the export sink
+refuses to send even if asked. If you do opt in with `bench share grant`,
+`bench share preview` shows the exact bytes an export would contain.
 
 ## Development
 
