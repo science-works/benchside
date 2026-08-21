@@ -15,15 +15,20 @@
   </p>
 </div>
 
-benchside gives you Claude Code skills that act like the people and rituals of
-real scientific practice. `/pi` is a supervisor meeting: what's the actual
-question, what would change your mind, what's the cheapest experiment that
-could kill your hypothesis. The persona recommends; you decide.
+benchside turns conversations with AI colleagues into a durable scientific
+record. You think out loud; the parts worth keeping become structured data
+that your next conversation remembers and you can query.
 
-The conversation is just conversation — but the record is real. Every
-hypothesis, critique, decision, and dead end lands as a typed event in a local
-journal, so the next sitting picks up where you left off, and you can always
-ask the record what happened.
+Four pieces make that work:
+
+- **Personas** — Claude Code skills that play a role from real practice.
+  `/pi` is a supervisor meeting; an adversarial reviewer and an
+  experiment-design partner are planned.
+- **Sittings** — one conversation with one persona.
+- **The journal** — the typed, append-only record every sitting writes.
+  Local, per project.
+- **Export** — the only path off your machine. Opt-in, previewable, and off
+  by default.
 
 <div align="center">
   <img src="docs/assets/journal-show.svg" alt="bench journal show" width="740">
@@ -47,20 +52,59 @@ bench init     # or run /bench-init inside a Claude session
 hooks (memory injection, transcript archival), and the `/pi` skill. After
 that, open Claude Code and type `/pi`.
 
-## Skills
+## Sittings
 
-| Skill | What it is | |
-|---|---|---|
-| `/pi` | A supervisor meeting | works |
-| `/reviewer-2` | An adversarial critic | planned |
-| `/exp-design <specialty>` | Experiment co-design with a specialist | planned |
+A sitting is one conversation with one persona.
 
-Personas are YAML records — stance, voice, forcing questions, failure modes,
-a conversation flow — compiled to skills with `bench compile`. Adding a
-specialist is adding a file. See [ARCHITECTURE.md](ARCHITECTURE.md) for how
-the rubric derivation and capture enforcement hang together.
+- The persona opens it, records into it, and closes it — you talk, it runs
+  the `bench` commands.
+- A sitting ends **converged** (you agreed a next step) or **abandoned**.
+- Each persona declares what a sitting must capture before it can converge.
+  `/pi` won't close converged without a recorded hypothesis — enforced by
+  the CLI, not by hoping the prompt works.
+- Nothing is lost if you `/clear` or close the terminal: the sitting stays
+  open in the journal, and your next session is told about it.
 
-## CLI
+## The journal
+
+Each project gets an append-only journal at
+`~/.local/share/benchside/projects/<id>/`. Five kinds of things get recorded:
+
+| Entry | What it holds |
+|---|---|
+| **hypothesis** | a falsifiable statement; may supersede an earlier one |
+| **critique** | a challenge, always aimed at something specific — a claim, a method step, or an interpretation — plus how it was resolved |
+| **decision** | a durable call and the *reason* for it, so it isn't re-litigated next month |
+| **gap** | a place your workflow broke: missing tool, unfindable data, manual toil, dead end, missing index |
+| **sitting** | when it opened, which persona, how it ended |
+
+Query it any time:
+
+```bash
+bench journal show          # the dashboard: current hypothesis, open critiques, latest decision
+bench journal hypotheses    # the supersession chain
+bench journal critiques     # what's open, what was resolved and how
+bench journal decisions
+bench journal events        # the raw stream (--json for machines)
+```
+
+Every new Claude session starts with the current state — hypothesis, open
+questions, recent decisions — injected automatically. That's the point: the
+persona remembers your project, not just your last message.
+
+## Export
+
+Sharing is a separate, deliberate act:
+
+- Off by default. The default export sink refuses to send even if asked.
+- Only **gap** entries are exportable. The export schema has no field for
+  hypotheses, results, or data.
+- `bench share grant` opts in (revocable); `bench share preview` shows the
+  exact bytes an export would send; `bench share send` sends them.
+- Every export is recorded in a local ledger: what left, when, under which
+  grant.
+
+## CLI at a glance
 
 ```text
 setup, init, project, compile     get set up
@@ -72,18 +116,6 @@ share <action>                    consent, preview, export
 recall                            what a persona reads on arrival
 ```
 
-The capture verbs are mostly called by the model during a sitting; `journal`
-and `share` are for you. A sitting can't close as "converged" until it has
-actually recorded what the persona was there to get — that's enforced by the
-CLI, not by hoping the prompt works.
-
-## Data
-
-Everything lives in `~/.local/share/benchside/` — journals, transcripts, the
-consent ledger. Nothing is shared anywhere by default; the export sink
-refuses to send even if asked. If you do opt in with `bench share grant`,
-`bench share preview` shows the exact bytes an export would contain.
-
 ## Development
 
 ```bash
@@ -93,10 +125,11 @@ uv run ruff check benchside
 uv run bench compile --check     # compiled skills must match their sources
 ```
 
-The project is strict TDD — red test first, including for bug fixes. Design
-rationale lives in [ARCHITECTURE.md](ARCHITECTURE.md). `gstack/`, if you see
-it locally, is an untracked reference clone of
-[gstack](https://github.com/garrytan/gstack); it's not a dependency.
+Personas are YAML records compiled to skills — adding one is adding a file.
+The project is strict TDD; design rationale lives in
+[ARCHITECTURE.md](ARCHITECTURE.md). `gstack/`, if you see it locally, is an
+untracked reference clone of [gstack](https://github.com/garrytan/gstack),
+not a dependency.
 
 ## License
 
