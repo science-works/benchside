@@ -77,6 +77,7 @@ def _show(ui: UI, project, sittings) -> None:
     else:
         ui.warn("no hypothesis on the table yet")
 
+    ui.info("")
     live = [s for s in sittings if s.state.kind not in ("converged", "abandoned")]
     if open_critiques or live:
         ui.section("needs attention")
@@ -89,6 +90,7 @@ def _show(ui: UI, project, sittings) -> None:
         ui.success("all critiques settled; no sitting left open")
 
     if project.decisions:
+        ui.info("")
         decision = project.decisions[-1]
         ui.section("latest decision", meta=decision.id)
         ui.block(decision.decision)
