@@ -68,6 +68,7 @@ def _show(ui: UI, project, sittings) -> None:
             ]
         )
     )
+    ui.info("")
 
     current = project.current_hypothesis
     if current:

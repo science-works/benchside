@@ -1,4 +1,4 @@
-<svg class="rich-terminal" viewBox="0 0 1092 391.59999999999997" xmlns="http://www.w3.org/2000/svg">
+<svg class="rich-terminal" viewBox="0 0 1141 513.5999999999999" xmlns="http://www.w3.org/2000/svg">
     <!-- Generated with Rich https://www.textualize.io -->
     <style>
 
@@ -19,96 +19,116 @@
         font-weight: 700;
     }
 
-    .terminal-2011118169-matrix {
+    .terminal-3207291699-matrix {
         font-family: Fira Code, monospace;
         font-size: 20px;
         line-height: 24.4px;
         font-variant-east-asian: full-width;
     }
 
-    .terminal-2011118169-title {
+    .terminal-3207291699-title {
         font-size: 18px;
         font-weight: bold;
         font-family: arial;
     }
 
-    .terminal-2011118169-r1 { fill: #c5c8c6;font-weight: bold }
-.terminal-2011118169-r2 { fill: #c5c8c6 }
-.terminal-2011118169-r3 { fill: #868887 }
-.terminal-2011118169-r4 { fill: #68a0b3;font-weight: bold }
-.terminal-2011118169-r5 { fill: #4e707b }
-.terminal-2011118169-r6 { fill: #d0b344 }
+    .terminal-3207291699-r1 { fill: #c5c8c6 }
+.terminal-3207291699-r2 { fill: #c5c8c6;font-weight: bold }
+.terminal-3207291699-r3 { fill: #868887 }
+.terminal-3207291699-r4 { fill: #68a0b3;font-weight: bold }
+.terminal-3207291699-r5 { fill: #4e707b }
+.terminal-3207291699-r6 { fill: #d0b344 }
     </style>
 
     <defs>
-    <clipPath id="terminal-2011118169-clip-terminal">
-      <rect x="0" y="0" width="1072.6" height="340.59999999999997" />
+    <clipPath id="terminal-3207291699-clip-terminal">
+      <rect x="0" y="0" width="1121.3999999999999" height="462.59999999999997" />
     </clipPath>
-    <clipPath id="terminal-2011118169-line-0">
-    <rect x="0" y="1.5" width="1073.6" height="24.65"/>
+    <clipPath id="terminal-3207291699-line-0">
+    <rect x="0" y="1.5" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-1">
-    <rect x="0" y="25.9" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-1">
+    <rect x="0" y="25.9" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-2">
-    <rect x="0" y="50.3" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-2">
+    <rect x="0" y="50.3" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-3">
-    <rect x="0" y="74.7" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-3">
+    <rect x="0" y="74.7" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-4">
-    <rect x="0" y="99.1" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-4">
+    <rect x="0" y="99.1" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-5">
-    <rect x="0" y="123.5" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-5">
+    <rect x="0" y="123.5" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-6">
-    <rect x="0" y="147.9" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-6">
+    <rect x="0" y="147.9" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-7">
-    <rect x="0" y="172.3" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-7">
+    <rect x="0" y="172.3" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-8">
-    <rect x="0" y="196.7" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-8">
+    <rect x="0" y="196.7" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-9">
-    <rect x="0" y="221.1" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-9">
+    <rect x="0" y="221.1" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-10">
-    <rect x="0" y="245.5" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-10">
+    <rect x="0" y="245.5" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-11">
-    <rect x="0" y="269.9" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-11">
+    <rect x="0" y="269.9" width="1122.4" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2011118169-line-12">
-    <rect x="0" y="294.3" width="1073.6" height="24.65"/>
+<clipPath id="terminal-3207291699-line-12">
+    <rect x="0" y="294.3" width="1122.4" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-3207291699-line-13">
+    <rect x="0" y="318.7" width="1122.4" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-3207291699-line-14">
+    <rect x="0" y="343.1" width="1122.4" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-3207291699-line-15">
+    <rect x="0" y="367.5" width="1122.4" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-3207291699-line-16">
+    <rect x="0" y="391.9" width="1122.4" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-3207291699-line-17">
+    <rect x="0" y="416.3" width="1122.4" height="24.65"/>
             </clipPath>
     </defs>
 
-    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="1090" height="389.6" rx="8"/><text class="terminal-2011118169-title" fill="#c5c8c6" text-anchor="middle" x="545" y="27">bench&#160;journal&#160;show</text>
+    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="1139" height="511.6" rx="8"/><text class="terminal-3207291699-title" fill="#c5c8c6" text-anchor="middle" x="569" y="27">bench&#160;journal&#160;show</text>
             <g transform="translate(26,22)">
             <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
             <circle cx="22" cy="0" r="7" fill="#febc2e"/>
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
         
-    <g transform="translate(9, 41)" clip-path="url(#terminal-2011118169-clip-terminal)">
+    <g transform="translate(9, 41)" clip-path="url(#terminal-3207291699-clip-terminal)">
     
-    <g class="terminal-2011118169-matrix">
-    <text class="terminal-2011118169-r1" x="0" y="20" textLength="97.6" clip-path="url(#terminal-2011118169-line-0)">demo-lab</text><text class="terminal-2011118169-r3" x="109.8" y="20" textLength="963.8" clip-path="url(#terminal-2011118169-line-0)">───────────────────────────────────────────────────────────────────────────────</text><text class="terminal-2011118169-r2" x="1073.6" y="20" textLength="12.2" clip-path="url(#terminal-2011118169-line-0)">
-</text><text class="terminal-2011118169-r3" x="0" y="44.4" textLength="841.8" clip-path="url(#terminal-2011118169-line-1)">&#160;&#160;2&#160;hypotheses&#160;&#160;·&#160;&#160;3&#160;critiques&#160;(1&#160;open)&#160;&#160;·&#160;&#160;1&#160;decision&#160;&#160;·&#160;&#160;2&#160;sittings</text><text class="terminal-2011118169-r2" x="1073.6" y="44.4" textLength="12.2" clip-path="url(#terminal-2011118169-line-1)">
-</text><text class="terminal-2011118169-r2" x="1073.6" y="68.8" textLength="12.2" clip-path="url(#terminal-2011118169-line-2)">
-</text><text class="terminal-2011118169-r4" x="0" y="93.2" textLength="536.8" clip-path="url(#terminal-2011118169-line-3)">HYPOTHESIS&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-2011118169-r5" x="536.8" y="93.2" textLength="536.8" clip-path="url(#terminal-2011118169-line-3)">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;h-4c21e9a0</text><text class="terminal-2011118169-r2" x="1073.6" y="93.2" textLength="12.2" clip-path="url(#terminal-2011118169-line-3)">
-</text><text class="terminal-2011118169-r5" x="0" y="117.6" textLength="24.4" clip-path="url(#terminal-2011118169-line-4)">│&#160;</text><text class="terminal-2011118169-r2" x="24.4" y="117.6" textLength="1024.8" clip-path="url(#terminal-2011118169-line-4)">CHD7&#160;knockdown&#160;slows&#160;neural&#160;crest&#160;migration&#160;by&#160;disrupting&#160;cell&#160;polarity,&#160;rather&#160;than</text><text class="terminal-2011118169-r2" x="1073.6" y="117.6" textLength="12.2" clip-path="url(#terminal-2011118169-line-4)">
-</text><text class="terminal-2011118169-r5" x="0" y="142" textLength="24.4" clip-path="url(#terminal-2011118169-line-5)">│&#160;</text><text class="terminal-2011118169-r2" x="24.4" y="142" textLength="317.2" clip-path="url(#terminal-2011118169-line-5)">by&#160;reducing&#160;proliferation.</text><text class="terminal-2011118169-r2" x="1073.6" y="142" textLength="12.2" clip-path="url(#terminal-2011118169-line-5)">
-</text><text class="terminal-2011118169-r2" x="1073.6" y="166.4" textLength="12.2" clip-path="url(#terminal-2011118169-line-6)">
-</text><text class="terminal-2011118169-r4" x="0" y="190.8" textLength="1012.6" clip-path="url(#terminal-2011118169-line-7)">NEEDS&#160;ATTENTION&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-2011118169-r2" x="1073.6" y="190.8" textLength="12.2" clip-path="url(#terminal-2011118169-line-7)">
-</text><text class="terminal-2011118169-r6" x="0" y="215.2" textLength="1037" clip-path="url(#terminal-2011118169-line-8)">⚠&#160;k-b3f81d22&#160;&#160;method&#160;(missing_control):&#160;migration&#160;assay&#160;lacks&#160;a&#160;batch-matched&#160;control</text><text class="terminal-2011118169-r2" x="1073.6" y="215.2" textLength="12.2" clip-path="url(#terminal-2011118169-line-8)">
-</text><text class="terminal-2011118169-r2" x="1073.6" y="239.6" textLength="12.2" clip-path="url(#terminal-2011118169-line-9)">
-</text><text class="terminal-2011118169-r4" x="0" y="264" textLength="646.6" clip-path="url(#terminal-2011118169-line-10)">LATEST&#160;DECISION&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-2011118169-r5" x="646.6" y="264" textLength="427" clip-path="url(#terminal-2011118169-line-10)">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;d-77a90c15</text><text class="terminal-2011118169-r2" x="1073.6" y="264" textLength="12.2" clip-path="url(#terminal-2011118169-line-10)">
-</text><text class="terminal-2011118169-r5" x="0" y="288.4" textLength="24.4" clip-path="url(#terminal-2011118169-line-11)">│&#160;</text><text class="terminal-2011118169-r2" x="24.4" y="288.4" textLength="793" clip-path="url(#terminal-2011118169-line-11)">Run&#160;the&#160;batch-matched&#160;migration&#160;assay&#160;before&#160;any&#160;further&#160;imaging.</text><text class="terminal-2011118169-r2" x="1073.6" y="288.4" textLength="12.2" clip-path="url(#terminal-2011118169-line-11)">
-</text><text class="terminal-2011118169-r5" x="0" y="312.8" textLength="24.4" clip-path="url(#terminal-2011118169-line-12)">│&#160;</text><text class="terminal-2011118169-r3" x="24.4" y="312.8" textLength="1000.4" clip-path="url(#terminal-2011118169-line-12)">because&#160;—&#160;it&#160;is&#160;the&#160;cheapest&#160;experiment&#160;that&#160;distinguishes&#160;the&#160;polarity&#160;hypothesis</text><text class="terminal-2011118169-r2" x="1073.6" y="312.8" textLength="12.2" clip-path="url(#terminal-2011118169-line-12)">
-</text><text class="terminal-2011118169-r5" x="0" y="337.2" textLength="24.4" clip-path="url(#terminal-2011118169-line-13)">│&#160;</text><text class="terminal-2011118169-r3" x="24.4" y="337.2" textLength="427" clip-path="url(#terminal-2011118169-line-13)">from&#160;the&#160;proliferation&#160;alternative.</text><text class="terminal-2011118169-r2" x="1073.6" y="337.2" textLength="12.2" clip-path="url(#terminal-2011118169-line-13)">
+    <g class="terminal-3207291699-matrix">
+    <text class="terminal-3207291699-r1" x="1122.4" y="20" textLength="12.2" clip-path="url(#terminal-3207291699-line-0)">
+</text><text class="terminal-3207291699-r2" x="0" y="44.4" textLength="97.6" clip-path="url(#terminal-3207291699-line-1)">demo-lab</text><text class="terminal-3207291699-r3" x="109.8" y="44.4" textLength="1012.6" clip-path="url(#terminal-3207291699-line-1)">───────────────────────────────────────────────────────────────────────────────────</text><text class="terminal-3207291699-r1" x="1122.4" y="44.4" textLength="12.2" clip-path="url(#terminal-3207291699-line-1)">
+</text><text class="terminal-3207291699-r3" x="0" y="68.8" textLength="841.8" clip-path="url(#terminal-3207291699-line-2)">&#160;&#160;2&#160;hypotheses&#160;&#160;·&#160;&#160;3&#160;critiques&#160;(1&#160;open)&#160;&#160;·&#160;&#160;1&#160;decision&#160;&#160;·&#160;&#160;2&#160;sittings</text><text class="terminal-3207291699-r1" x="1122.4" y="68.8" textLength="12.2" clip-path="url(#terminal-3207291699-line-2)">
+</text><text class="terminal-3207291699-r1" x="1122.4" y="93.2" textLength="12.2" clip-path="url(#terminal-3207291699-line-3)">
+</text><text class="terminal-3207291699-r1" x="1122.4" y="117.6" textLength="12.2" clip-path="url(#terminal-3207291699-line-4)">
+</text><text class="terminal-3207291699-r4" x="0" y="142" textLength="561.2" clip-path="url(#terminal-3207291699-line-5)">HYPOTHESIS&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3207291699-r5" x="561.2" y="142" textLength="561.2" clip-path="url(#terminal-3207291699-line-5)">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;h-4c21e9a0</text><text class="terminal-3207291699-r1" x="1122.4" y="142" textLength="12.2" clip-path="url(#terminal-3207291699-line-5)">
+</text><text class="terminal-3207291699-r5" x="0" y="166.4" textLength="24.4" clip-path="url(#terminal-3207291699-line-6)">│&#160;</text><text class="terminal-3207291699-r1" x="24.4" y="166.4" textLength="1061.4" clip-path="url(#terminal-3207291699-line-6)">CHD7&#160;knockdown&#160;slows&#160;neural&#160;crest&#160;migration&#160;by&#160;disrupting&#160;cell&#160;polarity,&#160;rather&#160;than&#160;by</text><text class="terminal-3207291699-r1" x="1122.4" y="166.4" textLength="12.2" clip-path="url(#terminal-3207291699-line-6)">
+</text><text class="terminal-3207291699-r5" x="0" y="190.8" textLength="24.4" clip-path="url(#terminal-3207291699-line-7)">│&#160;</text><text class="terminal-3207291699-r1" x="24.4" y="190.8" textLength="280.6" clip-path="url(#terminal-3207291699-line-7)">reducing&#160;proliferation.</text><text class="terminal-3207291699-r1" x="1122.4" y="190.8" textLength="12.2" clip-path="url(#terminal-3207291699-line-7)">
+</text><text class="terminal-3207291699-r1" x="1122.4" y="215.2" textLength="12.2" clip-path="url(#terminal-3207291699-line-8)">
+</text><text class="terminal-3207291699-r1" x="1122.4" y="239.6" textLength="12.2" clip-path="url(#terminal-3207291699-line-9)">
+</text><text class="terminal-3207291699-r4" x="0" y="264" textLength="1061.4" clip-path="url(#terminal-3207291699-line-10)">NEEDS&#160;ATTENTION&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3207291699-r1" x="1122.4" y="264" textLength="12.2" clip-path="url(#terminal-3207291699-line-10)">
+</text><text class="terminal-3207291699-r6" x="0" y="288.4" textLength="1037" clip-path="url(#terminal-3207291699-line-11)">⚠&#160;k-b3f81d22&#160;&#160;method&#160;(missing_control):&#160;migration&#160;assay&#160;lacks&#160;a&#160;batch-matched&#160;control</text><text class="terminal-3207291699-r1" x="1122.4" y="288.4" textLength="12.2" clip-path="url(#terminal-3207291699-line-11)">
+</text><text class="terminal-3207291699-r1" x="1122.4" y="312.8" textLength="12.2" clip-path="url(#terminal-3207291699-line-12)">
+</text><text class="terminal-3207291699-r1" x="1122.4" y="337.2" textLength="12.2" clip-path="url(#terminal-3207291699-line-13)">
+</text><text class="terminal-3207291699-r4" x="0" y="361.6" textLength="683.2" clip-path="url(#terminal-3207291699-line-14)">LATEST&#160;DECISION&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3207291699-r5" x="683.2" y="361.6" textLength="439.2" clip-path="url(#terminal-3207291699-line-14)">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;d-77a90c15</text><text class="terminal-3207291699-r1" x="1122.4" y="361.6" textLength="12.2" clip-path="url(#terminal-3207291699-line-14)">
+</text><text class="terminal-3207291699-r5" x="0" y="386" textLength="24.4" clip-path="url(#terminal-3207291699-line-15)">│&#160;</text><text class="terminal-3207291699-r1" x="24.4" y="386" textLength="793" clip-path="url(#terminal-3207291699-line-15)">Run&#160;the&#160;batch-matched&#160;migration&#160;assay&#160;before&#160;any&#160;further&#160;imaging.</text><text class="terminal-3207291699-r1" x="1122.4" y="386" textLength="12.2" clip-path="url(#terminal-3207291699-line-15)">
+</text><text class="terminal-3207291699-r5" x="0" y="410.4" textLength="24.4" clip-path="url(#terminal-3207291699-line-16)">│&#160;</text><text class="terminal-3207291699-r3" x="24.4" y="410.4" textLength="1061.4" clip-path="url(#terminal-3207291699-line-16)">because&#160;—&#160;it&#160;is&#160;the&#160;cheapest&#160;experiment&#160;that&#160;distinguishes&#160;the&#160;polarity&#160;hypothesis&#160;from</text><text class="terminal-3207291699-r1" x="1122.4" y="410.4" textLength="12.2" clip-path="url(#terminal-3207291699-line-16)">
+</text><text class="terminal-3207291699-r5" x="0" y="434.8" textLength="24.4" clip-path="url(#terminal-3207291699-line-17)">│&#160;</text><text class="terminal-3207291699-r3" x="24.4" y="434.8" textLength="366" clip-path="url(#terminal-3207291699-line-17)">the&#160;proliferation&#160;alternative.</text><text class="terminal-3207291699-r1" x="1122.4" y="434.8" textLength="12.2" clip-path="url(#terminal-3207291699-line-17)">
+</text><text class="terminal-3207291699-r1" x="1122.4" y="459.2" textLength="12.2" clip-path="url(#terminal-3207291699-line-18)">
 </text>
     </g>
     </g>
