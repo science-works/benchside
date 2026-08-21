@@ -55,7 +55,7 @@ def _session_start(payload: dict) -> None:
         lines.append(
             f"A sitting from an earlier session is still open: {record['sitting_id']} "
             f"(persona {record.get('persona_id', '?')}). Resume it by exporting "
-            f"BENCH_SITTING={record['sitting_id']}, or close it with bench close."
+            f"BENCH_SITTING={record['sitting_id']}, or close it with bench sitting close."
         )
     print("\n".join(lines))
 

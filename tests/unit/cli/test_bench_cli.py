@@ -72,7 +72,7 @@ class TestProjectResolution:
 class TestSittingLifecycle:
     def test_open_prints_marker_and_creates_pointer(self, env):
         run, home, _ = env
-        code, out = run("open", "--persona", "pi")
+        code, out = run("sitting", "open", "--persona", "pi")
         assert code == 0
         assert "<bench-sitting:" in out
         pointers = list((home / "sessions").glob("*.json"))
@@ -82,13 +82,13 @@ class TestSittingLifecycle:
         run, _, _ = env
         code, out = run("hypothesis", "CHD7 loss reduces migration")
         assert code != 0
-        assert "bench open" in out, "error must tell the model what to do next"
+        assert "bench sitting open" in out, "error must tell the model what to do next"
 
     def test_full_sitting_flow_with_close_enforcement(self, env):
         run, _, _ = env
-        run("open", "--persona", "pi")
+        run("sitting", "open", "--persona", "pi")
 
-        code, out = run("close", "--converged", "--outcome", "done")
+        code, out = run("sitting", "close", "--converged", "--outcome", "done")
         assert code != 0, "converged close with no hypothesis must be refused"
         assert "hypothesis" in out
 
@@ -99,15 +99,15 @@ class TestSittingLifecycle:
             "critique", "--target", "method", "--step", "qPCR", "--flaw", "confound"
         )
         assert code == 0
-        critique_id = json.loads(run("status", "--json")[1])["open_critiques"][0]
+        critique_id = json.loads(run("sitting", "status", "--json")[1])["open_critiques"][0]
 
-        code, out = run("close", "--converged", "--outcome", "done")
+        code, out = run("sitting", "close", "--converged", "--outcome", "done")
         assert code != 0, "cannot converge with an open critique"
 
         code, out = run("resolve", critique_id, "--as", "design_revised")
         assert code == 0
 
-        code, out = run("close", "--converged", "--outcome", "add batch control")
+        code, out = run("sitting", "close", "--converged", "--outcome", "add batch control")
         assert code == 0
 
         code, out = run("recall")
@@ -116,7 +116,7 @@ class TestSittingLifecycle:
 
     def test_invalid_flaw_lists_the_taxonomy(self, env):
         run, _, _ = env
-        run("open", "--persona", "pi")
+        run("sitting", "open", "--persona", "pi")
         run("hypothesis", "H")
         code, out = run(
             "critique", "--target", "method", "--step", "s", "--flaw", "confund"
@@ -128,19 +128,57 @@ class TestSittingLifecycle:
 class TestGapAndConsent:
     def test_gap_capture_and_consent_gated_export(self, env):
         run, _, _ = env
-        run("open", "--persona", "pi")
+        run("sitting", "open", "--persona", "pi")
         code, _ = run(
             "gap", "missing_index", "--question", "has this assay been run on this organism?"
         )
         assert code == 0
 
-        code, out = run("export")
+        code, out = run("share", "send")
         assert code != 0
         assert "consent" in out.lower()
 
-        code, _ = run("consent", "grant", "--kinds", "missing_index")
+        code, _ = run("share", "grant", "--kinds", "missing_index")
         assert code == 0
-        code, out = run("export", "--preview")
+        code, out = run("share", "preview")
         assert code == 0
         assert "has this assay been run" in out
         assert "redaction" in out.lower(), "preview must label redaction status"
+
+
+class TestJournalViews:
+    def test_journal_show_summarises_the_record(self, env):
+        run, _, _ = env
+        run("sitting", "open", "--persona", "pi")
+        run("hypothesis", "H1 original")
+        run("hypothesis", "H2 refined")
+        run("decide", "do X", "--because", "cheapest")
+        code, out = run("journal", "show")
+        assert code == 0
+        assert "H2 refined" in out and "do X" in out
+
+    def test_journal_hypotheses_marks_supersession(self, env):
+        run, _, _ = env
+        run("sitting", "open", "--persona", "pi")
+        _, out = run("hypothesis", "H1 original")
+        h1 = out.split("recorded: ")[1].strip()
+        run("hypothesis", "H2 refined", "--supersedes", h1)
+        code, out = run("journal", "hypotheses")
+        assert code == 0
+        assert "superseded" in out.lower()
+
+    def test_journal_events_lists_the_stream(self, env):
+        run, _, _ = env
+        run("sitting", "open", "--persona", "pi")
+        run("hypothesis", "H1")
+        code, out = run("journal", "events")
+        assert code == 0
+        assert "ConsultationOpened" in out and "HypothesisStated" in out
+
+    def test_journal_requires_init(self, env, tmp_path, monkeypatch):
+        run, _, _ = env
+        outside = tmp_path / "uninited"
+        outside.mkdir()
+        monkeypatch.chdir(outside)
+        code, out = run("journal", "show")
+        assert code != 0 and "bench init" in out

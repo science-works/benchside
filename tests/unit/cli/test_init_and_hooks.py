@@ -109,7 +109,7 @@ class TestHooks:
     def test_session_start_injects_recall(self, env):
         run, _, project_dir = env
         run("init", "--yes")
-        run("open", "--persona", "pi")
+        run("sitting", "open", "--persona", "pi")
         run("hypothesis", "CHD7 loss reduces migration")
         code, out = run(
             "hook", "session-start", stdin=self.hook_stdin(project_dir, source="startup")
@@ -120,7 +120,7 @@ class TestHooks:
     def test_session_end_archives_transcript_and_retires_pointer(self, env, tmp_path):
         run, home, project_dir = env
         run("init", "--yes")
-        run("open", "--persona", "pi")
+        run("sitting", "open", "--persona", "pi")
 
         transcript = tmp_path / "transcript.jsonl"
         transcript.write_text('{"role":"user"}\n')

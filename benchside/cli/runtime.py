@@ -192,7 +192,7 @@ def require_pointer(paths: Paths, project_id: ProjectId | None = None) -> dict:
     if record is None:
         where = f" for project '{project_id.root}'" if project_id is not None else ""
         raise NoOpenSittingError(
-            f"No open sitting{where}. Start one with `bench open --persona <id>` "
+            f"No open sitting{where}. Start one with `bench sitting open --persona <id>` "
             "(or set BENCH_SITTING to an existing sitting id)."
         )
     return record

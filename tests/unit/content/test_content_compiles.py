@@ -62,6 +62,6 @@ class TestPiPersona:
     def test_skill_body_carries_the_contract(self):
         body = compile_pi()
         assert "bench hypothesis" in body, "capture obligations must be explicit"
-        assert "bench close" in body
+        assert "bench sitting close" in body
         assert "bench gap" in body, "gap capture must be instructed"
         assert "recommend" in body.lower(), "user sovereignty must be stated"

@@ -71,7 +71,7 @@ flow:
       guidance: >
         Recall for this project is injected at session start — open from it,
         don't re-ask what you already know. If a sitting is not yet open, run
-        `bench open --persona pi` first. Ask what has moved since last time.
+        `bench sitting open --persona pi` first. Ask what has moved since last time.
         One question at a time; wait for the answer.
       exit_when: You can restate their current situation in one sentence and they agree with it.
     - id: actual-question

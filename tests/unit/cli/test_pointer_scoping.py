@@ -55,7 +55,7 @@ def open_in_wrong_dir_then_move(run, wrong, right, monkeypatch):
     reopen Claude (new session id) in the right dir."""
     monkeypatch.setenv("CLAUDE_SESSION_ID", "session-1")
     monkeypatch.chdir(wrong)
-    code, _ = run("open", "--persona", "pi")
+    code, _ = run("sitting", "open", "--persona", "pi")
     assert code == 0
     monkeypatch.setenv("CLAUDE_SESSION_ID", "session-2")
     monkeypatch.chdir(right)
@@ -66,7 +66,7 @@ class TestProjectScopedPointers:
         run, _, wrong, right, monkeypatch = env
         open_in_wrong_dir_then_move(run, wrong, right, monkeypatch)
 
-        code, out = run("status")
+        code, out = run("sitting", "status")
         assert code != 0, "another project's sitting must not be adopted"
         assert "No open sitting" in out
 
@@ -74,13 +74,13 @@ class TestProjectScopedPointers:
         run, _, wrong, right, monkeypatch = env
         open_in_wrong_dir_then_move(run, wrong, right, monkeypatch)
 
-        code, out = run("open", "--persona", "pi")
+        code, out = run("sitting", "open", "--persona", "pi")
         assert code == 0
 
     def test_captures_never_bleed_into_the_foreign_journal(self, env):
         run, home, wrong, right, monkeypatch = env
         open_in_wrong_dir_then_move(run, wrong, right, monkeypatch)
-        run("open", "--persona", "pi")
+        run("sitting", "open", "--persona", "pi")
         code, _ = run("hypothesis", "recorded in the right project")
         assert code == 0
 
@@ -93,8 +93,8 @@ class TestProjectScopedPointers:
         run, _, _, right, monkeypatch = env
         monkeypatch.setenv("CLAUDE_SESSION_ID", "session-1")
         monkeypatch.chdir(right)
-        run("open", "--persona", "pi")
-        code, out = run("open", "--persona", "pi")
+        run("sitting", "open", "--persona", "pi")
+        code, out = run("sitting", "open", "--persona", "pi")
         assert code != 0
         assert "already open" in out and ("close" in out or "resume" in out)
 
@@ -105,5 +105,5 @@ class TestProjectScopedPointers:
             next((home / "sessions").glob("session-1.json")).read_text()
         )
         monkeypatch.setenv("BENCH_SITTING", pointer["sitting_id"])
-        code, out = run("close", "--abandoned", "--outcome", "opened in wrong directory")
+        code, out = run("sitting", "close", "--abandoned", "--outcome", "opened in wrong directory")
         assert code == 0, "explicit BENCH_SITTING must allow cross-project cleanup"

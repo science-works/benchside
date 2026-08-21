@@ -24,7 +24,7 @@ You are initializing benchside for the scientist's current project directory.
    - `.claude/skills/pi/SKILL.md` — the /pi supervisor persona
    And the data guarantee: **everything stays on this machine** under
    `~/.local/share/benchside/`. Nothing is ever shared without an explicit, revocable
-   `bench consent grant`, and `bench export --preview` always shows the exact
+   `bench share grant`, and `bench share preview` always shows the exact
    bytes before anything leaves.
 
 ## Ask, then act

@@ -49,11 +49,11 @@ class TestInitRequired:
     @pytest.mark.parametrize(
         "argv",
         [
-            ("open", "--persona", "pi"),
+            ("sitting", "open", "--persona", "pi"),
             ("hypothesis", "X causes Y"),
-            ("status",),
+            ("sitting", "status"),
             ("recall",),
-            ("close", "--abandoned", "--outcome", "n/a"),
+            ("sitting", "close", "--abandoned", "--outcome", "n/a"),
         ],
     )
     def test_project_commands_refuse_without_init(self, env, argv):
@@ -65,20 +65,20 @@ class TestInitRequired:
     def test_open_works_after_init(self, env):
         run, _, _ = env
         assert run("init", "--yes")[0] == 0
-        code, _ = run("open", "--persona", "pi")
+        code, _ = run("sitting", "open", "--persona", "pi")
         assert code == 0
 
     def test_bench_sitting_override_bypasses_guard_for_cleanup(self, env):
         run, workdir, monkeypatch = env
         run("init", "--yes")
-        _, out = run("open", "--persona", "pi")
+        _, out = run("sitting", "open", "--persona", "pi")
         sitting_id = out.split("<bench-sitting:")[1].split(">")[0]
 
         elsewhere = workdir.parent / "uninited"
         elsewhere.mkdir()
         monkeypatch.chdir(elsewhere)
         monkeypatch.setenv("BENCH_SITTING", sitting_id)
-        code, _ = run("close", "--abandoned", "--outcome", "cleanup from elsewhere")
+        code, _ = run("sitting", "close", "--abandoned", "--outcome", "cleanup from elsewhere")
         assert code == 0
 
 

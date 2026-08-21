@@ -35,16 +35,25 @@ One binary, two faces. Skills shell out to it mid-conversation; you and CI use i
 at build time.
 
 ```
-# runtime — called from skill bash blocks
-bench consultation open|critique|resolve|close    record what happened in a sitting
-bench recall <project>                            what the persona reads on arrival
-bench gap capture                                 record a workflow breakdown
-bench consent grant|revoke|status                 govern sharing
-bench export --preview                            render the exact bytes an export would send
+# get set up
+bench setup                                    one-time: install the /bench-init skill
+bench init                                     initialize this directory as a project
 
-# dev — called by contributors and CI
-bench compile                                     personas + templates -> skills/ and judge rubrics
-bench check                                       freshness and validation dashboard
+# manage the sitting
+bench sitting open|status|close
+
+# record what happened (the model's mid-sitting hot path — deliberately flat)
+bench hypothesis|critique|resolve|decide|gap ...
+
+# query the record
+bench journal show|sittings|hypotheses|critiques|decisions|gaps|events
+bench recall                                   what a persona reads on arrival
+
+# sharing (consent + export, one place)
+bench share status|grant|revoke|preview|send
+
+# dev
+bench compile [--check]                        personas + templates -> skills/
 ```
 
 ---
@@ -185,7 +194,7 @@ Treated as a subsystem with its own boundary, not as logging bolted onto the ski
 - **Consent is an event ledger**, not a config flag. Grants and revocations are
   events; the active grant is computed by folding them. Revocation is meaningful
   because the ledger records exactly what left and when.
-- **The preview is the payload.** `bench export --preview` renders the literal
+- **The preview is the payload.** `bench share preview` renders the literal
   bytes that would be sent, for the scientist to read before deciding. Redaction
   scans those same bytes — never a string that is then re-rendered.
 - The default export sink **refuses to send**. The default wiring cannot leak.
