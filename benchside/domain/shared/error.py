@@ -8,10 +8,11 @@ found" at a repository boundary and nothing else.
 class BenchsideError(Exception):
     """Root of every error benchside raises deliberately."""
 
-    def __init__(self, message: str, *, code: str | None = None) -> None:
+    def __init__(self, message: str, *, code: str | None = None, hint: str | None = None) -> None:
         super().__init__(message)
         self.message = message
         self.code = code or type(self).__name__
+        self.hint = hint
 
 
 class DomainError(BenchsideError):

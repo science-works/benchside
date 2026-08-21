@@ -16,6 +16,7 @@ import sys
 
 from benchside.application.di import create_container
 from benchside.cli import runtime
+from benchside.cli.ui import UI
 from benchside.domain.consultation.model.value import MethodFlaw, Resolution
 from benchside.domain.shared.error import BenchsideError
 from benchside.domain.shared.model.capture import CaptureKind
@@ -33,10 +34,11 @@ def main(argv: list[str] | None = None) -> int:
     if not hasattr(args, "run"):
         parser.print_help()
         return 2
+    args.ui = UI.create()
     try:
         return args.run(args)
     except BenchsideError as err:
-        print(f"error: {err.message}", file=sys.stderr)
+        args.ui.error(err.message, hint=err.hint)
         return 1
 
 
@@ -206,7 +208,7 @@ def cmd_project(args) -> int:
     if args.json:
         print(json.dumps({"project_id": project_id.root}))
     else:
-        print(f"project: {project_id.root}")
+        args.ui.info(f"project: {project_id.root}")
     return 0
 
 
@@ -240,8 +242,8 @@ def cmd_open(args) -> int:
     runtime.write_pointer(
         paths, sitting_id=sitting_id, project_id=project_id, persona_id=persona.id.root
     )
-    print(f"Sitting open with /{persona.id.root} on project '{project_id.root}'.")
-    print(f"<bench-sitting:{sitting_id}>")
+    args.ui.success(f"Sitting open with /{persona.id.root} on project '{project_id.root}'")
+    print(f"<bench-sitting:{sitting_id}>")  # stdout: machine-recoverable marker
     return 0
 
 
@@ -259,7 +261,7 @@ def cmd_hypothesis(args) -> int:
             statement=args.statement,
             supersedes=args.supersedes,
         )
-    print(f"hypothesis recorded: {hypothesis_id}")
+    args.ui.success(f"hypothesis recorded: {hypothesis_id}")
     return 0
 
 
@@ -280,7 +282,7 @@ def cmd_critique(args) -> int:
         project = uow.get(ConsultationService).raise_critique(
             consultation_id=pointer["sitting_id"], critique_id=critique_id, target=target
         )
-    print(f"critique recorded: {critique_id} ({len(project.open_critiques)} open)")
+    args.ui.success(f"critique recorded: {critique_id} ({len(project.open_critiques)} open)")
     return 0
 
 
@@ -313,7 +315,7 @@ def cmd_resolve(args) -> int:
             critique_id=args.critique_id,
             resolution=Resolution(args.resolution),
         )
-    print(f"critique {args.critique_id} settled ({len(project.open_critiques)} open)")
+    args.ui.success(f"critique {args.critique_id} settled ({len(project.open_critiques)} open)")
     return 0
 
 
@@ -332,7 +334,7 @@ def cmd_decide(args) -> int:
             rationale=args.because,
             supersedes=args.supersedes,
         )
-    print(f"decision recorded: {decision_id}")
+    args.ui.success(f"decision recorded: {decision_id}")
     return 0
 
 
@@ -366,9 +368,8 @@ def cmd_gap(args) -> int:
         uow.get(ConsultationService).capture_gap(
             consultation_id=pointer["sitting_id"], observation_id=observation_id, gap=gap
         )
-    print(
-        f"gap recorded locally: {observation_id} ({args.kind}). Shared only via bench share grant."
-    )
+    args.ui.success(f"gap recorded locally: {observation_id} ({args.kind})")
+    args.ui.detail("stays on this machine; shared only via bench share grant")
     return 0
 
 
@@ -396,15 +397,21 @@ def cmd_status(args) -> int:
     if args.json:
         print(json.dumps(payload))
     else:
-        parts = []
+        args.ui.info(f"sitting {sitting.id}: {sitting.state.kind}")
         for r in payload["requirements"]:
             have = counts.get(CaptureKind(r["kind"]), 0)
-            parts.append(f"{r['kind']} ✓" if r["met"] else f"{r['kind']} {have}/{r['minimum']}")
-        reqs = ", ".join(parts) or "none"
-        print(
-            f"sitting {sitting.id}: {sitting.state.kind}; requirements: {reqs}; "
-            f"open critiques: {len(payload['open_critiques'])}"
-        )
+            line = f"{r['kind']} ({have}/{r['minimum']})"
+            if r["met"]:
+                args.ui.success(f"requirement met: {line}")
+            else:
+                args.ui.warn(f"requirement unmet: {line}")
+        open_ids = payload["open_critiques"]
+        if open_ids:
+            args.ui.warn(f"{len(open_ids)} critique(s) still open")
+            for cid in open_ids:
+                args.ui.detail(cid)
+        else:
+            args.ui.detail("no open critiques")
     return 0
 
 
@@ -422,7 +429,7 @@ def cmd_close(args) -> int:
             detail=args.outcome,
         )
     runtime.clear_pointer(paths, sitting.id)
-    print(f"sitting {sitting.id} closed: {sitting.state.kind}")
+    args.ui.success(f"sitting {sitting.id} closed: {sitting.state.kind}")
     return 0
 
 
@@ -445,17 +452,17 @@ def cmd_recall(args) -> int:
         and not recall.open_questions
         and not recall.last_sitting_state
     ):
-        print(f"project '{project_id.root}': no recorded history yet")
+        args.ui.info(f"project '{project_id.root}': no recorded history yet")
         return 0
-    print(f"project '{recall.title}':")
+    args.ui.info(f"project '{recall.title}'")
     if recall.current_hypothesis:
-        print(f"  current hypothesis: {recall.current_hypothesis}")
+        args.ui.detail(f"current hypothesis: {recall.current_hypothesis}")
     for q in recall.open_questions:
-        print(f"  open: {q}")
+        args.ui.warn(f"open: {q}")
     for d in recall.recent_decisions:
-        print(f"  decided: {d.decision} — {d.rationale}")
+        args.ui.detail(f"decided: {d.decision} — {d.rationale}")
     if recall.last_sitting_state:
-        print(f"  last sitting: {recall.last_sitting_state}")
+        args.ui.detail(f"last sitting: {recall.last_sitting_state}")
     return 0
 
 
@@ -470,9 +477,11 @@ def cmd_share_status(args) -> int:
     with container, uow:
         grant = _consent_service(uow).active_grant()
     if grant is None:
-        print("sharing: no consent granted; all observations stay local")
+        args.ui.info("sharing: no consent granted; all observations stay local")
     else:
-        print(f"sharing: consent active ({grant.id}) for {', '.join(sorted(grant.gap_kinds))}")
+        args.ui.success(
+            f"sharing: consent active ({grant.id}) for {', '.join(sorted(grant.gap_kinds))}"
+        )
     return 0
 
 
@@ -481,7 +490,7 @@ def cmd_share_grant(args) -> int:
     with container, uow:
         kinds = frozenset(k.strip() for k in args.kinds.split(","))
         grant = _consent_service(uow).grant(grant_id=runtime.short_id("g"), gap_kinds=kinds)
-    print(f"consent granted ({grant.id}) for: {', '.join(sorted(grant.gap_kinds))}")
+    args.ui.success(f"consent granted ({grant.id}) for: {', '.join(sorted(grant.gap_kinds))}")
     return 0
 
 
@@ -489,7 +498,7 @@ def cmd_share_revoke(args) -> int:
     container, uow = _uow()
     with container, uow:
         revoked = _consent_service(uow).revoke()
-    print(f"consent revoked ({revoked.id}); nothing further will be shared")
+    args.ui.success(f"consent revoked ({revoked.id}); nothing further will be shared")
     return 0
 
 
@@ -499,14 +508,14 @@ def cmd_share_preview(args) -> int:
     container, uow = _uow()
     with container, uow:
         preview = uow.get(ExportService).preview()
-    print("=== export preview: the EXACT bytes an export would send ===")
-    print(preview.payload)
-    print(
-        f"=== observations included: {len(preview.observation_ids)}; "
-        f"withheld (not covered by consent): {len(preview.withheld)} ==="
+    args.ui.info("export preview — the EXACT bytes an export would send follow on stdout:")
+    print(preview.payload)  # stdout: pipeable payload, nothing else
+    args.ui.detail(
+        f"observations included: {len(preview.observation_ids)}; "
+        f"withheld (not covered by consent): {len(preview.withheld)}"
     )
     findings = "; ".join(preview.redaction_findings) or "none flagged"
-    print(f"=== redaction: passthrough engine (v0 placeholder); findings: {findings} ===")
+    args.ui.warn(f"redaction: passthrough engine (v0 placeholder); findings: {findings}")
     return 0
 
 
@@ -516,7 +525,7 @@ def cmd_share_send(args) -> int:
     container, uow = _uow()
     with container, uow:
         record = uow.get(ExportService).export()
-    print(
+    args.ui.success(
         f"exported {len(record.observation_ids)} observations (sha256 {record.payload_sha256[:12]})"
     )
     return 0
@@ -535,13 +544,14 @@ def cmd_compile(args) -> int:
     with container, uow:
         result = uow.get(CompileSkillsHandler).run(CompileSkills(dry_run=args.check))
     for name in result.written:
-        print(f"wrote {name}")
+        args.ui.success(f"wrote {name}")
     for name in result.stale:
-        print(f"STALE {name}")
-    print(
-        f"compile: {len(result.written)} written, {len(result.unchanged)} unchanged"
-        + ("" if result.is_fresh else "; STALE OUTPUT — run bench compile")
-    )
+        args.ui.warn(f"STALE {name}")
+    summary = f"compile: {len(result.written)} written, {len(result.unchanged)} unchanged"
+    if result.is_fresh:
+        args.ui.info(summary)
+    else:
+        args.ui.error(summary, hint="run `bench compile` and commit the result")
     return 0 if result.is_fresh or not args.check else 1
 
 

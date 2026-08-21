@@ -42,8 +42,9 @@ def require_initialized(cwd: Path | None = None) -> Path:
     config = find_bench_config(cwd)
     if config is None:
         raise NotInitializedError(
-            f"'{cwd}' is not part of a benchside project. Run `bench init` here "
-            "first (it sets up the project id, session hooks, and the /pi skill)."
+            f"'{cwd}' is not part of a benchside project",
+            hint="Run `bench init` here first — it sets up the project id, "
+            "session hooks, and the /pi skill.",
         )
     return config.parent.parent
 
@@ -192,8 +193,9 @@ def require_pointer(paths: Paths, project_id: ProjectId | None = None) -> dict:
     if record is None:
         where = f" for project '{project_id.root}'" if project_id is not None else ""
         raise NoOpenSittingError(
-            f"No open sitting{where}. Start one with `bench sitting open --persona <id>` "
-            "(or set BENCH_SITTING to an existing sitting id)."
+            f"No open sitting{where}",
+            hint="Start one with `bench sitting open --persona <id>` "
+            "(or set BENCH_SITTING to an existing sitting id).",
         )
     return record
 
