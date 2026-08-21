@@ -127,9 +127,7 @@ uv run bench compile --check     # compiled skills must match their sources
 
 Personas are YAML records compiled to skills — adding one is adding a file.
 The project is strict TDD; design rationale lives in
-[ARCHITECTURE.md](ARCHITECTURE.md). `gstack/`, if you see it locally, is an
-untracked reference clone of [gstack](https://github.com/garrytan/gstack),
-not a dependency.
+[ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## License
 
