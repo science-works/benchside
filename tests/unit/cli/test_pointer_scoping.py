@@ -31,6 +31,9 @@ def env(tmp_path, monkeypatch, capsys):
     right = tmp_path / "right-project"
     wrong.mkdir()
     right.mkdir()
+    for directory in (wrong, right):
+        (directory / ".bench").mkdir()
+        (directory / ".bench" / "config.yaml").write_text(f"project: {directory.name}\n")
     content = tmp_path / "repo" / "content"
     (content / "personas").mkdir(parents=True)
     (content / "templates").mkdir(parents=True)

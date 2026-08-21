@@ -26,6 +26,28 @@ class NoOpenSittingError(DomainError):
     """Raised when a capture command runs with no resolvable open sitting."""
 
 
+class NotInitializedError(DomainError):
+    """Raised when a project-bound command runs outside an inited project."""
+
+
+def require_initialized(cwd: Path | None = None) -> Path:
+    """Project-bound commands refuse to run outside a `bench init`-ed project.
+
+    Prevents accidental projects: /pi can load from a parent directory and
+    bench runs anywhere, so without this guard a sitting could be opened in a
+    directory that was never set up (and whose hooks therefore never fire).
+    Explicit BENCH_SITTING cleanup paths bypass this at the call site.
+    """
+    cwd = cwd or Path.cwd()
+    config = find_bench_config(cwd)
+    if config is None:
+        raise NotInitializedError(
+            f"'{cwd}' is not part of a benchside project. Run `bench init` here "
+            "first (it sets up the project id, session hooks, and the /pi skill)."
+        )
+    return config.parent.parent
+
+
 def slugify(raw: str) -> str:
     slug = _NON_SLUG.sub("-", raw.strip().lower()).strip("-")
     return slug or "unnamed"

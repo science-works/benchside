@@ -42,6 +42,8 @@ def env(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("BENCHSIDE_REPO", str(tmp_path / "repo"))
     monkeypatch.delenv("CLAUDE_SESSION_ID", raising=False)
     monkeypatch.delenv("BENCH_SITTING", raising=False)
+    (project_dir / ".bench").mkdir()
+    (project_dir / ".bench" / "config.yaml").write_text("project: chd7-study\n")
     monkeypatch.chdir(project_dir)
 
     def run(*argv: str) -> tuple[int, str]:
@@ -61,7 +63,6 @@ class TestProjectResolution:
 
     def test_config_file_wins(self, env):
         run, _, project_dir = env
-        (project_dir / ".bench").mkdir()
         (project_dir / ".bench" / "config.yaml").write_text("project: my-real-line\n")
         code, out = run("project")
         assert code == 0

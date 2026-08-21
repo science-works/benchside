@@ -102,3 +102,21 @@ def _compile_skills(target_dir: Path) -> None:
             writer=FileSkillWriter(target_dir),
         )
         service.compile()
+
+
+def cmd_setup(args) -> int:
+    """One-time machine setup: install the user-level /bench-init skill.
+
+    This is the only skill that lives at user level — it must exist BEFORE any
+    project is inited, because it is how init happens from inside Claude.
+    Everything else is per-project, installed by bench init.
+    """
+    from benchside.config import resolve_content_root
+
+    source = resolve_content_root() / "claude" / "bench-init" / "SKILL.md"
+    target = Path.home() / ".claude" / "skills" / "bench-init" / "SKILL.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+    print(f"installed /bench-init skill -> {target}")
+    print("In any project directory, a Claude session can now run /bench-init.")
+    return 0

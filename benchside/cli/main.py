@@ -133,6 +133,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--project", default=None)
     p.set_defaults(run=cmd_init_dispatch)
 
+    p = sub.add_parser("setup", help="one-time machine setup: install the /bench-init skill")
+    p.set_defaults(run=cmd_setup_dispatch)
+
     p = sub.add_parser("hook", help="Claude Code hook entry points (stdin JSON)")
     p.add_argument("event", choices=["session-start", "session-end"])
     p.set_defaults(run=cmd_hook_dispatch)
@@ -142,6 +145,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(run=cmd_compile)
 
     return parser
+
+
+def _guard_initialized() -> None:
+    """Skip the guard only for explicit BENCH_SITTING cleanup."""
+    import os
+
+    if not os.environ.get("BENCH_SITTING"):
+        runtime.require_initialized()
 
 
 def _uow():
@@ -162,6 +173,7 @@ def cmd_open(args) -> int:
     from benchside.domain.authoring.service.authoring import AuthoringService
     from benchside.domain.consultation.service.consultation import ConsultationService
 
+    runtime.require_initialized()
     paths = runtime.current_paths()
     project_id = runtime.resolve_project(args.project)
     for record in runtime.live_pointers(paths):
@@ -195,6 +207,7 @@ def cmd_open(args) -> int:
 def cmd_hypothesis(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
+    _guard_initialized()
     pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     hypothesis_id = runtime.short_id("h")
     container, uow = _uow()
@@ -218,6 +231,7 @@ def cmd_critique(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
     target = _build_target(args, TargetsClaim, TargetsMethod, TargetsInterpretation)
+    _guard_initialized()
     pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     critique_id = runtime.short_id("k")
     container, uow = _uow()
@@ -249,6 +263,7 @@ def _require(args, *names: str) -> None:
 def cmd_resolve(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
+    _guard_initialized()
     pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     container, uow = _uow()
     with container, uow:
@@ -264,6 +279,7 @@ def cmd_resolve(args) -> int:
 def cmd_decide(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
+    _guard_initialized()
     pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     decision_id = runtime.short_id("d")
     container, uow = _uow()
@@ -301,6 +317,7 @@ def cmd_gap(args) -> int:
         "dead_end": lambda: DeadEnd(approach=args.approach, cost=args.cost),
         "missing_index": lambda: MissingIndex(question=args.question),
     }[args.kind]()
+    _guard_initialized()
     pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     observation_id = runtime.short_id("o")
     container, uow = _uow()
@@ -315,6 +332,7 @@ def cmd_gap(args) -> int:
 def cmd_status(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
+    _guard_initialized()
     pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project(None))
     container, uow = _uow()
     with container, uow:
@@ -350,6 +368,7 @@ def cmd_status(args) -> int:
 def cmd_close(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
 
+    _guard_initialized()
     paths = runtime.current_paths()
     pointer = runtime.require_pointer(paths, runtime.resolve_project(None))
     container, uow = _uow()
@@ -370,6 +389,7 @@ def cmd_recall(args) -> int:
         RecallProjectHandler,
     )
 
+    runtime.require_initialized()
     project_id = runtime.resolve_project(args.project)
     container, uow = _uow()
     with container, uow:
@@ -464,6 +484,12 @@ def cmd_init_dispatch(args) -> int:
     from benchside.cli.install import cmd_init
 
     return cmd_init(args)
+
+
+def cmd_setup_dispatch(args) -> int:
+    from benchside.cli.install import cmd_setup
+
+    return cmd_setup(args)
 
 
 def cmd_hook_dispatch(args) -> int:
