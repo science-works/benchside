@@ -7,6 +7,7 @@ no live regions yet: every bench command is sub-second.
 from typing import IO
 
 from rich.console import Console
+from rich.rule import Rule
 from rich.table import Table
 from rich.text import Text
 
@@ -17,6 +18,9 @@ class RichRenderer:
     def __init__(self, file: IO[str]) -> None:
         self._console = Console(file=file, highlight=False, soft_wrap=True)
         self._glyphs = default_glyphs()
+
+    def header(self, text: str) -> None:
+        self._console.print(Rule(Text(text, style="bold"), align="left", style="dim"))
 
     def info(self, text: str) -> None:
         self._console.print(text)

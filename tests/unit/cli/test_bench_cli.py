@@ -165,7 +165,7 @@ class TestJournalViews:
         run("hypothesis", "H2 refined", "--supersedes", h1)
         code, out = run("journal", "hypotheses")
         assert code == 0
-        assert "superseded" in out.lower()
+        assert "supersedes " + h1 in out, "the chain must name what was replaced"
 
     def test_journal_events_lists_the_stream(self, env):
         run, _, _ = env

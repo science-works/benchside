@@ -38,6 +38,9 @@ class UI:
             return cls(renderer=RichRenderer(file))
         return cls(renderer=PlainRenderer(file))
 
+    def header(self, text: str) -> None:
+        self._renderer.header(text)
+
     def info(self, text: str) -> None:
         self._renderer.info(text)
 

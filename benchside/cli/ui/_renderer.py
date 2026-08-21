@@ -10,6 +10,7 @@ from benchside.cli.ui._glyphs import default_glyphs
 
 
 class Renderer(Protocol):
+    def header(self, text: str) -> None: ...
     def info(self, text: str) -> None: ...
     def detail(self, text: str) -> None: ...
     def success(self, text: str) -> None: ...
@@ -27,6 +28,9 @@ class PlainRenderer:
 
     def _line(self, text: str) -> None:
         self._file.write(text + "\n")
+
+    def header(self, text: str) -> None:
+        self._line(f"── {text}")
 
     def info(self, text: str) -> None:
         self._line(text)
@@ -62,6 +66,9 @@ class RecordingRenderer:
 
     def __init__(self) -> None:
         self.events: list[tuple[str, dict]] = []
+
+    def header(self, text: str) -> None:
+        self.events.append(("header", {"text": text}))
 
     def info(self, text: str) -> None:
         self.events.append(("info", {"text": text}))
