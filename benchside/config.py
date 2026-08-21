@@ -60,6 +60,14 @@ def resolve_content_root() -> Path:
 
 
 def resolve_paths() -> Paths:
-    home = Path(os.environ.get("BENCHSIDE_HOME", Path.home() / ".benchside")).expanduser()
+    """Home follows XDG: BENCHSIDE_HOME override, then $XDG_DATA_HOME/benchside,
+    then ~/.local/share/benchside. No dotdir in ~."""
+    override = os.environ.get("BENCHSIDE_HOME")
+    if override:
+        home = Path(override).expanduser()
+    else:
+        xdg_data = os.environ.get("XDG_DATA_HOME")
+        data_root = Path(xdg_data).expanduser() if xdg_data else Path.home() / ".local" / "share"
+        home = data_root / "benchside"
     repo_root = Path(os.environ.get("BENCHSIDE_REPO", Path(__file__).resolve().parent.parent))
     return Paths(home=home, repo_root=repo_root)

@@ -63,7 +63,7 @@ bench check                                       freshness and validation dashb
 4. **Generated skills** (`skills/`) — the compiled output Claude Code loads.
    Regenerable at any time, freshness-gated in CI, never edited by hand.
 
-Runtime state lives on the scientist's machine under `~/.benchside/`, owned by the
+Runtime state lives on the scientist's machine under `~/.local/share/benchside/`, owned by the
 storage adapter and never in this repo.
 
 ### Layers

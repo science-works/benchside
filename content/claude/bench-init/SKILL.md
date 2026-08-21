@@ -23,7 +23,7 @@ You are initializing benchside for the scientist's current project directory.
      locally). Both are tagged and idempotent.
    - `.claude/skills/pi/SKILL.md` — the /pi supervisor persona
    And the data guarantee: **everything stays on this machine** under
-   `~/.benchside/`. Nothing is ever shared without an explicit, revocable
+   `~/.local/share/benchside/`. Nothing is ever shared without an explicit, revocable
    `bench consent grant`, and `bench export --preview` always shows the exact
    bytes before anything leaves.
 

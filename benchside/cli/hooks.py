@@ -1,7 +1,7 @@
 """Claude Code hook handlers.
 
 Contract (gstack lessons, kept verbatim): always exit 0 — a failing hook must
-never damage the user's session; errors go to ~/.benchside/hook-errors.log;
+never damage the user's session; errors go to ~/.local/share/benchside/hook-errors.log;
 bail out fast outside benchside projects. Hooks are plumbing, never meaning —
 all semantic capture stays in the explicit bench commands.
 """

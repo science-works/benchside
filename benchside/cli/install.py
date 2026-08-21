@@ -24,7 +24,7 @@ _HOOK_TIMEOUTS = {"SessionStart": 10, "SessionEnd": 15}
 
 LOCAL_DATA_NOTE = """\
 Your data stays local. Sittings, hypotheses, critiques, and transcripts are
-written only to ~/.benchside/ on this machine. Nothing is shared unless you
+written only to ~/.local/share/benchside/ on this machine. Nothing is shared unless you
 explicitly run `bench consent grant` — and `bench export --preview` always
 shows you the exact bytes before anything leaves."""
 
