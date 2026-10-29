@@ -8,9 +8,12 @@ imports this port.
 from abc import abstractmethod
 from typing import Protocol
 
+from benchside.domain.export.model.value import DeliveryReceipt
 from benchside.domain.shared.port.base import Port
 
 
 class ExportSink(Port, Protocol):
+    destination: str
+
     @abstractmethod
-    def send(self, payload: str) -> None: ...
+    def send(self, payload: str) -> DeliveryReceipt | None: ...

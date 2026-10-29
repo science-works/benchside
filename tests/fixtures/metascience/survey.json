@@ -1,0 +1,11 @@
+{
+  "schema": "benchside.survey.v1",
+  "benchside_version": "0.1.0",
+  "response_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "study_id": "synthetic-verification",
+  "study_version": 1,
+  "study_sha256": "19d2ecc1b932dee65af8485b9435d759a5482d05c7e917f1326e2682e9ae0578",
+  "answers": {
+    "checked": "yes"
+  }
+}

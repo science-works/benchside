@@ -22,5 +22,7 @@ class PassthroughRedactor:
 class RefusingExportSink:
     """Refuses to send anything until a real sink is configured explicitly."""
 
+    destination = "disabled"
+
     def send(self, payload: str) -> None:
         raise ConfigurationError("No export sink is configured; nothing was sent")

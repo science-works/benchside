@@ -52,15 +52,17 @@ def test_registry_problem_does_not_block_new_identity_or_recall(
     paths, _pid, root = project
     registry = paths.home / "projects/synthetic/current-session"
     registry.parent.mkdir(parents=True)
-    original = "not JSON" if damage == "malformed" else json.dumps({
-        "sessions": ["old"], "registered_at": {"old": time.time() + 3}
-    })
+    original = (
+        "not JSON"
+        if damage == "malformed"
+        else json.dumps({"sessions": ["old"], "registered_at": {"old": time.time() + 3}})
+    )
     registry.write_text(original)
     env_file = tmp_path / "new-chat.env"
     monkeypatch.setenv("CLAUDE_ENV_FILE", str(env_file))
-    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps({
-        "cwd": str(root), "session_id": "new-chat"
-    })))
+    monkeypatch.setattr(
+        sys, "stdin", io.StringIO(json.dumps({"cwd": str(root), "session_id": "new-chat"}))
+    )
     assert main(["hook", "session-start"]) == 0
     assert "export CLAUDE_SESSION_ID=new-chat" in env_file.read_text()
     assert "No recorded history yet" in capsys.readouterr().out

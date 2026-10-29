@@ -1,0 +1,26 @@
+{
+  "journal-club": [
+    "b71cc491e3c73c85bfb5da8d2382837a2a46c1cebeb5e6eb577be1c2bf657e60"
+  ],
+  "methods-clinic": [
+    "78c84bddca11a27294e82fd89eb56c394a3c12d52d46f4ca7a1a34aa25d51a34"
+  ],
+  "peer-review": [
+    "6f4b25304bf1cb4de92494bbba92f6c45cae08d20c23b50df9bcbd235e57d7cf"
+  ],
+  "pi": [
+    "7faf319d845e58395f1ca0c2e1a6a2cf0156b5c580b9c6229e09f5dd2a86d1eb"
+  ],
+  "repro-check": [
+    "2c38a397e7d21d2fd150993f6691f28e2c44b55910e0f30edfdf70729a5fe52a"
+  ],
+  "results-meeting": [
+    "236fb61b880f93660d20fbc7c660e48c3f9c5772cb544c9730112a8b024f2f90"
+  ],
+  "study-design": [
+    "4d5ad35b9345be105e70f6c9af471ec2327e78441548c1ce60204b147025634f"
+  ],
+  "bench-share": [
+    "5337386c02554e420a82daa2d34ae81d5fa6d5f79af48f30524e7be97149e7e5"
+  ]
+}

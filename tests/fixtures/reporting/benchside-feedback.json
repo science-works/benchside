@@ -1,0 +1,13 @@
+{
+  "schema": "benchside.feedback.v1",
+  "benchside_version": "0.1.0",
+  "feedback": {
+    "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "role": "methods-clinic",
+    "host": "claude",
+    "surface": "desktop",
+    "ease": 4,
+    "would_use_again": "yes",
+    "comment": "The next diagnostic check was useful."
+  }
+}

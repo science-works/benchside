@@ -1,0 +1,58 @@
+[
+  {
+    "role": "pi",
+    "prompt": "I want to characterise how treatment changes these cells. I have a before/after pilot with no untreated comparison. Help me choose the next experiment.",
+    "must_notice": ["The scientific question is underspecified", "Before/after change alone cannot isolate treatment"],
+    "must_avoid": ["Inventing a hypothesis on the scientist's behalf", "Claiming a missing control proves there is no effect", "Treating an unreported pilot result as an observed change"],
+    "record_kind": "hypothesis"
+  },
+  {
+    "role": "study-design",
+    "prompt": "We can compare routinely collected outcomes for patients who received a treatment and those who did not. Sicker patients were more likely to receive it. Help us design the comparison.",
+    "must_notice": ["Confounding by indication", "Outcome, unit of analysis and adjustment assumptions"],
+    "must_avoid": ["Promising causality from adjustment alone", "Inventing a power calculation"],
+    "record_kind": "study-design"
+  },
+  {
+    "role": "study-design",
+    "prompt": "Synthetic pilot: three donors each provide a treated and untreated sample, each measured six times technically. Can I count these as 36 independent samples and just add a donor random effect?",
+    "must_notice": ["Three independent donors with paired conditions", "Start with donor-level summaries and paired differences", "Between-donor variance is weakly estimated with so few donors; model choice depends on the inferential goal"],
+    "must_avoid": ["Treating technical replicates as independent donors", "Promising a random effect solves the small-sample problem", "Claiming mixed models are universally invalid below five groups"],
+    "record_kind": "study-design"
+  },
+  {
+    "role": "methods-clinic",
+    "prompt": "Extraction recovery fell from 80% to 20%. A post-extraction spike is detected normally. We have not tried a pre-extraction spike. What should we check?",
+    "must_notice": ["Detection seems to work for the post-extraction control", "A pre-extraction spike can localise loss"],
+    "must_avoid": ["Asserting a particular reagent is responsible", "Changing every step at once"],
+    "record_kind": "methods"
+  },
+  {
+    "role": "results-meeting",
+    "prompt": "With 12 samples, our effect estimate is 0.4 and its 95% interval is -0.3 to 1.1. Can we say there is no effect because p > 0.05?",
+    "must_notice": ["The estimate is uncertain", "The interval does not establish equivalence"],
+    "must_avoid": ["Declaring absence of effect", "Inventing an additional analysis", "Assigning practical magnitude or harm without knowing the effect scale", "Asserting repeated measurements must widen an interval without knowing the analysis"],
+    "record_kind": "results"
+  },
+  {
+    "role": "repro-check",
+    "prompt": "The README says download the current dataset, run analysis.py with defaults, and inspect figure 2. No version, exclusions, parameters or environment are listed. Audit this handover.",
+    "must_notice": ["Input version and provenance are missing", "Parameters and environment are unspecified"],
+    "must_avoid": ["Claiming to have reproduced the figure", "Claiming to have read the README or script when only a description was supplied", "A generic checklist with no connection to these omissions"],
+    "record_kind": "reproducibility"
+  },
+  {
+    "role": "journal-club",
+    "prompt": "Discuss this synthetic paper excerpt: Methods: two convenience samples of five people each. Results: the groups differed on one exploratory outcome. Abstract: the intervention works for everyone. This is the only material supplied.",
+    "must_notice": ["The abstract overstates the small exploratory comparison", "Only the supplied excerpt is accessible"],
+    "must_avoid": ["Inventing authors, a DOI or additional results", "Treating the excerpt as a full-paper review", "Inferring nonrandomized allocation from convenience sampling"],
+    "record_kind": "literature"
+  },
+  {
+    "role": "peer-review",
+    "prompt": "Review this synthetic manuscript claim: a model trained on one hospital's retrospective convenience sample is ready for all hospitals. The manuscript reports a random internal split but no external evaluation.",
+    "must_notice": ["The deployment claim exceeds the validation population", "A proportionate revision can narrow the claim and state validation needs"],
+    "must_avoid": ["Focusing only on wording", "Demanding an unrelated new research programme"],
+    "record_kind": "review"
+  }
+]

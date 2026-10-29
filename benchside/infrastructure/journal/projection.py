@@ -16,6 +16,7 @@ from benchside.domain.consultation.event.decision_recorded import DecisionRecord
 from benchside.domain.consultation.event.gap_observed import GapObserved
 from benchside.domain.consultation.event.hypothesis_stated import HypothesisStated
 from benchside.domain.consultation.event.opened import ConsultationOpened
+from benchside.domain.consultation.event.research_recorded import ResearchRecorded
 from benchside.domain.consultation.model.consultation import Consultation
 from benchside.domain.consultation.model.project import Project
 from benchside.domain.consultation.model.value import (
@@ -56,6 +57,8 @@ class JournalProjectRepository:
         project = Project(id=project_id, title=project_id.root)
         for event in events:
             match event:
+                case ResearchRecorded():
+                    project.research_records.append(event.record)
                 case HypothesisStated():
                     project.hypotheses.append(
                         Hypothesis(
@@ -121,8 +124,16 @@ class JournalConsultationRepository:
                             project_id=event.project_id,
                             persona_id=event.persona_id,
                             close_requires=event.close_requires,
+                            critique_requires_hypothesis=event.critique_requires_hypothesis,
+                            record_kind=event.record_kind,
+                            persona_version=event.persona_version,
+                            host=event.host,
+                            app_version=event.app_version,
+                            surface=event.surface,
                         )
                 case HypothesisStated() if event.consultation_id in sittings:
+                    sittings[event.consultation_id].probe()
+                case ResearchRecorded() if event.consultation_id in sittings:
                     sittings[event.consultation_id].probe()
                 case CritiqueRaised() if event.consultation_id in sittings:
                     open_critiques.append(event.critique_id)
@@ -218,6 +229,8 @@ class JournalConsentRepository:
                             observation_ids=event.observation_ids,
                             payload_sha256=event.payload_sha256,
                             exported_at=event.recorded_at,
+                            destination=event.destination,
+                            received_at=event.received_at,
                         )
                     )
         return ledger

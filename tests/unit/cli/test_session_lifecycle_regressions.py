@@ -44,7 +44,9 @@ def _hook(monkeypatch, event, project, **payload):
     return main(["hook", event])
 
 
-def test_expired_registration_is_not_adopted_but_explicit_pointer_survives(session_project, monkeypatch):
+def test_expired_registration_is_not_adopted_but_explicit_pointer_survives(
+    session_project, monkeypatch
+):
     paths, project_id, _ = session_project
     now = time.time()
     register_session(paths, project_id, "crashed")
@@ -80,11 +82,11 @@ def test_new_cli_record_after_expiry_does_not_use_the_crashed_conversation(
     paths, project_id, _ = session_project
     now = time.time()
     register_session(paths, project_id, "crashed")
-    assert main(["sitting", "open", "--persona", "pi"]) == 0
+    assert main(["sitting", "open", "--persona", "methods-clinic"]) == 0
     original = json.loads((paths.home / "sessions/crashed.json").read_text())
     monkeypatch.setattr(time, "time", lambda: now + 48 * 3600)
 
-    assert main(["sitting", "open", "--persona", "pi"]) == 0
+    assert main(["sitting", "open", "--persona", "methods-clinic"]) == 0
 
     events = [
         json.loads(line) for line in paths.journal_file(project_id.root).read_text().splitlines()
@@ -208,6 +210,22 @@ def test_targeted_recovery_does_not_retire_another_project_pointer(session_proje
     assert runtime.read_pointer(paths, other)["sitting_id"] == "keep-open"
 
 
+def test_shared_setup_clears_registrations_only_for_its_project(session_project):
+    paths, project_id, _ = session_project
+    assert main(["init", "--yes", "--legacy-cli"]) == 0
+    register_session(paths, project_id, "abandoned-hook-session")
+    runtime.write_pointer(paths, sitting_id="unfinished", project_id=project_id, persona_id="pi")
+    other = ProjectId("other")
+    register_session(paths, other, "keep-other")
+    journal = paths.journal_file(project_id.root)
+    journal.write_text("private scientific records remain here\n")
+
+    assert main(["init", "--yes"]) == 0
+
+    assert current_session(paths, project_id) is None
+    assert current_session(paths, other) == "keep-other"
+    assert (paths.home / "sessions/abandoned-hook-session.json").is_file()
+    assert journal.read_text() == "private scientific records remain here\n"
 
 
 @pytest.mark.parametrize("event", ["session-start", "session-end"])

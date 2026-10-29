@@ -92,6 +92,11 @@ def _recall_lines(project_id) -> list[str]:
         lines.append(f"Current hypothesis: {recall.current_hypothesis}")
     lines += [f"Open question: {q}" for q in recall.open_questions]
     lines += [f"Decided: {d.decision} — {d.rationale}" for d in recall.recent_decisions]
+    for record in recall.recent_records:
+        lines.append(f"{record.kind}: {record.summary}")
+        lines.extend(f"  {detail}" for detail in record.details)
+        lines.extend(f"  Source: {source}" for source in record.sources)
+    lines += [f"Open sitting: {s['id']} (/{s['persona']})" for s in recall.open_sittings]
     if recall.last_sitting_state:
         lines.append(f"Last sitting ended: {recall.last_sitting_state}.")
     return lines

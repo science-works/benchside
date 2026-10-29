@@ -6,7 +6,7 @@ handlers must not mutate state.
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Any, dataclass_transform
+from typing import Any, Generic, TypeVar, dataclass_transform
 
 from pydantic import BaseModel
 
@@ -31,7 +31,11 @@ class _QueryHandlerMeta(ABCMeta):
         return cls
 
 
-class QueryHandler[Q: Query, R: Result](metaclass=_QueryHandlerMeta):
+Q = TypeVar("Q", bound=Query)
+R = TypeVar("R", bound=Result)
+
+
+class QueryHandler(Generic[Q, R], metaclass=_QueryHandlerMeta):
     """Entry point for a read. Delegates to a service; never mutates."""
 
     @abstractmethod

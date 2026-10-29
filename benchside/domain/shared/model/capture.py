@@ -6,8 +6,13 @@ journal event type.
 """
 
 from enum import StrEnum
+from typing import Literal
 
 from benchside.domain.shared.model.value import ValueObject
+
+RecordKind = Literal[
+    "study-design", "methods", "results", "reproducibility", "literature", "review"
+]
 
 
 class CaptureKind(StrEnum):
@@ -16,6 +21,7 @@ class CaptureKind(StrEnum):
     RESOLUTION = "resolution"
     DECISION = "decision"
     GAP = "gap"
+    RECORD = "record"
 
 
 class CloseRequirement(ValueObject):

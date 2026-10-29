@@ -13,6 +13,9 @@ validation, referential integrity, close enforcement.
 import argparse
 import json
 import sys
+from contextlib import nullcontext
+
+from pydantic import ValidationError as PydanticValidationError
 
 from benchside.application.di import create_container
 from benchside.cli import runtime
@@ -34,12 +37,57 @@ def main(argv: list[str] | None = None) -> int:
     if not hasattr(args, "run"):
         parser.print_help()
         return 2
+    # Hooks own their short per-project/session locks and always-zero error
+    # boundary. They must not wait behind sharing/network transactions or fail
+    # while resolving optional storage/provenance before reaching that boundary.
+    if args.command == "hook":
+        return args.run(args)
     args.ui = UI.create()
     try:
-        return args.run(args)
+        from benchside.infrastructure.files import file_lock
+        from benchside.infrastructure.session_context import recording_context
+
+        transaction = (
+            nullcontext()
+            if args.command in {"compile", "setup", "project", "init", "app"}
+            else file_lock(runtime.current_paths().home / ".transaction.lock")
+        )
+        context = (
+            nullcontext()
+            if args.command == "app"
+            else recording_context(provenance=runtime.recording_provenance())
+        )
+        with transaction, context:
+            return args.run(args)
     except BenchsideError as err:
+        _record_failure(args.command, err)
         args.ui.error(err.message, hint=err.hint)
         return 1
+    except (PydanticValidationError, ValueError, OSError) as err:
+        _record_failure(args.command, err)
+        args.ui.error(str(err))
+        return 1
+
+
+def _record_failure(command, error):
+    if command not in {"sitting", "hypothesis", "record", "critique", "resolve", "decide", "gap"}:
+        return
+    from benchside.domain.export.service.reporting import ReportingService
+    from benchside.domain.shared.error import StorageUnavailableError
+    from benchside.infrastructure.files import file_lock
+    from benchside.infrastructure.journal.store import JsonlJournal
+
+    code = (
+        "recording_unavailable"
+        if isinstance(error, (OSError, StorageUnavailableError))
+        else "recording_invalid"
+    )
+    try:
+        paths = runtime.current_paths()
+        with file_lock(paths.home / ".transaction.lock"):
+            ReportingService(journal=JsonlJournal(paths)).failure(code)
+    except (BenchsideError, ValueError, OSError):
+        pass
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -62,12 +110,26 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- lifecycle (root) ---
     p = sub.add_parser("setup", help="one-time machine setup: install the /bench-init skill")
+    p.add_argument("--agent", choices=["claude", "codex", "generic"], default="claude")
+    p.add_argument("--skills-dir", type=str, help="skill discovery directory used by this agent")
+    p.add_argument("--storage", type=str, help="explicit durable local directory outside Git")
     p.set_defaults(run=cmd_setup_dispatch)
 
     p = sub.add_parser("init", help="initialize this directory as a benchside project")
     p.add_argument("--yes", action="store_true", help="consent non-interactively")
     p.add_argument("--project", default=None)
+    p.add_argument("--agent", choices=["claude", "codex", "generic"], default="claude")
+    p.add_argument("--skills-dir", type=str, help="skill discovery directory used by this agent")
+    p.add_argument("--storage", type=str, help="explicit durable local directory outside Git")
+    p.add_argument(
+        "--legacy-cli",
+        action="store_true",
+        help="explicit Claude Code CLI role skills and hooks instead of the shared app skill",
+    )
     p.set_defaults(run=cmd_init_dispatch)
+
+    p = sub.add_parser("app", help="agent API: one structured JSON request on stdin")
+    p.set_defaults(run=cmd_app_dispatch)
 
     p = sub.add_parser("project", help="print the resolved project id")
     p.add_argument("--project", default=None)
@@ -81,6 +143,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("recall", help="what a persona reads at the start of a sitting")
     p.add_argument("--project", default=None)
     p.add_argument("--json", action="store_true")
+    p.add_argument(
+        "--all", action="store_true", help="include all saved decisions and research records"
+    )
     p.set_defaults(run=cmd_recall)
 
     p = sub.add_parser("session", help="recover a conversation that ended without cleanup")
@@ -98,6 +163,10 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("--persona", required=True)
     a.add_argument("--project", default=None)
     a.set_defaults(run=cmd_open)
+
+    a = sitting.add_parser("resume", help="resume an open sitting in this project")
+    a.add_argument("sitting_id")
+    a.set_defaults(run=cmd_resume)
 
     a = sitting.add_parser("status", help="state, captures, and close requirements")
     a.add_argument("--json", action="store_true")
@@ -134,6 +203,24 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--supersedes", default=None)
     p.set_defaults(run=cmd_decide)
 
+    p = sub.add_parser("record", help="save a scientific output for the current research role")
+    p.add_argument(
+        "--kind",
+        required=True,
+        choices=[
+            "study-design",
+            "methods",
+            "results",
+            "reproducibility",
+            "literature",
+            "review",
+        ],
+    )
+    p.add_argument("--summary", required=True)
+    p.add_argument("--detail", action="append", required=True)
+    p.add_argument("--source", action="append", default=[])
+    p.set_defaults(run=cmd_record)
+
     p = sub.add_parser("gap", help="record a workflow breakdown (local until consented)")
     gap_sub = p.add_subparsers(dest="kind", required=True, metavar="<kind>")
     g = gap_sub.add_parser("missing_tool")
@@ -162,6 +249,8 @@ def build_parser() -> argparse.ArgumentParser:
     v.add_argument("--project", default=None)
     v = views.add_parser("hypotheses", help="the supersession chain")
     v.add_argument("--project", default=None)
+    v = views.add_parser("records", help="research outputs with evidence and sources")
+    v.add_argument("--project", default=None)
     v = views.add_parser("critiques", help="critiques and their resolutions")
     v.add_argument("--open", action="store_true", help="only open critiques")
     v.add_argument("--project", default=None)
@@ -175,19 +264,36 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(run=cmd_journal_dispatch)
 
     # --- sharing (consent + export in one place) ---
-    p = sub.add_parser("share", help="govern and perform sharing of gap observations")
+    p = sub.add_parser("share", help="review optional workflow observations, feedback and usage")
+    p.set_defaults(run=cmd_share_dispatch)
     share = p.add_subparsers(dest="action", required=True, metavar="<action>")
     a = share.add_parser("status", help="grant state")
-    a.set_defaults(run=cmd_share_status)
+    a.add_argument("--json", action="store_true")
     a = share.add_parser("grant", help="consent to sharing listed gap kinds")
-    a.add_argument("--kinds", required=True, help=f"comma-separated from: {sorted(GAP_KINDS)}")
-    a.set_defaults(run=cmd_share_grant)
+    a.add_argument("--kinds", help=f"comma-separated from: {sorted(GAP_KINDS)}")
+    a.add_argument("--channel", choices=["gaps", "feedback", "usage"], default="gaps")
     a = share.add_parser("revoke", help="withdraw consent")
-    a.set_defaults(run=cmd_share_revoke)
+    a.add_argument("--channel", choices=["gaps", "feedback", "usage", "all"], default="gaps")
     a = share.add_parser("preview", help="the exact bytes an export would send; sends nothing")
-    a.set_defaults(run=cmd_share_preview)
+    a.add_argument("--channel", choices=["gaps", "feedback", "usage"], default="gaps")
+    a.add_argument("--only", action="append")
+    a.add_argument(
+        "--edits", help="path to a JSON file mapping observation IDs to reviewed gap objects"
+    )
+    a.add_argument("--feedback-id")
+    a.add_argument("--comment", help="reviewed replacement feedback comment")
+    a.add_argument("--week", help="Monday of the reporting week, YYYY-MM-DD")
     a = share.add_parser("send", help="export consented observations")
-    a.set_defaults(run=cmd_share_send)
+    a.add_argument("--draft")
+    a.add_argument("--approve-sha256")
+    a = share.add_parser("history", help="receipts for submitted data and removal requests")
+    a = share.add_parser("feedback", help="save optional usability feedback locally")
+    a.add_argument("--role", default="unknown")
+    a.add_argument("--host", choices=["chatgpt", "claude", "unknown"], default="unknown")
+    a.add_argument("--surface", choices=["web", "desktop", "cli", "unknown"], default="unknown")
+    a.add_argument("--ease", required=True, type=int, choices=range(1, 6))
+    a.add_argument("--again", required=True, choices=["yes", "no", "unsure"])
+    a.add_argument("--comment", default="")
 
     # --- machine plumbing (no help= -> hidden from the listing) ---
     p = sub.add_parser("hook")
@@ -259,12 +365,65 @@ def cmd_open(args) -> int:
             project_id=project_id,
             persona_id=persona.id,
             close_requires=persona.flow.close_requires,
+            critique_requires_hypothesis=persona.critique_requires_hypothesis,
+            record_kind=persona.record_kind,
+            persona_version=persona.version,
+            **runtime.recording_provenance().model_dump(),
         )
     runtime.write_pointer(
         paths, sitting_id=sitting_id, project_id=project_id, persona_id=persona.id.root
     )
     args.ui.success(f"Sitting open with /{persona.id.root} on project '{project_id.root}'")
     print(f"<bench-sitting:{sitting_id}>")  # stdout: machine-recoverable marker
+    return 0
+
+
+def cmd_resume(args) -> int:
+    from benchside.domain.consultation.service.consultation import ConsultationService
+
+    runtime.require_initialized()
+    paths = runtime.current_paths()
+    project_id = runtime.resolve_project()
+    container, uow = _uow()
+    with container, uow:
+        sitting = uow.get(ConsultationService).get(args.sitting_id)
+        if sitting.project_id != project_id:
+            raise BenchsideError("This sitting belongs to another project")
+        sitting._require_live()
+        own = runtime.read_pointer(paths, project_id)
+        if own and own["sitting_id"] != sitting.id:
+            raise BenchsideError("Finish or pause the current sitting before resuming another")
+    runtime.clear_pointer(paths, sitting.id)
+    runtime.write_pointer(
+        paths,
+        sitting_id=sitting.id,
+        project_id=project_id,
+        persona_id=sitting.persona_id.root,
+    )
+    args.ui.success(f"Resumed {sitting.id} with /{sitting.persona_id.root}")
+    return 0
+
+
+def cmd_record(args) -> int:
+    from benchside.domain.consultation.model.value import ResearchRecord
+    from benchside.domain.consultation.service.consultation import ConsultationService
+
+    _guard_initialized()
+    pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project())
+    record = ResearchRecord(
+        id=runtime.short_id("r"),
+        kind=args.kind,
+        summary=args.summary,
+        details=tuple(args.detail),
+        sources=tuple(args.source),
+    )
+    container, uow = _uow()
+    with container, uow:
+        uow.get(ConsultationService).record_research(
+            consultation_id=pointer["sitting_id"],
+            record=record,
+        )
+    args.ui.success(f"research record saved: {record.id}")
     return 0
 
 
@@ -464,7 +623,9 @@ def cmd_recall(args) -> int:
     project_id = runtime.resolve_project(args.project)
     container, uow = _uow()
     with container, uow:
-        recall = uow.get(RecallProjectHandler).run(RecallProject(project_id=project_id))
+        recall = uow.get(RecallProjectHandler).run(
+            RecallProject(project_id=project_id, history="all" if args.all else "recent")
+        )
     if args.json:
         print(recall.model_dump_json())
         return 0
@@ -476,79 +637,26 @@ def cmd_recall(args) -> int:
         args.ui.info(f"project '{project_id.root}': no recorded history yet")
         return 0
     args.ui.info(f"project '{recall.title}'")
+    if recall.history == "recent":
+        args.ui.detail(
+            f"showing {len(recall.recent_decisions)}/{recall.total_decisions} decisions and "
+            f"{len(recall.recent_records)}/{recall.total_records} research records; "
+            "use recall --all for older entries"
+        )
     if recall.current_hypothesis:
         args.ui.detail(f"current hypothesis: {recall.current_hypothesis}")
     for q in recall.open_questions:
         args.ui.warn(f"open: {q}")
     for d in recall.recent_decisions:
         args.ui.detail(f"decided: {d.decision} — {d.rationale}")
+    for record in recall.recent_records:
+        args.ui.detail(f"{record.kind}: {record.summary}")
+        for detail in record.details:
+            args.ui.detail(detail)
+    for sitting in recall.open_sittings:
+        args.ui.detail(f"open sitting: {sitting['id']} (/{sitting['persona']})")
     if recall.last_sitting_state:
         args.ui.detail(f"last sitting: {recall.last_sitting_state}")
-    return 0
-
-
-def _consent_service(uow):
-    from benchside.domain.export.service.consent import ConsentService
-
-    return uow.get(ConsentService)
-
-
-def cmd_share_status(args) -> int:
-    container, uow = _uow()
-    with container, uow:
-        grant = _consent_service(uow).active_grant()
-    if grant is None:
-        args.ui.info("sharing: no consent granted; all observations stay local")
-    else:
-        args.ui.success(
-            f"sharing: consent active ({grant.id}) for {', '.join(sorted(grant.gap_kinds))}"
-        )
-    return 0
-
-
-def cmd_share_grant(args) -> int:
-    container, uow = _uow()
-    with container, uow:
-        kinds = frozenset(k.strip() for k in args.kinds.split(","))
-        grant = _consent_service(uow).grant(grant_id=runtime.short_id("g"), gap_kinds=kinds)
-    args.ui.success(f"consent granted ({grant.id}) for: {', '.join(sorted(grant.gap_kinds))}")
-    return 0
-
-
-def cmd_share_revoke(args) -> int:
-    container, uow = _uow()
-    with container, uow:
-        revoked = _consent_service(uow).revoke()
-    args.ui.success(f"consent revoked ({revoked.id}); nothing further will be shared")
-    return 0
-
-
-def cmd_share_preview(args) -> int:
-    from benchside.domain.export.service.export import ExportService
-
-    container, uow = _uow()
-    with container, uow:
-        preview = uow.get(ExportService).preview()
-    args.ui.info("export preview — the EXACT bytes an export would send follow on stdout:")
-    print(preview.payload)  # stdout: pipeable payload, nothing else
-    args.ui.detail(
-        f"observations included: {len(preview.observation_ids)}; "
-        f"withheld (not covered by consent): {len(preview.withheld)}"
-    )
-    findings = "; ".join(preview.redaction_findings) or "none flagged"
-    args.ui.warn(f"redaction: passthrough engine (v0 placeholder); findings: {findings}")
-    return 0
-
-
-def cmd_share_send(args) -> int:
-    from benchside.domain.export.service.export import ExportService
-
-    container, uow = _uow()
-    with container, uow:
-        record = uow.get(ExportService).export()
-    args.ui.success(
-        f"exported {len(record.observation_ids)} observations (sha256 {record.payload_sha256[:12]})"
-    )
     return 0
 
 
@@ -556,6 +664,12 @@ def cmd_journal_dispatch(args) -> int:
     from benchside.cli.journal import cmd_journal
 
     return cmd_journal(args)
+
+
+def cmd_share_dispatch(args) -> int:
+    from benchside.cli.sharing import cmd_sharing
+
+    return cmd_sharing(args)
 
 
 def cmd_compile(args) -> int:
@@ -592,6 +706,12 @@ def cmd_hook_dispatch(args) -> int:
     from benchside.cli.hooks import cmd_hook
 
     return cmd_hook(args)
+
+
+def cmd_app_dispatch(args) -> int:
+    from benchside.application.bridge import main as app_main
+
+    return app_main()
 
 
 if __name__ == "__main__":

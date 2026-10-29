@@ -1,14 +1,9 @@
-"""bench init: the installer for a research project.
+"""Install shared agent instructions and optional legacy Claude Code project hooks."""
 
-Everything an external scientist needs, one command: project identity pinned
-in .bench/config.yaml, lifecycle hooks registered (with consent — Claude Code
-executes project hooks without prompting, so the consent moment is ours), and
-the /pi skill compiled into the project's .claude/skills/ where Claude Code
-auto-discovers it.
-"""
-
+import hashlib
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 from benchside.application.di import create_container
@@ -17,43 +12,85 @@ from benchside.domain.authoring.port.renderer import TemplateRenderer
 from benchside.domain.authoring.port.repository import PersonaRepository, TemplateRepository
 from benchside.domain.authoring.service.authoring import AuthoringService
 from benchside.infrastructure.content.writer import FileSkillWriter
+from benchside.infrastructure.files import atomic_json
 from benchside.util.di import Scope
 
 _TAG = "_benchside"
 _HOOK_TIMEOUTS = {"SessionStart": 10, "SessionEnd": 15}
 
-LOCAL_DATA_NOTE = """\
-Your data stays local. Sittings, hypotheses, critiques, and transcripts are
-written only to ~/.local/share/benchside/ on this machine. Nothing is shared unless you
-explicitly run `bench share grant` — and `bench share preview` always
-shows you the exact bytes before anything leaves."""
+
+def _skill_directory(args, root: Path) -> Path:
+    if args.skills_dir:
+        return Path(args.skills_dir).expanduser().resolve()
+    return root / (".claude" if args.agent == "claude" else ".agents") / "skills"
+
+
+def _configure_storage(args):
+    if args.storage:
+        from benchside.config import configure_local_storage
+
+        configure_local_storage(args.storage)
+
+
+def _install_app_skill(target: Path):
+    from benchside.application.packaging import build_agent_skill
+    from benchside.config import resolve_content_root
+    from benchside.infrastructure.files import atomic_json
+
+    if (resolve_content_root() / "app").is_dir():
+        _retire_legacy_skills(target)
+        skill = target / "benchside"
+        build_agent_skill(skill)
+        # Preserve the venv executable path: resolving its symlink would lose
+        # the environment's dependencies in a later conversation.
+        atomic_json(
+            skill / "runtime/source.json",
+            {
+                "schema": "benchside.source.v1",
+                "python": str(Path(sys.executable).absolute()),
+                "package_root": str(Path(__file__).resolve().parents[2]),
+            },
+        )
 
 
 def cmd_init(args) -> int:
     project_dir = Path.cwd()
     project_id = runtime.resolve_project(args.project)
-
+    target = _skill_directory(args, project_dir)
+    legacy = args.legacy_cli
+    if legacy and args.agent != "claude":
+        raise ValueError("--legacy-cli is only available with --agent claude")
+    hooks = legacy
+    details = " and register Claude Code session hooks" if hooks else ""
     if not args.yes and not _confirm(
-        "bench init will write .bench/config.yaml, register two session hooks in "
-        ".claude/settings.json, and compile the /pi skill into .claude/skills/. Proceed?"
+        f"Create .bench/config.yaml, install Benchside into {target}{details}?"
     ):
         print("init cancelled; nothing written")
         return 1
-
+    _configure_storage(args)
     config = project_dir / ".bench" / "config.yaml"
     config.parent.mkdir(parents=True, exist_ok=True)
     if not config.is_file():
         config.write_text(f"project: {project_id.root}\n", encoding="utf-8")
+    if hooks:
+        _register_hooks(project_dir / ".claude" / "settings.json")
+        _compile_skills(target, explicit=True)
+    else:
+        if args.agent == "claude":
+            _remove_hooks(project_dir / ".claude" / "settings.json")
+            from benchside.infrastructure.session_context import clear_project_sessions
 
-    _register_hooks(project_dir / ".claude" / "settings.json")
-    _compile_skills(project_dir / ".claude" / "skills")
-
+            clear_project_sessions(runtime.current_paths(), runtime.resolve_project(cwd=project_dir))
+        _install_app_skill(target)
     print(f"initialized benchside project '{project_id.root}'")
-    print("  .bench/config.yaml — project identity")
-    print("  .claude/settings.json — SessionStart/SessionEnd hooks (tagged, idempotent)")
-    print("  .claude/skills/pi/SKILL.md — the /pi supervisor persona")
-    print()
-    print(LOCAL_DATA_NOTE)
+    print(f"  skills: {target}")
+    print(f"  local record directory: {runtime.current_paths().home}")
+    print("Optional submissions require separate consent and an approved preview.")
+    if legacy:
+        print("Legacy role commands are explicit-invocation-only and keep their existing CLI journal.")
+    else:
+        print("Ask Benchside to select existing app records before creating a new research project.")
+        print("Legacy CLI journals are preserved separately; choose continuation or migration explicitly.")
     return 0
 
 
@@ -88,10 +125,64 @@ def _register_hooks(settings_path: Path) -> None:
             }
         )
     settings_path.parent.mkdir(parents=True, exist_ok=True)
-    settings_path.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8")
+    atomic_json(settings_path, settings)
 
 
-def _compile_skills(target_dir: Path) -> None:
+def _remove_hooks(settings_path: Path) -> None:
+    """Remove only Benchside-tagged lifecycle hooks when selecting the shared route."""
+    if not settings_path.is_file():
+        return
+    settings = json.loads(settings_path.read_text(encoding="utf-8") or "{}")
+    changed = False
+    for event, groups in settings.get("hooks", {}).items():
+        retained = [group for group in groups if group.get(_TAG) != "v1"]
+        if len(retained) != len(groups):
+            settings["hooks"][event] = retained
+            changed = True
+    if changed:
+        atomic_json(settings_path, settings)
+
+
+def _explicit_skill(text: str) -> str:
+    return text.replace("---\n", "---\ndisable-model-invocation: true\n", 1)
+
+
+def _retire_legacy_skills(target: Path) -> None:
+    """Only recognize exact generated content, including known earlier release digests."""
+    from benchside.config import resolve_content_root
+
+    known = resolve_content_root() / "legacy-skill-digests.json"
+    historical = json.loads(known.read_text()) if known.is_file() else {}
+    changed = []
+    with tempfile.TemporaryDirectory(prefix="benchside-legacy-check-") as temporary:
+        expected = Path(temporary)
+        _compile_skills(expected)
+        for original in expected.glob("*/SKILL.md"):
+            installed = target / original.relative_to(expected)
+            if (
+                not installed.is_file()
+                or installed.is_symlink()
+                or installed.parent.is_symlink()
+            ):
+                continue
+            text = installed.read_text(encoding="utf-8")
+            if text == original.read_text(encoding="utf-8") or (
+                hashlib.sha256(text.encode()).hexdigest() in historical.get(original.parent.name, [])
+            ):
+                installed.write_text(_explicit_skill(text), encoding="utf-8")
+                changed.append(original.parent.name)
+            elif not text.startswith("---\ndisable-model-invocation: true\n"):
+                print(
+                    f"Preserved custom skill at {installed}; "
+                    "review its invocation before using both routes."
+                )
+    if changed:
+        names = ", ".join(f"/{name}" for name in sorted(changed))
+        print(f"Updated legacy Benchside commands to explicit invocation only: {names}.")
+        print("Their saved research records remain in the existing CLI journal.")
+
+
+def _compile_skills(target_dir: Path, *, explicit: bool = False) -> None:
     """Compile personas straight into the project's skill directory."""
     container = create_container()
     with container, container(scope=Scope.UOW) as uow:
@@ -102,21 +193,40 @@ def _compile_skills(target_dir: Path) -> None:
             writer=FileSkillWriter(target_dir),
         )
         service.compile()
+    import shutil
+
+    from benchside.config import resolve_content_root
+    from benchside.infrastructure.content.loader import YamlPersonaRepository
+
+    sharing_skill = resolve_content_root() / "claude" / "bench-share"
+    if sharing_skill.is_dir():  # Custom authoring roots may contain only personas.
+        shutil.copytree(sharing_skill, target_dir / "bench-share", dirs_exist_ok=True)
+    if explicit:
+        names = {
+            persona.id.root
+            for persona in YamlPersonaRepository(resolve_content_root() / "personas").list_all()
+        } | {"bench-share"}
+        for path in target_dir.glob("*/SKILL.md"):
+            if path.parent.name in names:
+                path.write_text(_explicit_skill(path.read_text(encoding="utf-8")), encoding="utf-8")
 
 
 def cmd_setup(args) -> int:
-    """One-time machine setup: install the user-level /bench-init skill.
-
-    This is the only skill that lives at user level — it must exist BEFORE any
-    project is inited, because it is how init happens from inside Claude.
-    Everything else is per-project, installed by bench init.
-    """
+    """Install agent instructions without assuming a particular model or storage provider."""
     from benchside.config import resolve_content_root
 
-    source = resolve_content_root() / "claude" / "bench-init" / "SKILL.md"
-    target = Path.home() / ".claude" / "skills" / "bench-init" / "SKILL.md"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
-    print(f"installed /bench-init skill -> {target}")
-    print("In any project directory, a Claude session can now run /bench-init.")
+    _configure_storage(args)
+    target = _skill_directory(args, Path.home())
+    _install_app_skill(target)
+    if args.agent == "claude":
+        source = resolve_content_root() / "claude" / "bench-init" / "SKILL.md"
+        destination = target / "bench-init" / "SKILL.md"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+        print(f"installed /bench-init skill -> {destination}")
+    print(f"Benchside instructions installed in {target}.")
+    print("Ask your agent to set up Benchside; it will ask where to store your records.")
+    print(
+        "Other agents can read benchside/SKILL.md explicitly if they do not discover skills here."
+    )
     return 0

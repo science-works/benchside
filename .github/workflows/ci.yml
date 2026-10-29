@@ -1,0 +1,33 @@
+name: checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.14"]
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv sync --frozen
+      - run: uv run pytest
+      - run: uv run ruff check benchside scripts content/app/scripts
+      - run: uv run bench compile --check
+      - run: uv build --wheel
+      - run: uv run --with pip python scripts/build_release.py
+      - name: Check all release archives
+        run: |
+          benchside_version="$(uv run --frozen python -c 'from benchside import __version__; print(__version__)')"
+          for benchside_package in benchside-claude benchside-claude-plugin benchside-plugin; do
+            uv run --frozen python scripts/smoke_release.py "dist/${benchside_package}-${benchside_version}.zip"
+          done
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: benchside-python-${{ matrix.python }}
+          path: dist/*

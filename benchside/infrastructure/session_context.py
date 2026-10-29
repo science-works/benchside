@@ -16,16 +16,40 @@ import os
 import re
 import shlex
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 
 from benchside.config import Paths
 from benchside.domain.shared.error import InvalidStateError
 from benchside.domain.shared.model.ids import ProjectId
+from benchside.domain.shared.model.provenance import AppProvenance
 from benchside.infrastructure.files import atomic_json, file_lock
+
+_recording_context: ContextVar[tuple[str | None, AppProvenance] | None] = ContextVar(
+    "benchside_recording_context", default=None
+)
 
 # Anonymous fallback expires after 24 hours without explicit activity.
 # Explicit activity refreshes only a known registration, never an ended one.
 _REGISTRATION_LIFETIME_SECONDS = 24 * 60 * 60
+
+
+@contextmanager
+def recording_context(*, provenance: AppProvenance, session_id: str | None = None):
+    """Bind one caller's context without changing another thread's environment."""
+    if session_id is not None:
+        validate_session_id(session_id)
+    token = _recording_context.set((session_id, provenance))
+    try:
+        yield
+    finally:
+        _recording_context.reset(token)
+
+
+def current_provenance() -> AppProvenance | None:
+    context = _recording_context.get()
+    return context[1] if context else None
 
 
 def validate_session_id(value: str) -> str:
@@ -96,6 +120,10 @@ def retire_session_pointer(
 
 
 def current_session(paths: Paths, project_id: ProjectId) -> str | None:
+    context = _recording_context.get()
+    if context and context[0] is not None:
+        _refresh_registered(paths, project_id, context[0])
+        return context[0]
     env = os.environ.get("BENCHSIDE_SESSION_ID") or os.environ.get("CLAUDE_SESSION_ID")
     if env:
         session_id = validate_session_id(env)

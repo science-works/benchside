@@ -84,7 +84,9 @@ def test_explicit_identity_does_not_recreate_ended_registration(paths, monkeypat
     assert (paths.home / "sessions/ended-a.ended").is_file()
 
 
-def test_expired_idle_pointer_remains_available_only_to_its_explicit_conversation(paths, monkeypatch):
+def test_expired_idle_pointer_remains_available_only_to_its_explicit_conversation(
+    paths, monkeypatch
+):
     now = time.time()
     monkeypatch.setattr(time, "time", lambda: now)
     register_session(paths, PID, "idle-a")

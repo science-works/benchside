@@ -6,7 +6,7 @@ and the Handler. Handlers are thin -- unpack, call one service, build a result.
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Any, dataclass_transform
+from typing import Any, Generic, TypeVar, dataclass_transform
 
 from pydantic import BaseModel
 
@@ -33,7 +33,11 @@ class _CommandHandlerMeta(ABCMeta):
         return cls
 
 
-class CommandHandler[C: Command, R: Result](metaclass=_CommandHandlerMeta):
+C = TypeVar("C", bound=Command)
+R = TypeVar("R", bound=Result)
+
+
+class CommandHandler(Generic[C, R], metaclass=_CommandHandlerMeta):
     """Entry point for a write. Delegates to a service; never touches a port."""
 
     @abstractmethod

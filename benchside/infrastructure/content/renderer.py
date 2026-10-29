@@ -20,8 +20,9 @@ _MAX_PASSES = 5
 class PlaceholderRenderer:
     """Multi-pass so blocks may themselves contain placeholders."""
 
-    def __init__(self, templates: TemplateRepository) -> None:
+    def __init__(self, templates: TemplateRepository, *, app: bool = False) -> None:
         self._templates = templates
+        self._app = app
 
     def render(self, template: str, persona: Persona) -> str:
         resolvers = self._resolvers(persona)
@@ -48,11 +49,13 @@ class PlaceholderRenderer:
     def _resolvers(self, persona: Persona) -> dict[str, Callable[[], str]]:
         return {
             "PERSONA_ID": lambda: persona.id.root,
+            "PERSONA_TITLE": lambda: persona.title,
+            "PERSONA_DESCRIPTION": lambda: persona.description,
             "PERSONA_STANCE": lambda: persona.stance,
             "PERSONA_VOICE": lambda: persona.voice,
             "PERSONA_EXPERTISE": lambda: ", ".join(persona.expertise),
             "FORCING_QUESTIONS": lambda: _forcing_questions(persona),
-            "FLOW": lambda: _flow(persona),
+            "FLOW": lambda: _flow(persona, app=self._app),
             "FAILURE_MODES": lambda: _failure_modes(persona),
             "ESCALATION_RULES": lambda: _escalation_rules(persona),
         }
@@ -64,10 +67,13 @@ _CAPTURE_CALL = {
     "resolution": "bench resolve <critique-id> --as <resolution>",
     "decision": 'bench decide "<decision>" --because "<rationale>"',
     "gap": "bench gap <kind> ...",
+    "record": 'bench record --kind <kind> --summary "..." --detail "..." [--source "..."]',
 }
 
+_APP_CAPTURE_ACTION = {"decision": "decide", "resolution": "resolve"}
 
-def _flow(persona: Persona) -> str:
+
+def _flow(persona: Persona, *, app: bool = False) -> str:
     """Render the persona's phases as numbered sections with explicit
     bench-call obligations derived from each phase's captures."""
     if not persona.flow.phases:
@@ -76,8 +82,15 @@ def _flow(persona: Persona) -> str:
     for i, phase in enumerate(persona.flow.phases, start=1):
         section = [f"### Phase {i} — `{phase.id}`: {phase.goal}", "", phase.guidance.rstrip()]
         for kind in phase.captures:
-            call = _CAPTURE_CALL[kind.value]
-            section.append(f"\n**Before moving on, record it:** run `{call}`.")
+            call = (
+                f"{_APP_CAPTURE_ACTION.get(kind.value, kind.value)} adapter action"
+                if app
+                else _CAPTURE_CALL[kind.value]
+            )
+            if kind.value in {"critique", "gap", "resolution"}:
+                section.append(f"\n**When this occurs, record it:** run `{call}`. Never invent it.")
+            else:
+                section.append(f"\n**Before moving on, record it:** run `{call}`.")
         if phase.exit_when:
             section.append(f"\n**Move on when:** {phase.exit_when}")
         parts.append("\n".join(section))

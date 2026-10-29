@@ -6,8 +6,11 @@ and a critique always names its target.
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Literal
+from typing import Annotated, Literal
 
+from pydantic import Field, StringConstraints
+
+from benchside.domain.shared.model.capture import RecordKind
 from benchside.domain.shared.model.ids import CritiqueId, DecisionId, HypothesisId
 from benchside.domain.shared.model.value import ValueObject
 
@@ -124,3 +127,16 @@ class Decision(ValueObject):
     rationale: str
     decided_at: datetime
     supersedes: DecisionId | None = None
+
+
+NonEmptyText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+
+
+class ResearchRecord(ValueObject):
+    """A role's scientific output, kept private in the project journal."""
+
+    id: NonEmptyText
+    kind: RecordKind
+    summary: NonEmptyText
+    details: tuple[NonEmptyText, ...] = Field(min_length=1)
+    sources: tuple[NonEmptyText, ...] = ()

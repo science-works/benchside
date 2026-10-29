@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "benchside",
+  "version": "0.3.1",
+  "description": "Seven scientific colleagues with private project records and optional research-workflow reporting.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Benchside",
+        "shortDescription": "Research colleagues and memory",
+        "longDescription": "Study design, methods troubleshooting, results, reproducibility, journal club, peer review and supervision. Guided setup, project records and optional reporting.",
+        "developerName": "Science Works",
+        "category": "Productivity",
+        "capabilities": [],
+        "defaultPrompt": "Set up Benchside for my research project."
+      },
+      "onboardingSkill": "./skills/benchside/SKILL.md"
+    }
+  }
+}

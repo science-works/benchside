@@ -8,3 +8,5 @@ class ObservationsExported(Event):
     grant_id: GrantId
     observation_ids: tuple[ObservationId, ...]
     payload_sha256: str
+    destination: str = ""
+    received_at: str | None = None

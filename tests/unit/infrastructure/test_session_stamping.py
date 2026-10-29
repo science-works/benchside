@@ -6,9 +6,11 @@ because Claude Code does NOT export the session id to Bash subprocesses.
 """
 
 import json
+import pytest
 
 from benchside.domain.consultation.event.opened import ConsultationOpened
 from benchside.domain.shared.model.ids import PersonaId, ProjectId
+from benchside.infrastructure.journal.store import JsonlJournal
 from benchside.infrastructure.session_context import current_session, register_session
 
 PID = ProjectId("stamped")
@@ -21,6 +23,28 @@ def open_event() -> ConsultationOpened:
 
 
 class TestSessionResolution:
+    def test_parallel_sessions_require_their_own_identity(self, paths, monkeypatch, tmp_path):
+        from benchside.domain.shared.error import InvalidStateError
+        from benchside.infrastructure.session_context import clear_session
+
+        monkeypatch.delenv("CLAUDE_SESSION_ID", raising=False)
+        first_env = tmp_path / "first.env"
+        second_env = tmp_path / "second.env"
+        monkeypatch.setenv("CLAUDE_ENV_FILE", str(first_env))
+        register_session(paths, PID, "first")
+        monkeypatch.setenv("CLAUDE_ENV_FILE", str(second_env))
+        register_session(paths, PID, "second")
+        assert "first" in first_env.read_text()
+        assert "second" not in first_env.read_text()
+        assert "second" in second_env.read_text()
+        with pytest.raises(InvalidStateError, match="Several"):
+            current_session(paths, PID)
+        monkeypatch.setenv("CLAUDE_SESSION_ID", "first")
+        assert current_session(paths, PID) == "first"
+        clear_session(paths, PID, "second")
+        monkeypatch.delenv("CLAUDE_SESSION_ID")
+        assert current_session(paths, PID) == "first"
+
     def test_env_var_wins(self, paths, monkeypatch):
         monkeypatch.setenv("CLAUDE_SESSION_ID", "env-session")
         register_session(paths, PID, "file-session")

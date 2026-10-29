@@ -11,6 +11,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from benchside.domain.shared.model.provenance import AppProvenance
+
 EventId = NewType("EventId", str)
 
 
@@ -30,6 +32,9 @@ class Event(BaseModel):
 
     id: EventId
     recorded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    # Old journals omit this. New scientific events keep the originating app
+    # even when another app later resumes the same scientific sitting.
+    provenance: AppProvenance | None = None
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)

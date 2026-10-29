@@ -18,12 +18,15 @@ from benchside.domain.consultation.event.decision_recorded import DecisionRecord
 from benchside.domain.consultation.event.gap_observed import GapObserved
 from benchside.domain.consultation.event.hypothesis_stated import HypothesisStated
 from benchside.domain.consultation.event.opened import ConsultationOpened
+from benchside.domain.consultation.event.research_recorded import ResearchRecorded
 from benchside.domain.consultation.model.consultation import Consultation
 from benchside.domain.consultation.model.project import Project
 from benchside.domain.consultation.model.value import (
     Critique,
     Decision,
     Hypothesis,
+    RecordKind,
+    ResearchRecord,
     Resolution,
     Target,
 )
@@ -62,6 +65,12 @@ class ConsultationService(Service):
         project_id: ProjectId,
         persona_id: PersonaId,
         close_requires: tuple[CloseRequirement, ...] = (),
+        critique_requires_hypothesis: bool = True,
+        record_kind: RecordKind | None = None,
+        persona_version: str = "1",
+        host: str = "unknown",
+        app_version: str = "unknown",
+        surface: str = "unknown",
     ) -> Consultation:
         if self.consultations.get(consultation_id) is not None:
             raise InvalidStateError(f"Consultation already exists: {consultation_id}")
@@ -70,6 +79,12 @@ class ConsultationService(Service):
             project_id=project_id,
             persona_id=persona_id,
             close_requires=close_requires,
+            critique_requires_hypothesis=critique_requires_hypothesis,
+            record_kind=record_kind,
+            persona_version=persona_version,
+            host=host,
+            app_version=app_version,
+            surface=surface,
         )
         self.journal.append(
             project_id,
@@ -79,6 +94,12 @@ class ConsultationService(Service):
                 project_id=project_id,
                 persona_id=persona_id,
                 close_requires=close_requires,
+                critique_requires_hypothesis=critique_requires_hypothesis,
+                record_kind=record_kind,
+                persona_version=persona_version,
+                host=host,
+                app_version=app_version,
+                surface=surface,
             ),
         )
         return consultation
@@ -117,7 +138,10 @@ class ConsultationService(Service):
         target: Target,
     ) -> Project:
         consultation, project = self._load_pair(consultation_id)
-        project.raise_critique(Critique(id=critique_id, target=target))
+        project.raise_critique(
+            Critique(id=critique_id, target=target),
+            requires_hypothesis=consultation.critique_requires_hypothesis,
+        )
         consultation.settle(project.open_critiques)
         self.journal.append(
             project.id,
@@ -162,7 +186,8 @@ class ConsultationService(Service):
         rationale: str,
         supersedes: DecisionId | None = None,
     ) -> Project:
-        _, project = self._load_pair(consultation_id)
+        consultation, project = self._load_pair(consultation_id)
+        consultation._require_live()
         project.record_decision(
             Decision(
                 id=decision_id,
@@ -199,6 +224,7 @@ class ConsultationService(Service):
         does not touch its invariants. The export domain reads these.
         """
         consultation = self._load_consultation(consultation_id)
+        consultation._require_live()
         self.journal.append(
             consultation.project_id,
             GapObserved(
@@ -207,6 +233,27 @@ class ConsultationService(Service):
                 consultation_id=consultation_id,
                 observation_id=observation_id,
                 gap=gap,
+            ),
+        )
+
+    def record_research(self, *, consultation_id: ConsultationId, record: ResearchRecord) -> None:
+        consultation, project = self._load_pair(consultation_id)
+        consultation._require_live()
+        if consultation.record_kind != record.kind:
+            raise InvalidStateError(
+                f"This role records {consultation.record_kind}, not {record.kind}"
+            )
+        if record.kind == "literature" and not record.sources:
+            raise InvalidStateError("A literature record needs a supplied or retrieved source")
+        if any(r.id == record.id for r in project.research_records):
+            raise InvalidStateError(f"Research record already exists: {record.id}")
+        self.journal.append(
+            consultation.project_id,
+            ResearchRecorded(
+                id=new_event_id(),
+                project_id=consultation.project_id,
+                consultation_id=consultation_id,
+                record=record,
             ),
         )
 
@@ -219,6 +266,8 @@ class ConsultationService(Service):
     ) -> Consultation:
         consultation = self._load_consultation(consultation_id)
         if converged:
+            # A different sitting may have raised a concern since this one last wrote.
+            consultation.settle(self.get_project(consultation.project_id).open_critiques)
             self._enforce_close_requirements(consultation)
             consultation.converge(detail)
         else:
@@ -282,6 +331,7 @@ class ConsultationService(Service):
             CritiqueResolved: CaptureKind.RESOLUTION,
             DecisionRecorded: CaptureKind.DECISION,
             GapObserved: CaptureKind.GAP,
+            ResearchRecorded: CaptureKind.RECORD,
         }
         for event in self.journal.read(consultation.project_id):
             kind = kind_by_event.get(type(event))

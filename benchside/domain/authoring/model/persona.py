@@ -13,11 +13,17 @@ from benchside.domain.authoring.model.value import (
 )
 from benchside.domain.shared.error import ValidationError
 from benchside.domain.shared.model.aggregate import Aggregate
+from benchside.domain.shared.model.capture import RecordKind
 from benchside.domain.shared.model.ids import PersonaId
 
 
 class Persona(Aggregate):
     id: PersonaId
+    title: str = "Research supervisor"
+    description: str = "Discuss research direction, hypotheses, priorities and next experiments."
+    version: str = "1"
+    critique_requires_hypothesis: bool = True
+    record_kind: RecordKind | None = None
     stance: str
     expertise: tuple[str, ...]
     voice: str

@@ -63,7 +63,7 @@ def env(tmp_path, monkeypatch, capsys):
 class TestInit:
     def test_init_materializes_config_skill_and_hooks(self, env):
         run, home, project_dir = env
-        code, out = run("init", "--yes")
+        code, out = run("init", "--yes", "--legacy-cli")
         assert code == 0
 
         config = project_dir / ".bench" / "config.yaml"
@@ -78,8 +78,8 @@ class TestInit:
 
     def test_init_is_idempotent(self, env):
         run, _, project_dir = env
-        run("init", "--yes")
-        run("init", "--yes")
+        run("init", "--yes", "--legacy-cli")
+        run("init", "--yes", "--legacy-cli")
         settings = json.loads((project_dir / ".claude" / "settings.json").read_text())
         assert len(settings["hooks"]["SessionStart"]) == 1
         assert len(settings["hooks"]["SessionEnd"]) == 1
@@ -160,6 +160,32 @@ class TestRealSessionFlow:
     stamps journal entries and names pointers from it; SessionEnd retires
     the pointer under the real id."""
 
+    def test_duplicate_open_preserves_sitting_without_session_environment(self, env, monkeypatch):
+        run, home, project_dir = env
+        for variable in ("CLAUDE_SESSION_ID", "BENCHSIDE_SESSION_ID", "CLAUDE_ENV_FILE"):
+            monkeypatch.delenv(variable, raising=False)
+        assert run("init", "--yes")[0] == 0
+        payload = json.dumps(
+            {"session_id": "registered-session", "cwd": str(project_dir), "source": "startup"}
+        )
+        assert run("hook", "session-start", stdin=payload)[0] == 0
+        assert run("sitting", "open", "--persona", "pi")[0] == 0
+        pointer = home / "sessions" / "registered-session.json"
+        original_pointer = pointer.read_text()
+        journal = home / "projects" / "chd7-study" / "journal.jsonl"
+        original_journal = journal.read_text()
+
+        code, output = run("sitting", "open", "--persona", "pi")
+
+        assert code == 1
+        assert "already open" in output
+        assert pointer.read_text() == original_pointer
+        assert journal.read_text() == original_journal
+        assert run("hypothesis", "Continue the existing sitting")[0] == 0
+        recorded = json.loads(journal.read_text().splitlines()[-1])
+        assert recorded["data"]["consultation_id"] == json.loads(original_pointer)["sitting_id"]
+        assert recorded["session"] == "registered-session"
+
     def test_stamping_and_retirement_without_env_var(self, env, monkeypatch, tmp_path):
         import json
 
@@ -197,31 +223,3 @@ class TestRealSessionFlow:
         assert run("hook", "session-end", stdin=stdin)[0] == 0
         assert not (home / "sessions" / "real-uuid-1.json").exists()
         assert (home / "sessions" / "real-uuid-1.ended").exists()
-
-
-class TestSafeDuplicateOpen:
-    def test_duplicate_open_preserves_sitting_without_session_environment(self, env, monkeypatch):
-        run, home, project_dir = env
-        for variable in ("CLAUDE_SESSION_ID", "BENCHSIDE_SESSION_ID", "CLAUDE_ENV_FILE"):
-            monkeypatch.delenv(variable, raising=False)
-        assert run("init", "--yes")[0] == 0
-        payload = json.dumps(
-            {"session_id": "registered-session", "cwd": str(project_dir), "source": "startup"}
-        )
-        assert run("hook", "session-start", stdin=payload)[0] == 0
-        assert run("sitting", "open", "--persona", "pi")[0] == 0
-        pointer = home / "sessions" / "registered-session.json"
-        original_pointer = pointer.read_text()
-        journal = home / "projects" / "chd7-study" / "journal.jsonl"
-        original_journal = journal.read_text()
-
-        code, output = run("sitting", "open", "--persona", "pi")
-
-        assert code == 1
-        assert "already open" in output
-        assert pointer.read_text() == original_pointer
-        assert journal.read_text() == original_journal
-        assert run("hypothesis", "Continue the existing sitting")[0] == 0
-        recorded = json.loads(journal.read_text().splitlines()[-1])
-        assert recorded["data"]["consultation_id"] == json.loads(original_pointer)["sitting_id"]
-        assert recorded["session"] == "registered-session"

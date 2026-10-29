@@ -1,0 +1,41 @@
+{
+  "schema": "benchside.usage.v1",
+  "installation_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "report_id": "cccccccccccccccccccccccccccccccc",
+  "week": "2026-10-19",
+  "revision": 1,
+  "benchside_version": "0.1.0",
+  "sessions": [
+    {
+      "role": "methods-clinic",
+      "role_version": "1",
+      "host": "claude",
+      "app_version": "1.2.3",
+      "surface": "desktop",
+      "started": 1,
+      "concluded": 1,
+      "abandoned": 0,
+      "records": {
+        "hypothesis": 0,
+        "critique": 0,
+        "resolution": 0,
+        "decision": 1,
+        "gap": 0,
+        "record": 1
+      }
+    }
+  ],
+  "errors": {
+    "recording_invalid": 0,
+    "recording_unavailable": 0,
+    "submission_invalid": 0,
+    "submission_rejected": 0,
+    "submission_rate_limited": 0,
+    "submission_unavailable": 0,
+    "submission_receipt_invalid": 0
+  },
+  "demographics": {
+    "discipline": "life_sciences",
+    "career_stage": "doctoral_researcher"
+  }
+}

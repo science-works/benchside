@@ -14,10 +14,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
+from pydantic import ValidationError as SchemaError
 
 from benchside.config import Paths, resolve_paths
 from benchside.domain.shared.error import DomainError
 from benchside.domain.shared.model.ids import ProjectId, user_project_id
+from benchside.domain.shared.model.provenance import AppProvenance
 
 _NON_SLUG = re.compile(r"[^a-z0-9]+")
 
@@ -56,7 +58,7 @@ def slugify(raw: str) -> str:
 
 def short_id(prefix: str) -> str:
     """Human-quotable unique id, generated CLI-side (never by the model)."""
-    return f"{prefix}-{uuid.uuid4().hex[:8]}"
+    return f"{prefix}-{uuid.uuid4().hex}"
 
 
 # --- Project resolution (issue #2: config file > git remote > dirname) ---
@@ -222,3 +224,22 @@ def require_pointer(paths: Paths, project_id: ProjectId | None = None) -> dict:
 
 def current_paths() -> Paths:
     return resolve_paths()
+
+
+def recording_provenance() -> AppProvenance:
+    """Use only reported CLI metadata; never infer a release version."""
+    values = {
+        "host": os.environ.get(
+            "BENCHSIDE_HOST", "claude" if os.environ.get("CLAUDE_SESSION_ID") else "unknown"
+        ),
+        "app_version": os.environ.get("BENCHSIDE_APP_VERSION", "unknown"),
+        "surface": os.environ.get("BENCHSIDE_SURFACE", "cli"),
+    }
+    try:
+        return AppProvenance.model_validate(values)
+    except SchemaError as error:
+        # Optional host metadata cannot prevent a valid scientific record.
+        # Keep valid fields and replace unsupported labels with the wire sentinel.
+        for field in {issue["loc"][0] for issue in error.errors()}:
+            values[field] = "unknown"
+        return AppProvenance.model_validate(values)

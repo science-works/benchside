@@ -11,6 +11,7 @@ from benchside.domain.consultation.model.value import (
     Critique,
     Decision,
     Hypothesis,
+    ResearchRecord,
     Resolution,
     Target,
 )
@@ -25,6 +26,7 @@ class Project(Aggregate):
     hypotheses: list[Hypothesis] = Field(default_factory=list)
     critiques: list[Critique] = Field(default_factory=list)
     decisions: list[Decision] = Field(default_factory=list)
+    research_records: list[ResearchRecord] = Field(default_factory=list)
 
     @property
     def open_critiques(self) -> tuple[CritiqueId, ...]:
@@ -41,8 +43,8 @@ class Project(Aggregate):
             raise NotFoundError(f"Cannot supersede unknown hypothesis {hypothesis.supersedes}")
         self.hypotheses.append(hypothesis)
 
-    def raise_critique(self, critique: Critique) -> None:
-        if not self.hypotheses:
+    def raise_critique(self, critique: Critique, *, requires_hypothesis: bool = True) -> None:
+        if requires_hypothesis and not self.hypotheses:
             raise InvalidStateError("Cannot critique before a hypothesis is on the table")
         self.critiques.append(critique)
 

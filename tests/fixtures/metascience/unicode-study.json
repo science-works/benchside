@@ -1,0 +1,30 @@
+{
+  "study": {
+    "id": "synthetic-unicode",
+    "version": 1,
+    "title": "Étude synthétique — vérification 🔬",
+    "purpose": "Comparer café, α et 🧪 — données fictives.",
+    "data_use": "Synthetic Unicode contract fixture; never publish as an active study.",
+    "retention_days": 30,
+    "opens": "2026-10-01",
+    "closes": "2026-12-31",
+    "questions": [
+      {
+        "id": "checked",
+        "prompt": "Vérification synthétique — oui ou non ?",
+        "options": [
+          {
+            "id": "yes",
+            "label": "Oui ✅"
+          },
+          {
+            "id": "no",
+            "label": "Non ❌"
+          }
+        ]
+      }
+    ]
+  },
+  "canonical": "{\"closes\":\"2026-12-31\",\"data_use\":\"Synthetic Unicode contract fixture; never publish as an active study.\",\"id\":\"synthetic-unicode\",\"opens\":\"2026-10-01\",\"purpose\":\"Comparer café, α et 🧪 — données fictives.\",\"questions\":[{\"id\":\"checked\",\"options\":[{\"id\":\"yes\",\"label\":\"Oui ✅\"},{\"id\":\"no\",\"label\":\"Non ❌\"}],\"prompt\":\"Vérification synthétique — oui ou non ?\"}],\"retention_days\":30,\"title\":\"Étude synthétique — vérification 🔬\",\"version\":1}",
+  "sha256": "b5496cf211631744376280df8232fb3d8a8e3f374c5b47de2b7711389a8dc146"
+}

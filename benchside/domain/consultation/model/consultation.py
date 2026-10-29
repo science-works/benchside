@@ -12,6 +12,7 @@ from benchside.domain.consultation.model.value import (
     Converged,
     Framing,
     Probing,
+    RecordKind,
     State,
 )
 from benchside.domain.shared.error import InvalidStateError
@@ -26,6 +27,12 @@ class Consultation(Aggregate):
     persona_id: PersonaId
     state: State = Framing()
     close_requires: tuple[CloseRequirement, ...] = ()
+    critique_requires_hypothesis: bool = True
+    record_kind: RecordKind | None = None
+    persona_version: str = "1"
+    host: str = "unknown"
+    app_version: str = "unknown"
+    surface: str = "unknown"
 
     def _require_live(self) -> None:
         if self.state.kind in TERMINAL:

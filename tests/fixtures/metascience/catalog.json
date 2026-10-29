@@ -1,0 +1,35 @@
+{
+  "schema": "benchside.studies.v1",
+  "studies": [
+    {
+      "id": "synthetic-verification",
+      "version": 1,
+      "title": "Synthetic test survey",
+      "purpose": "Exercise the optional study flow using synthetic answers only.",
+      "data_use": "Local development fixture; never published as an active study.",
+      "retention_days": 30,
+      "opens": "2026-10-01",
+      "closes": "2026-12-31",
+      "questions": [
+        {
+          "id": "checked",
+          "prompt": "Did you check the answer?",
+          "options": [
+            {
+              "id": "yes",
+              "label": "Yes"
+            },
+            {
+              "id": "no",
+              "label": "No"
+            },
+            {
+              "id": "unsure",
+              "label": "Unsure"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

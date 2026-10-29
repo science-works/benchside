@@ -1,0 +1,433 @@
+{
+  "schema": "benchside.activity.v1",
+  "benchside_version": "0.1.3",
+  "batch_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "revision": 1,
+  "week": "2026-10-19",
+  "sampling": "weekly-user-selected-max20-v1",
+  "coverage": "user_selected_accessible_sessions",
+  "eligible": 20,
+  "selected": 20,
+  "observations": [
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    },
+    {
+      "rubric": "research-activity-1",
+      "benchside_role": "none",
+      "activity": {
+        "value": "analysis",
+        "basis": "model_inferred"
+      },
+      "obstacle": {
+        "value": "tool_failure",
+        "basis": "researcher_reported"
+      },
+      "verification": {
+        "value": "ran_test",
+        "basis": "model_inferred"
+      },
+      "outcome": {
+        "value": "not_reported",
+        "basis": "unknown"
+      },
+      "host": "claude"
+    }
+  ]
+}

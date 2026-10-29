@@ -1,3 +1,4 @@
+from benchside.domain.consultation.model.value import RecordKind
 from benchside.domain.shared.event import Event
 from benchside.domain.shared.model.capture import CloseRequirement
 from benchside.domain.shared.model.ids import ConsultationId, PersonaId, ProjectId
@@ -14,3 +15,9 @@ class ConsultationOpened(Event):
     project_id: ProjectId
     persona_id: PersonaId
     close_requires: tuple[CloseRequirement, ...] = ()
+    critique_requires_hypothesis: bool = True
+    record_kind: RecordKind | None = None
+    persona_version: str = "1"
+    host: str = "unknown"
+    app_version: str = "unknown"
+    surface: str = "unknown"

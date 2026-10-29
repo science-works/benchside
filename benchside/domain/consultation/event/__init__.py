@@ -5,6 +5,7 @@ from benchside.domain.consultation.event.decision_recorded import DecisionRecord
 from benchside.domain.consultation.event.gap_observed import GapObserved
 from benchside.domain.consultation.event.hypothesis_stated import HypothesisStated
 from benchside.domain.consultation.event.opened import ConsultationOpened
+from benchside.domain.consultation.event.research_recorded import ResearchRecorded
 
 __all__ = [
     "ConsultationClosed",
@@ -14,4 +15,5 @@ __all__ = [
     "DecisionRecorded",
     "GapObserved",
     "HypothesisStated",
+    "ResearchRecorded",
 ]

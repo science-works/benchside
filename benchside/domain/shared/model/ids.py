@@ -59,6 +59,6 @@ CONSENT_LEDGER_PROJECT = ProjectId("consent-ledger")
 def user_project_id(raw: str) -> ProjectId:
     """Parse a user-supplied project id, rejecting reserved names."""
     project_id = ProjectId(raw)
-    if project_id == CONSENT_LEDGER_PROJECT:
+    if project_id == CONSENT_LEDGER_PROJECT or project_id.root == "reporting-ledger":
         raise ValueError(f"'{raw}' is reserved for the consent ledger")
     return project_id

@@ -217,3 +217,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 gstack/
+
+# Rebuildable binary embedded by scripts/build_release.py.
+plugins/benchside/skills/benchside/runtime/*.whl
+plugins/benchside/skills/benchside/runtime/wheels/

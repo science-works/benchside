@@ -4,6 +4,8 @@ Everything durable routes through the JSONL journal; content comes from the
 resolved content root (checkout or packaged data).
 """
 
+import os
+
 from dishka import provide
 
 from benchside.config import Paths, resolve_content_root, resolve_paths
@@ -21,6 +23,7 @@ from benchside.domain.shared.port.journal import Journal
 from benchside.infrastructure.content.loader import FileTemplateRepository, YamlPersonaRepository
 from benchside.infrastructure.content.renderer import PlaceholderRenderer
 from benchside.infrastructure.content.writer import FileSkillWriter
+from benchside.infrastructure.http_sink import COLLECTOR, HttpExportSink
 from benchside.infrastructure.journal.projection import (
     JournalConsentRepository,
     JournalConsultationRepository,
@@ -28,7 +31,8 @@ from benchside.infrastructure.journal.projection import (
     JournalProjectRepository,
 )
 from benchside.infrastructure.journal.store import JsonlJournal
-from benchside.infrastructure.placeholders import PassthroughRedactor, RefusingExportSink
+from benchside.infrastructure.placeholders import RefusingExportSink
+from benchside.infrastructure.redaction import TextRedactor
 from benchside.util.di import Provider, Scope
 
 
@@ -73,5 +77,9 @@ class FileProvider(Provider):
     def get_skill_writer(self, paths: Paths) -> SkillWriter:
         return FileSkillWriter(paths.skills_dir)
 
-    redactor = provide(PassthroughRedactor, scope=Scope.APP, provides=Redactor)
-    sink = provide(RefusingExportSink, scope=Scope.APP, provides=ExportSink)
+    redactor = provide(TextRedactor, scope=Scope.APP, provides=Redactor)
+
+    @provide(scope=Scope.APP)
+    def get_sink(self) -> ExportSink:
+        endpoint = os.environ.get("BENCHSIDE_GAPS_ENDPOINT", f"{COLLECTOR}/v1/gaps")
+        return HttpExportSink(endpoint) if endpoint else RefusingExportSink()

@@ -110,3 +110,17 @@ class TestJournalEvents:
         assert code == 0
         for line in out.strip().splitlines():
             json.loads(line)
+
+
+def test_recall_all_exposes_older_decisions_without_rewriting_journal(env):
+    for i in range(6):
+        assert env("decide", f"Later decision {i}", "--because", "Synthetic follow-up")[0] == 0
+    _, before, _ = env("journal", "events", "--json")
+    code, recent, _ = env("recall", "--json")
+    assert code == 0 and len(json.loads(recent)["recent_decisions"]) == 5
+    code, full, _ = env("recall", "--all", "--json")
+    assert code == 0
+    assert json.loads(full)["recent_decisions"][0]["decision"] == "run known-answer test"
+    assert len(json.loads(full)["recent_decisions"]) == 7
+    _, after, _ = env("journal", "events", "--json")
+    assert before == after

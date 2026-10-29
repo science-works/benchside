@@ -17,6 +17,8 @@ from benchside.infrastructure.journal.projection import (
 
 
 class RecordingSink:
+    destination = "test://collector"
+
     def __init__(self) -> None:
         self.sent: list[str] = []
 
@@ -89,7 +91,8 @@ class TestB1ExportedAt:
         observe(journal, "o1", "any index?")
 
         before = datetime.now(UTC)
-        record = service.export()
+        preview = service.preview()
+        record = service.export(preview=preview, approved_sha256=preview.payload_sha256)
         after = datetime.now(UTC)
 
         assert before - timedelta(seconds=5) <= record.exported_at <= after, (

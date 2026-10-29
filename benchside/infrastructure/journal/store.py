@@ -4,45 +4,59 @@ One append-only file per project. Every line is one event, tagged with its
 class name so it can be parsed back into its concrete type. History is never
 rewritten -- corrections are new events that supersede old ones.
 
-Writes are atomic-ish by construction: a single `write()` of one line in append
-mode under the POSIX small-write guarantee. Good enough for a single-user CLI;
-if this ever goes concurrent it needs a lock.
+Each append holds a per-journal file lock, flushes and syncs the write, and
+restricts the file to its owner. App and CLI commands also hold an installation
+transaction lock around read/validate/write operations.
 """
 
 import json
 import logging
+import os
 from collections.abc import Iterable
 from pathlib import Path
 
 from benchside.config import Paths
-from benchside.domain.shared.error import StorageUnavailableError
+from benchside.domain.shared.error import ConfigurationError, StorageUnavailableError
 from benchside.domain.shared.event import Event
 from benchside.domain.shared.model.ids import ProjectId
+from benchside.infrastructure.files import file_lock
 from benchside.infrastructure.journal.registry import ensure_events_registered
-from benchside.infrastructure.session_context import current_session
+from benchside.infrastructure.session_context import current_provenance, current_session
 
 logger = logging.getLogger(__name__)
 
 
 class JsonlJournal:
     def __init__(self, paths: Paths) -> None:
+        root = paths.home.resolve()
+        if any((directory / ".git").exists() for directory in (root, *root.parents)):
+            raise ConfigurationError("Benchside journals must be stored outside Git")
         self._paths = paths
         ensure_events_registered()
 
     def append(self, project_id: ProjectId, event: Event) -> None:
         path = self._paths.journal_file(project_id.root)
         try:
-            path.parent.mkdir(parents=True, exist_ok=True)
+            path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+            provenance = current_provenance()
+            if provenance is not None and hasattr(event, "consultation_id"):
+                event = event.model_copy(update={"provenance": provenance})
+            data = event.model_dump(mode="json")
+            if not hasattr(event, "consultation_id") or event.provenance is None:
+                data.pop("provenance", None)
             line = json.dumps(
                 {
                     "type": type(event).__name__,
                     "session": current_session(self._paths, project_id),
-                    "data": event.model_dump(mode="json"),
+                    "data": data,
                 },
                 ensure_ascii=False,
             )
-            with path.open("a", encoding="utf-8") as handle:
+            with file_lock(path.with_suffix(".lock")), path.open("a", encoding="utf-8") as handle:
+                os.chmod(path, 0o600)
                 handle.write(line + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
         except OSError as err:
             raise StorageUnavailableError(f"Could not append to journal at {path}: {err}") from err
 

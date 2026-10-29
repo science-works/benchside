@@ -38,6 +38,8 @@ def cmd_journal(args) -> int:
                 _sittings(ui, uow.get(ConsultationRepository).list_for_project(project_id))
             case "hypotheses":
                 _hypotheses(ui, project)
+            case "records":
+                _records(ui, project)
             case "critiques":
                 _critiques(ui, project, only_open=args.open)
             case "decisions":
@@ -62,6 +64,7 @@ def _show(ui: UI, project, sittings) -> None:
         "  ·  ".join(
             [
                 _plural(len(project.hypotheses), "hypothesis", "hypotheses"),
+                _plural(len(project.research_records), "research record"),
                 f"{_plural(len(project.critiques), 'critique')} ({len(open_critiques)} open)",
                 _plural(len(project.decisions), "decision"),
                 _plural(len(sittings), "sitting"),
@@ -74,8 +77,11 @@ def _show(ui: UI, project, sittings) -> None:
     if current:
         ui.section("hypothesis", meta=current.id)
         ui.block(current.statement)
-    else:
-        ui.warn("no hypothesis on the table yet")
+    if project.research_records:
+        record = project.research_records[-1]
+        ui.section(f"latest {record.kind} record", meta=record.id)
+        ui.block(record.summary)
+        ui.detail("Full evidence and sources: bench journal records")
 
     ui.info("")
     live = [s for s in sittings if s.state.kind not in ("converged", "abandoned")]
@@ -125,6 +131,19 @@ def _hypotheses(ui: UI, project) -> None:
         note = f"supersedes {hypothesis.supersedes}" if hypothesis.supersedes else ""
         rows.append([glyph, hypothesis.id, hypothesis.statement, note])
     ui.table(["", "ID", "HYPOTHESIS", "NOTES"], rows)
+
+
+def _records(ui: UI, project) -> None:
+    if not project.research_records:
+        ui.info("no research records yet")
+        return
+    for record in project.research_records:
+        ui.section(record.kind, meta=record.id)
+        ui.block(record.summary)
+        for detail in record.details:
+            ui.block(detail)
+        for source in record.sources:
+            ui.detail(f"Source: {source}")
 
 
 def _critiques(ui: UI, project, *, only_open: bool) -> None:

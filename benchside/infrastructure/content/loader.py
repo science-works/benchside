@@ -39,6 +39,17 @@ class YamlPersonaRepository:
         try:
             return Persona(
                 id=PersonaId(raw.get("id", path.stem)),
+                **{
+                    key: raw[key]
+                    for key in (
+                        "title",
+                        "description",
+                        "version",
+                        "critique_requires_hypothesis",
+                        "record_kind",
+                    )
+                    if key in raw
+                },
                 stance=raw["stance"],
                 expertise=tuple(raw.get("expertise", ())),
                 voice=raw["voice"],
