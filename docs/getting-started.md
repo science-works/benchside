@@ -4,6 +4,21 @@ Benchside offers seven research colleagues: a supervisor, study-design consultan
 methods troubleshooter, results discussant, reproducibility auditor, journal-club
 discussant and scientific peer reviewer.
 
+## The simplest way to start
+
+Give your agent this message:
+
+> Set up Benchside for me from https://github.com/science-works/benchside.
+> Follow SETUP.md and do the installation for this app. Ask where to keep my
+> private records and whether I want optional research sharing, then help me
+> start my first research project. Verify saving and restoring a test decision.
+
+The [agent setup guide](../SETUP.md) tells an agent how to install, reuse an
+existing installation and verify storage. With local execution tools, the agent
+can perform the installation. In a hosted app, it uses the app's installation
+tools or gives you the package link and the upload step your account supports.
+You do not need to run terminal commands or provide API keys.
+
 ## Choose an installation route
 
 Benchside is one research toolkit with several delivery methods. “App package”
@@ -19,30 +34,19 @@ for the Git/terminal route. A plugin packages skills and their supporting runtim
 | Claude plugin | `benchside-claude-plugin-0.3.1.zip` includes `.claude-plugin/plugin.json`, the shared skill, role references and runtime. The manifest passes Claude's validator. |
 | Claude standalone skill | `benchside-claude-0.3.1.zip` remains available for custom-skill installation. |
 
-The expanded implementation is reviewed in [PR #5](https://github.com/science-works/benchside/pull/5).
-No public plugin listing has been published.
+Download app packages from the [latest GitHub release](https://github.com/science-works/benchside/releases/latest).
+The expanded implementation is merged into `main`; agents should install the
+latest released tag unless you ask for a development version. No public plugin
+directory listing has been published.
 Package validation does not replace installation, discovery and fresh-chat memory
 checks in the intended app/account.
 
-## Starting with an agent that has no Benchside context
-
-Name-only discovery is not guaranteed. Give the agent an exact source URL. For
-setup, a filesystem/execution-capable agent such as Codex or Claude Code
-can follow this prompt:
-
-> Set up Science Works' Benchside from
-> https://github.com/science-works/benchside.
-> Read its README and guided onboarding instructions and perform the setup for
-> this app. Ask where I want private records stored and whether I want optional
-> metascience participation. Verify a save/readback and explain any unsupported
-> steps. I should not need to type terminal commands.
-
-The source route requires execution and suitable storage tools; reading a GitHub
-page in an ordinary chat does not install a plugin. In Claude, upload the supplied
-Claude plugin ZIP through Customize → Plugins. In OpenAI apps, install the
-available Benchside plugin/package through the host's supported flow. The current
-account-private OpenAI listing is not a public installation link for colleagues.
-Public directory publication is separate from merging the repository.
+Name-only discovery is not guaranteed: give the repository URL. Reading a GitHub
+page does not install a plugin. Keep the release ZIP intact for app uploads;
+GitHub's automatic **Source code** download is not an app package. In Claude,
+use Plugins (or Customize → Plugins) for the Claude plugin ZIP, or Skills for
+the standalone skill ZIP. In OpenAI apps, use the supported custom-plugin flow.
+Another person's private OpenAI listing is not an installation link for colleagues.
 
 Once installed, test recognition in a fresh conversation. If the host does not
 discover installed skills automatically, explicitly select Benchside or reference
@@ -50,7 +54,7 @@ the installed skill. Do not claim fresh-chat discovery until tested.
 
 ## First research project
 
-Install the Benchside package supplied for your app, then say:
+After installation, say:
 
 > Set up Benchside for this research project.
 
@@ -93,48 +97,21 @@ For native/connected storage, the private Benchside memory document contains the
 validated records, and each project has a readable journal document. A single
 private memory document can hold several isolated projects.
 
-**Claude update, 29 October:** version 0.3.1 transfers native notebooks as files
-and applies Claude Docs' 65,536-character block limit. A 52 KB synthetic cloud
-notebook passed exact transfer, and approved feedback reached Science Works after
-allowlisting `ingest.benchside.science.works`. The blob replacement operation is
-not documented in Anthropic's Docs guide; saves stop safely if it is unavailable.
-Updating the package does not change account network settings. Verify save and
-fresh-chat restoration in the account you intend to use. See the
-[demo guide](demo-start-here.md) and
-[Claude findings](claude-memory-and-sending-findings-2026-10-29.md).
-The following records earlier acceptance results, not a guarantee for every host.
+Cloud storage must pass a save/readback and restore check in your account.
+Benchside uses guarded updates to avoid replacing a newer notebook. Claude
+0.3.1 transfers notebooks as files and respects Claude Docs' smaller block limit;
+if the exact transfer is unavailable, the agent must report that work was not
+saved. Update all apps sharing a notebook together.
 
-ChatGPT Pages and the connected Google Drive/Docs tools have passed synthetic
-save/read/restore checks. Claude Docs has also passed private-document creation,
-readback, guarded update and discovery by title in a fresh conversation. Google
-Docs and Claude Docs rejected stale writes. The installed Claude review plugin
-also passed a synthetic methods discussion, guarded saves, fresh-chat discovery
-and resumption, and separation from a second project on 23 October. All sharing
-stayed off. The updated runtime batches private recording to reduce repeated saves,
-remembers participation deferral and displays friendly project names. It passed
-live Google Docs and ChatGPT Pages save/readback checks for all seven roles. Both
-installed plugins also passed batched setup and fresh-chat resumption. Claude
-setup took about 7½ minutes and ChatGPT's 2m 21s in individual, non-comparable runs.
-Three scientific overclaims did not recur after the installed role corrections;
-the final reproducibility wording check passed in both installed 0.1.1 plugins.
-Both apps passed submission-failure recovery and consent withdrawal, but HTTP 403
-blocked delivery before the temporary Worker. On 27 October, ChatGPT restored and
-updated the shared Google notebook. After the user approved the separate Google
-Docs connector, Claude resumed that same project and saved a synthetic decision
-using a guarded update. Independent readback verified both the state and journal;
-Google metadata showed both documents unshared. The earlier Drive-only check did
-not test this editing connector. On 28 October the installed 0.1.4 update passed
-native saves in both apps, and Claude continued the Google notebook from revision
-10 to 11 without changing project IDs or consent. See the
-[current acceptance report](acceptance-2026-10-28.md) for fresh-chat, network and
-survey results; update all apps sharing a notebook together.
-Claude's native Docs tools do not expose sharing permissions, so a private sharing
-state must be verified in the UI. Other accounts/connectors still need acceptance.
-See the [27 October release review](release-review-2026-10-27.md) and
-[earlier installed-app tests](acceptance-2026-10-23.md).
-If a connector only searches or reads files, setup explains why it cannot keep a
-journal there and offers another available location. No Google connector or
-storage credentials are bundled into Benchside.
+ChatGPT Pages, Claude Docs and supported Google Docs connectors have passed
+synthetic checks in the tested accounts. Other accounts and connectors can expose
+different tools. A connector that only searches or reads cannot keep a journal;
+setup should offer another location. No Google connector or storage credentials
+are bundled. Claude's native Docs tools do not expose sharing permissions, so
+verify privacy in the document UI. Details are in the
+[acceptance history](acceptance-2026-10-28.md),
+[Claude transfer findings](claude-memory-and-sending-findings-2026-10-29.md), and
+[demo guide](demo-start-here.md).
 
 Memory depends on the agent's tools, not its model. The runtime needs Python 3.11+
 and a POSIX execution environment, plus access to the chosen storage. Ordinary
@@ -231,9 +208,9 @@ uv run --with pip python scripts/build_release.py
 
 This produces:
 
-- `dist/benchside-claude-0.1.5.zip`: standalone Claude skill, with all roles.
-- `dist/benchside-claude-plugin-0.1.5.zip`: Claude plugin upload, with manifest at the archive root.
-- `dist/benchside-plugin-0.1.5.zip`: portable/OpenAI plugin with Codex compatibility metadata.
+- `dist/benchside-claude-0.3.1.zip`: standalone Claude skill, with all roles.
+- `dist/benchside-claude-plugin-0.3.1.zip`: Claude plugin upload, with manifest at the archive root.
+- `dist/benchside-plugin-0.3.1.zip`: portable/OpenAI plugin with Codex compatibility metadata.
 
 All packages are generated from the same code and role definitions. Claude packaging
 adds its manifest and upload layout; it does not fork the implementation or create
@@ -250,8 +227,9 @@ and `/v1/activity`; `/v1/studies` provides the optional survey catalog.
 
 The Cloudflare Worker is the program running behind that address. Its storage
 buckets hold received submissions. The operator updates that central program once;
-researchers do not deploy a backend or need a Cloudflare account. The companion
-collector code implements the new routes, but its production update remains pending.
+researchers do not deploy a backend or need a Cloudflare account. The receiving
+routes and current submission formats were deployed and verified with synthetic
+records by 29 October 2026. Each app still needs network access to send approved data.
 
 Staging means a separate testing copy of the service and storage, so synthetic
 submissions cannot mix with real study data. Only development/test runs point at
@@ -268,8 +246,9 @@ This starts an isolated local copy of the receiving program, sends synthetic dat
 to all five submission routes, checks receipts/duplicate handling and rejected
 requests, then removes the test storage. It requires the companion collector
 checkout and its installed Node dependencies. No deployment or Cloudflare login
-is needed. Testing the real public service additionally needs its central update
-and a reachable test address; local success does not prove that deployment.
+is needed. Testing the real public service needs a reachable endpoint and
+explicitly identified synthetic submissions; local success does not establish
+that a particular app can reach it.
 
 See [endpoint testing and access](endpoint-testing.md) for the temporary HTTPS
-option, exact submission examples, and the permissions to request from Ben.
+option, exact submission examples, and operator permissions.

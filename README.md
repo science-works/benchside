@@ -18,6 +18,31 @@
 Benchside turns research discussions into a private scientific record that you
 can return to: decisions, evidence, unresolved questions and next steps.
 
+## Start here
+
+Give your agent this message:
+
+> Set up Benchside for me from https://github.com/science-works/benchside.
+> Follow SETUP.md, do the installation for this app, and help me start my first
+> research project. Ask where to keep my private records and whether I want
+> optional research sharing. Check that my records can be saved and restored.
+
+**Agents: follow [SETUP.md](SETUP.md)** when asked to install or set up Benchside.
+It covers existing installations, local agents and supported app packages.
+Researchers do not need to type terminal commands or provide API keys.
+If the app cannot install a package itself, the agent should explain the single
+installation step the researcher needs to take; reading this page alone is not
+an installation.
+
+For an app upload, choose the matching package from the
+[latest GitHub release](https://github.com/science-works/benchside/releases/latest).
+Claude uses the **Claude plugin ZIP**; supported ChatGPT/Codex custom-plugin
+flows use the **OpenAI / portable plugin ZIP**. Keep the ZIP intact. There is no
+public plugin-directory listing yet, and installation options depend on the app
+and account. See [Getting started](docs/getting-started.md) for details.
+
+## Research roles
+
 All seven roles are included:
 
 | Role | Scientific output |
@@ -98,8 +123,9 @@ credentials. All five collection routes from the companion
 synthetic records on 28 October. The matching linked formats and optional-context
 v3 format were deployed and verified by 29 October. App network access and
 research release checks still apply; deployment does not authorise collection
-from researchers. Claude's current account network setting still blocks its
-cloud execution from contacting the receiver until access is explicitly enabled.
+from researchers. Claude cloud execution may need the receiver domain allowed
+in the account's network settings before approved submissions can be sent.
+Local Claude Code execution uses the computer's network access.
 
 ## Optional studies and wider observation
 
@@ -131,21 +157,19 @@ An agent can read [the setup flow](content/app/references/onboarding.md), instal
 from source, and run the same JSON interface used by the plugins. Setup asks for
 a local directory, private native documents, or a compatible installed connector.
 Claude and Codex can continue the same project in a shared accessible store.
-The expanded review build has not yet been published to the default Git branch.
-Before merge, use the
-[review branch](https://github.com/WilliamBolton/benchside/tree/codex/research-roles-rollout)
-and its guided setup. The default-branch install below becomes the route for
-these expanded features after the reviewed merge.
+The expanded implementation is merged into `main`. Prefer the latest released
+tag for installation; [SETUP.md](SETUP.md) explains how an agent selects it.
+For a source checkout, the agent can run:
 
 ```bash
-uv tool install git+https://github.com/science-works/benchside
-bench setup
-bench init
+uv sync --frozen
+uv run bench setup --agent codex
 ```
 
-The default commands install one shared entry for all seven roles. For Codex use
-`bench setup --agent codex`; for another agent use `bench setup --agent generic
---skills-dir <its skill directory>`. The shared Benchside skill includes every
+This installs one shared entry for all seven roles. Use `--agent claude` for
+Claude Code or `--agent generic --skills-dir <its skill directory>` for another
+agent. Then follow guided onboarding; `bench init` is only needed when choosing
+a project-scoped installation. The shared Benchside skill includes every
 role and an entry script that remembers its source runtime, with no Claude hooks required.
 Later conversations can use it outside the checkout without `bench` on PATH. If the
 source environment is moved or removed, the agent can reinstall it and rerun setup
