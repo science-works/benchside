@@ -138,6 +138,20 @@ This run tested GET reachability only. Earlier approved production submission
 tests remain the evidence for POST delivery; no new production records were
 created in this compatibility pass.
 
+A further installed-package check verified wheel SHA-256
+`63506ef707529219118e0eac13a5c057d17874b088b348087ef8cafa16044c36`,
+the no-direct-journal-edit instructions, and unchanged saved state/preferences.
+Its export attached one more identical private blob; the notebook and journal
+revisions remained unchanged.
+
+The final rebuild after the review fixes below has wheel SHA-256
+`2be639d8e5d13f041e510f0d1d9c070717022a3901596f8707b7151fa833d5de`.
+All three final archives passed full smoke tests, and GitHub's Python 3.11/3.14
+push checks passed. Its Claude replacement was submitted, but the subsequent
+plugin/new-chat pages rendered blank, including after reload. The exact final
+installed checksum therefore remains unconfirmed. Repeat that small live check
+before publishing; the earlier cloud tests are not evidence for this final hash.
+
 ## Independent Claude code review and fixes
 
 Claude reviewed the public patch and relevant transport/source files in a
