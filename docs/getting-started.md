@@ -8,11 +8,11 @@ discussant and scientific peer reviewer.
 
 Give your agent this message:
 
-> Set up Benchside for me from https://github.com/science-works/benchside.
-> Read README.md and SETUP.md. Find and use this app's installation tools
-> (including Plugin Creator if available) to install the existing package for me.
-> Ask where to keep my private records and whether I want optional research
-> sharing, then help me start my first project. Verify saving and restoring records.
+> Set up Benchside for me in this app: https://github.com/science-works/benchside
+
+You do not need to name an installer or choose a ZIP. The agent should find the
+installation route, download the right package, guide your project and private
+storage choices, explain optional sharing, and check that records can be restored.
 
 The [agent setup guide](../SETUP.md) tells an agent how to install, reuse an
 existing installation and verify storage. With local execution tools, the agent
@@ -28,10 +28,11 @@ the receiving HTTPS API is already operated by Science Works.
 
 ### ChatGPT account checks
 
-Ask the agent to find and use **Plugin Creator** if it cannot see an installation
-tool. A missing `@` result does not rule out plugin creation: check the Plugins
-directory or the account's Add/Create option. If tools need enabling, the agent
-should present the connection step and continue after approval.
+The agent's setup instructions tell it to discover and use **Plugin Creator**
+when needed; you should not have to know about it or mention it in your request.
+If enabling a tool needs your approval, the agent should present that step and
+continue afterward. It should explain any manual-only step or missing capability
+in your account rather than send you through repeated setup requests.
 
 Automated installation, runtime execution and persistent memory in the new
 free-account test are **not yet verified**. Earlier ChatGPT tests used an already

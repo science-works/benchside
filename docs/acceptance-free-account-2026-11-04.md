@@ -33,12 +33,18 @@ does not block capability checks. Setup instructs agents to discover Plugin
 Creator, install the existing package, respect required approval, and use manual
 steps only when that is the available route. It distinguishes an attachment from
 installation and explicitly says that Benchside needs no MCP server.
+The suggested user prompt contains only the setup request and repository URL.
+Discovering Plugin Creator and selecting the package belong to the agent's
+instructions, not prerequisite knowledge for the researcher.
 
 ## Remaining verification
 
-1. In the new account, ask the chat to find/use Plugin Creator and install the
-   released portable ZIP unchanged. Record whether it can do so, requests a
-   connection/approval, or exposes only a manual route.
+1. In a fresh chat in the new account, use only the documented setup request and
+   repository URL after these instructions reach `main`. Do not preselect or
+   mention Plugin Creator. Record whether the agent discovers it, installs the
+   released portable ZIP unchanged, requests a connection/approval, or exposes
+   only a manual route. A successful test using an explicit Plugin Creator hint
+   is useful diagnostic evidence, but does not pass this first-use check.
 2. If installed, verify runtime version, execution and available private storage.
 3. Save/read back a synthetic decision in an isolated project, then restore it
    in a new conversation. Keep sharing off; send no endpoint test submissions.

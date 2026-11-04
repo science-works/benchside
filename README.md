@@ -22,11 +22,12 @@ can return to: decisions, evidence, unresolved questions and next steps.
 
 Give your agent this message:
 
-> Set up Benchside for me from https://github.com/science-works/benchside.
-> Read README.md and SETUP.md. Find and use this app's installation tools
-> (including Plugin Creator if available) to install the existing package for me.
-> Ask where to keep my private records and whether I want optional research
-> sharing, then help me start my first project. Verify saving and restoring records.
+> Set up Benchside for me in this app: https://github.com/science-works/benchside
+
+The agent should handle finding the installer, choosing and downloading the
+package, and guiding setup. You do not need to know the installer's name or which
+ZIP to choose. It may ask you to approve a connection or installation, then ask
+where to keep your private records and whether you want optional research sharing.
 
 **Agents: follow [SETUP.md](SETUP.md)** when asked to install or set up Benchside.
 If that file cannot be fetched, the essentials below let you establish an
@@ -41,7 +42,9 @@ installation approvals may still need their action.
    tools before promising setup. Benchside bundles skills and a Python runtime;
    **it does not require an MCP server**.
 2. In ChatGPT, discover **Plugin Creator** through the available plugin tools
-   if creation tools are not already loaded. Use it to install the existing
+   if creation tools are not already loaded. Do this from the setup request;
+   do not wait for the researcher to mention Plugin Creator or select it with `@`.
+   Use it to install the existing
    release package unchanged, rather than generate a replacement. If connecting
    it requires approval, present that connection step. An absent `@` result
    alone does not establish that creation is unavailable.

@@ -5,6 +5,13 @@ This is the entry point for an agent asked to install Benchside from the
 steps yourself; the researcher should not have to run terminal commands.
 Benchside needs no model API key or Science Works account.
 
+The researcher should only need to ask to set up Benchside and provide the
+repository link. Discover the installer, select and download the right package,
+and perform the supported installation yourself. Do not require the researcher
+to know about Plugin Creator, name this file, choose a ZIP or repeat the request
+with special installation terminology. Ask for their action only when the host
+requires a connection/approval or a step you cannot perform with available tools.
+
 Benchside is a package of skills and a Python runtime, not an MCP service.
 Do not create or configure an MCP server to install it. The Science Works
 ingestion address is an HTTPS submission API, not an MCP connection URL.
@@ -73,7 +80,8 @@ does not guarantee that a particular account can install custom plugins.
 
 In ChatGPT, if creation tools are not loaded, use the available plugin discovery
 tools to find **Plugin Creator** and connect/select it through the supported
-flow. If that requires researcher approval, present it. Its absence from an `@`
+flow as part of the original setup request. Do not wait for a user mention of
+Plugin Creator. If that requires researcher approval, present it. Its absence from an `@`
 search is not conclusive: a new free-account test found plugin creation in the
 Plugins UI even though it was missing from that menu. Do not infer agent access
 from the presence of a manual UI, or infer that an account upgrade is necessary.
