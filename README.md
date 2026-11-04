@@ -23,23 +23,52 @@ can return to: decisions, evidence, unresolved questions and next steps.
 Give your agent this message:
 
 > Set up Benchside for me from https://github.com/science-works/benchside.
-> Follow SETUP.md, do the installation for this app, and help me start my first
-> research project. Ask where to keep my private records and whether I want
-> optional research sharing. Check that my records can be saved and restored.
+> Read README.md and SETUP.md. Find and use this app's installation tools
+> (including Plugin Creator if available) to install the existing package for me.
+> Ask where to keep my private records and whether I want optional research
+> sharing, then help me start my first project. Verify saving and restoring records.
 
 **Agents: follow [SETUP.md](SETUP.md)** when asked to install or set up Benchside.
-It covers existing installations, local agents and supported app packages.
-Researchers do not need to type terminal commands or provide API keys.
-If the app cannot install a package itself, the agent should explain the single
-installation step the researcher needs to take; reading this page alone is not
-an installation.
+If that file cannot be fetched, the essentials below let you establish an
+installation route without asking the researcher to upload Markdown files.
+Researchers should not need terminal commands or API keys; app-required
+installation approvals may still need their action.
 
-For an app upload, choose the matching package from the
-[latest GitHub release](https://github.com/science-works/benchside/releases/latest).
-Claude uses the **Claude plugin ZIP**; supported ChatGPT/Codex custom-plugin
-flows use the **OpenAI / portable plugin ZIP**. Keep the ZIP intact. There is no
-public plugin-directory listing yet, and installation options depend on the app
-and account. See [Getting started](docs/getting-started.md) for details.
+### Agent setup essentials
+
+1. Use the app the researcher specified. Check for an existing Benchside
+   installation and reuse it. Inspect actual installation, execution and storage
+   tools before promising setup. Benchside bundles skills and a Python runtime;
+   **it does not require an MCP server**.
+2. In ChatGPT, discover **Plugin Creator** through the available plugin tools
+   if creation tools are not already loaded. Use it to install the existing
+   release package unchanged, rather than generate a replacement. If connecting
+   it requires approval, present that connection step. An absent `@` result
+   alone does not establish that creation is unavailable.
+3. For a supported app installer, use the matching ZIP from the
+   [latest release](https://github.com/science-works/benchside/releases/latest):
+   `benchside-plugin-<version>.zip` for OpenAI/portable flows or
+   `benchside-claude-plugin-<version>.zip` for Claude plugins. Keep it intact.
+   Attaching a ZIP to an ordinary chat is not itself installation. If only a
+   manual installer is available, give its observed steps; if neither route is
+   available, state the missing capability rather than invent an upload control.
+4. Local agents can clone the latest released tag into a durable installation
+   directory, run `uv sync --frozen`, then `uv run bench setup --agent codex`
+   (or `claude`, or `generic --skills-dir <actual host skill directory>`).
+   Preserve custom work and read [SETUP.md](SETUP.md) for alternatives.
+5. Read the installed skill and its onboarding guide. Ask where private records
+   should live, which project to use, and about optional research participation.
+   Store journals outside Git; a disposable execution directory is not memory.
+   Do not submit research records or test submissions during setup.
+6. Verify the installed version and an isolated synthetic save/readback/restore.
+   Report whether fresh-chat recall was actually tested. Only then describe
+   installation and memory as working; preserve existing records and preferences.
+
+**ChatGPT availability:** there is no public Benchside plugin-directory listing
+yet. Creation is visible in the new free-account test, but automated installation
+and memory there remain unverified. Check tools in the intended account. See
+[Getting started](docs/getting-started.md) and the
+[test notes](docs/acceptance-free-account-2026-11-04.md).
 
 ## Research roles
 

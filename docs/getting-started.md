@@ -9,15 +9,36 @@ discussant and scientific peer reviewer.
 Give your agent this message:
 
 > Set up Benchside for me from https://github.com/science-works/benchside.
-> Follow SETUP.md and do the installation for this app. Ask where to keep my
-> private records and whether I want optional research sharing, then help me
-> start my first research project. Verify saving and restoring a test decision.
+> Read README.md and SETUP.md. Find and use this app's installation tools
+> (including Plugin Creator if available) to install the existing package for me.
+> Ask where to keep my private records and whether I want optional research
+> sharing, then help me start my first project. Verify saving and restoring records.
 
 The [agent setup guide](../SETUP.md) tells an agent how to install, reuse an
 existing installation and verify storage. With local execution tools, the agent
-can perform the installation. In a hosted app, it uses the app's installation
-tools or gives you the package link and the upload step your account supports.
-You do not need to run terminal commands or provide API keys.
+can perform the installation. In a hosted app, it discovers and uses the app's
+installation tools first. You may need to approve a connection or installation.
+If only a manual installer is available, the agent gives its actual steps; it
+must not invent a missing upload control. You should not need terminal commands
+or API keys. If the agent cannot fetch `SETUP.md`, the
+[README's setup essentials](../README.md#agent-setup-essentials) provide a fallback.
+
+Benchside needs no MCP server. Its package contains the skill and Python runtime;
+the receiving HTTPS API is already operated by Science Works.
+
+### ChatGPT account checks
+
+Ask the agent to find and use **Plugin Creator** if it cannot see an installation
+tool. A missing `@` result does not rule out plugin creation: check the Plugins
+directory or the account's Add/Create option. If tools need enabling, the agent
+should present the connection step and continue after approval.
+
+Automated installation, runtime execution and persistent memory in the new
+free-account test are **not yet verified**. Earlier ChatGPT tests used an already
+configured account. A manual creation option is visible in the new account;
+whether the agent can install the existing package itself remains to be tested.
+See the [test notes](acceptance-free-account-2026-11-04.md) and
+[OpenAI's conditional creation requirements](https://learn.chatgpt.com/docs/build-plugins).
 
 ## Choose an installation route
 
@@ -45,7 +66,9 @@ Name-only discovery is not guaranteed: give the repository URL. Reading a GitHub
 page does not install a plugin. Keep the release ZIP intact for app uploads;
 GitHub's automatic **Source code** download is not an app package. In Claude,
 use Plugins (or Customize → Plugins) for the Claude plugin ZIP, or Skills for
-the standalone skill ZIP. In OpenAI apps, use the supported custom-plugin flow.
+the standalone skill ZIP. In OpenAI apps, use the custom-plugin flow available
+to the intended account. Uploading the ZIP as a chat attachment alone is not
+installation.
 Another person's private OpenAI listing is not an installation link for colleagues.
 
 Once installed, test recognition in a fresh conversation. If the host does not

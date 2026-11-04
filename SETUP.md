@@ -5,8 +5,21 @@ This is the entry point for an agent asked to install Benchside from the
 steps yourself; the researcher should not have to run terminal commands.
 Benchside needs no model API key or Science Works account.
 
+Benchside is a package of skills and a Python runtime, not an MCP service.
+Do not create or configure an MCP server to install it. The Science Works
+ingestion address is an HTTPS submission API, not an MCP connection URL.
+
+If a web reader returns a cache miss for this file or a release page, do not
+conclude that the repository is missing or private. Try the normal GitHub file
+page or an available permitted file-fetch/clone tool; raw-file URLs can also fail
+in web readers. The repository README contains the essential installation checks.
+Do not repeatedly ask the researcher to upload instructions, especially when the
+actual blocker is lack of an installation tool.
+
 ## 1. Check the app and any existing installation
 
+Use the app already specified by the researcher; ask only if the destination is
+unclear. Distinguish the app's visible installer from tools the agent can invoke.
 Inspect the tools actually available: code execution, durable local files,
 plugin/skill installation, and native or connected document storage. The runtime
 needs Python 3.11–3.14 on macOS or Linux. A browser chat's execution directory is
@@ -58,6 +71,16 @@ reading a Markdown file installed a working runtime.
 Use the installation tools actually exposed by the host. Package availability
 does not guarantee that a particular account can install custom plugins.
 
+In ChatGPT, if creation tools are not loaded, use the available plugin discovery
+tools to find **Plugin Creator** and connect/select it through the supported
+flow. If that requires researcher approval, present it. Its absence from an `@`
+search is not conclusive: a new free-account test found plugin creation in the
+Plugins UI even though it was missing from that menu. Do not infer agent access
+from the presence of a manual UI, or infer that an account upgrade is necessary.
+OpenAI documents plugin creation as conditional on permissions and Plugin
+Creator availability; it does not establish this account's capabilities.
+See [OpenAI's plugin creation guide](https://learn.chatgpt.com/docs/build-plugins).
+
 | Available installation flow | Asset in the latest release |
 |---|---|
 | Claude custom plugin | `benchside-claude-plugin-<version>.zip` |
@@ -67,13 +90,24 @@ does not guarantee that a particular account can install custom plugins.
 Download the appropriate asset from the release, keeping the ZIP intact for
 upload. GitHub's generated **Source code** archives are not plugin packages.
 If the host exposes an installation tool, use it under its normal permission
-flow. Otherwise give the researcher the direct asset link and the relevant
-plugin/skill upload step, then continue when it is installed. Do not ask them to
-build a package or open a terminal. A private plugin belonging to someone else
-is not a public installation link.
+flow to install the existing package unchanged, not generate a new approximation
+of Benchside. Otherwise, if a manual package installer is actually available,
+give the researcher the direct asset link and its observed upload step, then
+continue when it is installed. Do not ask them to build a package or open a
+terminal. A private plugin belonging to someone else is not a public installation
+link, and an ordinary chat attachment is not proof of installation.
+
+If neither tool nor manual package installation is available, state that setup
+is blocked in this account and name the missing capability. Reading role prompts
+is not a substitute for the runtime, saved memory or approved submissions. Offer
+another supported route without claiming it works in this account. Do not ask
+storage and consent questions as though installation has succeeded.
 
 After installation, read the packaged skill and follow its onboarding flow.
 Do not claim automatic installation or discovery in a fresh chat unless verified.
+Tests in an already configured account do not establish first-time installation
+support in another account. The [free-account test](docs/acceptance-free-account-2026-11-04.md)
+has not yet verified automated installation, execution or saved memory.
 
 ## 3. Keep first setup short
 
