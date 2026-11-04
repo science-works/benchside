@@ -34,12 +34,19 @@ If enabling a tool needs your approval, the agent should present that step and
 continue afterward. It should explain any manual-only step or missing capability
 in your account rather than send you through repeated setup requests.
 
-Automated installation, runtime execution and persistent memory in the new
-free-account test are **not yet verified**. Earlier ChatGPT tests used an already
-configured account. A manual creation option is visible in the new account;
-whether the agent can install the existing package itself remains to be tested.
+In the new free-account test, the agent reports **successful plugin installation
+after the researcher uploaded the release ZIP**. It could not download the ZIP
+itself. Runtime execution and persistent memory are **not yet verified**: the
+follow-up chat reported no suitable native storage or available Google Drive
+connection. Earlier ChatGPT memory tests used an already configured paid account.
+These observations do not establish which capabilities every free account has.
 See the [test notes](acceptance-free-account-2026-11-04.md) and
 [OpenAI's conditional creation requirements](https://learn.chatgpt.com/docs/build-plugins).
+
+Installing the plugin does not grant access to your computer's folders or add
+a storage connector. If your chat has no supported storage route, the agent
+should explain that the journal is not set up. A folder of manually downloaded
+notes is a separate workflow, not verified Benchside memory.
 
 ## Choose an installation route
 

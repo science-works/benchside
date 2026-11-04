@@ -115,7 +115,8 @@ After installation, read the packaged skill and follow its onboarding flow.
 Do not claim automatic installation or discovery in a fresh chat unless verified.
 Tests in an already configured account do not establish first-time installation
 support in another account. The [free-account test](docs/acceptance-free-account-2026-11-04.md)
-has not yet verified automated installation, execution or saved memory.
+reports installation from a researcher-uploaded ZIP, but has not verified an
+automatic download, runtime execution or saved memory.
 
 ## 3. Keep first setup short
 
@@ -142,6 +143,11 @@ test should submit data as part of installation.
 
 ## 4. Verify and explain the result
 
+First invoke the installed `scripts/benchside_app.py` with
+`{"action":"version"}`. Reading a manifest or validating a wheel hash does not
+verify that the runtime can execute. This check needs no research notebook or
+collector request. If execution is unavailable, identify that missing capability.
+
 Use the storage checks in onboarding and the
 [native-memory guide](content/app/references/native-memory.md) where applicable.
 Save and read back a clearly synthetic decision in an isolated test project;
@@ -155,6 +161,15 @@ Report the installed version, storage location, project, saved participation
 choices, and whether fresh-chat restoration was actually checked. Do not describe
 a same-process readback as a fresh-chat test. Failed or unsupported storage must
 be reported as unverified; never claim unsaved work is saved.
+
+If no supported durable store is accessible, report that the plugin may be
+installed but the research journal is not set up. A path supplied by a researcher
+does not grant a browser chat access to their computer. Do not invent a folder
+of Markdown files and present it as Benchside's journal or substitute it for the
+runtime's record format. If the researcher separately requests manual notes,
+explain that they require manual download/upload and do not provide Benchside's
+verified recording, recall or persisted sharing choices. Ordinary scientific
+discussion can continue, with its unsaved status made clear.
 
 Then return to the researcher's real project and start their first task.
 

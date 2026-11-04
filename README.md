@@ -68,8 +68,9 @@ installation approvals may still need their action.
    installation and memory as working; preserve existing records and preferences.
 
 **ChatGPT availability:** there is no public Benchside plugin-directory listing
-yet. Creation is visible in the new free-account test, but automated installation
-and memory there remain unverified. Check tools in the intended account. See
+yet. The new free-account test reports successful installation after the researcher
+uploaded the release ZIP. Automatic download, runtime execution and persistent
+memory have not passed in that account. Check tools in the intended account. See
 [Getting started](docs/getting-started.md) and the
 [test notes](docs/acceptance-free-account-2026-11-04.md).
 
