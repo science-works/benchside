@@ -1,6 +1,7 @@
 """Reachability is independent of research storage, consent and submission."""
 
 import io
+from http.client import BadStatusLine, IncompleteRead
 from urllib.error import HTTPError
 
 import pytest
@@ -10,7 +11,9 @@ from benchside.domain.shared.error import InfrastructureError
 from benchside.infrastructure.http_sink import COLLECTOR, USER_AGENT
 
 
-@pytest.mark.parametrize("response", [b'{"studies":[]}', b'not a catalog', 403])
+@pytest.mark.parametrize(
+    "response", [b'{"studies":[]}', b'not a catalog', 403, "bad_status", "incomplete_body"]
+)
 def test_connection_check_only_gets_catalog_without_opening_a_store(
     tmp_path, monkeypatch, response
 ):
@@ -26,6 +29,16 @@ def test_connection_check_only_gets_catalog_without_opening_a_store(
             assert timeout == 10
             if response == 403:
                 raise HTTPError(request.full_url, 403, "Forbidden", {}, io.BytesIO())
+            if response == "bad_status":
+                raise BadStatusLine("untrusted proxy response")
+            if response == "incomplete_body":
+                class TruncatedResponse(io.BytesIO):
+                    status = 200
+
+                    def read(self, *_):
+                        raise IncompleteRead(b'{"studies":', 12)
+
+                return TruncatedResponse()
             result = io.BytesIO(response)
             result.status = 200
             return result

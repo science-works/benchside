@@ -19,6 +19,9 @@ Read [onboarding](references/onboarding.md) on first use or a storage change.
 First run `{"action":"version"}` through the installed entry point. Reading a
 manifest or creating a plugin does not prove execution. Check execution, durable
 private memory and optional sending separately, as described in onboarding.
+On return, restore and read the existing project; do not repeat synthetic writes
+or connection checks unless re-verification is requested or a changed capability
+needs checking. Preserve the saved participation choices.
 If a capability is missing, state the precise limitation once; do not keep asking
 the researcher to enable tools the account does not offer. Research discussion
 can continue without pretending it has a saved journal.

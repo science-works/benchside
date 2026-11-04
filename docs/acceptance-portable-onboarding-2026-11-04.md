@@ -16,14 +16,15 @@ They do not establish scientific accuracy across models or universal account sup
 
 ## Automated checks
 
-489 tests passed on macOS arm64 / Python 3.14. Lint and persona compilation passed.
+491 tests passed on macOS arm64 / Python 3.14. Lint and persona compilation passed.
 The three release archives passed the package smoke test: every role saves and
 restores across fresh processes, native state transfers exactly, preferences
 survive, and damaged dependencies are refused. These tests disable submission
 endpoints; they are not cloud-account persistence tests.
 
 The new connection test failed before implementation and passes for a valid
-catalog, malformed content and HTTP 403. It verifies GET-only transport, no
+catalog, malformed content, HTTP 403, a malformed status line and a truncated
+response body. It verifies GET-only transport, no
 request body/participant parameters, a fixed official destination even with a
 test-endpoint override, and no private/config files created on success or failure.
 The first full-suite attempt hit the execution sandbox's localhost-bind limit;
@@ -136,3 +137,30 @@ researcher's exact decision intact and labelled the extra control as a recommend
 This run tested GET reachability only. Earlier approved production submission
 tests remain the evidence for POST delivery; no new production records were
 created in this compatibility pass.
+
+## Independent Claude code review and fixes
+
+Claude reviewed the public patch and relevant transport/source files in a
+separate chat. It reproduced the standard-library exception behaviour offline;
+it did not run Benchside's suite. Its five findings were addressed:
+
+1. Malformed HTTP status lines and truncated bodies escaped the catalog's
+   infrastructure-error handler. Two added regressions failed first; catching
+   `HTTPException` now preserves the clear no-submission/private-work message.
+2. The generic qualification checklist could be mistaken for real-user setup.
+   It now requires an isolated synthetic store, preserves real preferences and
+   prohibits ordinary onboarding test submissions.
+3. The capabilities-first heading obscured when storage writes are allowed.
+   Non-writing inspection now comes first, then the researcher's storage choice,
+   then an isolated synthetic write/readback probe.
+4. The optional connection check now explicitly follows a request or opt-in.
+   Guidance names the collector and normal request metadata rather than implying
+   that contacting it sends no information.
+5. Agents offering local storage with a hosted model must explain that prompts
+   still go to that model's provider.
+
+The review also asked to verify packaging, launcher forwarding and versioning
+because its packet omitted some generated files. These are covered by the
+package smoke tests and live launcher checks. The original failure-path gap in
+the separate POST sender was noted as pre-existing and is outside this patch.
+The README's unreleased-candidate wording must change when 0.3.2 is published.

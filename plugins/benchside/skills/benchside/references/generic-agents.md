@@ -29,7 +29,8 @@ A bare chat completion endpoint or model server is not an agent with those tools
    journals or edit JSON/JSONL records directly. For example, the app action is
    `decide`, not `decision`; the full request fields are in the app guide.
 5. Follow [onboarding](onboarding.md): chosen private store outside Git, project,
-   real save/readback, independent participation choices and fresh-chat restore.
+   a labelled synthetic save/readback after the storage choice, independent
+   participation choices and fresh-chat restore.
    Use `host:unknown` for other agents and the actual supported `surface` value;
    do not invent a provider value in the reporting schema.
 
@@ -38,7 +39,13 @@ missing access, host approval, a storage/project choice or participation choices
 If the host requires manual interaction, name the exact blocker and smallest
 necessary action; do not turn setup into a terminal tutorial by default.
 
-## What must be tested
+## Host qualification: isolated synthetic testing
+
+This section is for maintainers qualifying a host, not ordinary researcher setup.
+Use a separate synthetic store and projects, never an existing researcher's
+records or participation preferences. Do not change real consent to test a decline.
+Any live submission test requires a separately reviewed synthetic payload and
+approval; ordinary onboarding must not send test records.
 
 Check one role's scientific reasoning as well as its tool calls. Verify a saved
 decision in a fresh session, isolation of a second project, and that declining
@@ -46,7 +53,9 @@ sharing leaves all choices off. Failed sends must keep the reviewed draft pendin
 Do not claim every model is supported because the Python launcher works: smaller
 models may miss instructions, misuse tools or fail to verify a result.
 
-Local record storage does not keep prompts local if the agent uses a remote model.
+When offering local storage with a remotely hosted model, tell the researcher
+briefly that local record storage does not keep the conversation local: the
+host still sends prompts to its model provider. Do not imply local-only processing.
 For entirely local processing, both the model and execution/storage must be local;
 optional approved contributions still go to Science Works.
 

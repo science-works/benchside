@@ -4,13 +4,17 @@ Use this flow on first use and when the researcher asks to change storage. Do no
 infer a storage preference from the model or app name. Setup has two independent
 choices: where private research records live, and optional contributions to Science Works.
 
-## Check the host before asking setup questions
+## Inspect capabilities, then verify the researcher's choices
 
 Inspect the current host's actual tools and installed connectors. Check code
 execution (Python 3.11+, POSIX), durable local filesystem access, and native or
 connected document storage. Do not install a cloud connector or create an account
 without the researcher's request. A connector being installed does not prove it
 can write or safely update records. Ordinary chat memory is not a journal.
+Run the execution check and inspect storage tools without writing first. Offer
+candidate stores as available but not yet verified. Only after the researcher
+chooses a store may setup create its labelled synthetic test project and perform
+the write/readback probe. Keep existing records and participation choices intact.
 
 Use the following checks separately. Report what actually passed, what failed
 and what has not been tested; do not infer capabilities from a plan name.
@@ -19,11 +23,14 @@ and what has not been tested; do not infer capabilities from a plan name.
 |---|---|---|
 | Execution | Invoke the installed launcher with `{"action":"version"}` and read its successful response. | Say the package may be installed but this chat cannot run it. Do not claim a running journal or ask storage/consent questions that cannot be saved. |
 | Private memory | Access a chosen durable store, save a synthetic Benchside decision, read it back, then restore it in a fresh chat/process. | Offer another actually available store, or continue an explicitly unsaved research discussion. Same-chat readback is provisional until fresh-chat restore passes. |
-| Optional sending | When requested or setting up a sending feature, invoke `{"action":"connection.check"}` directly through the launcher. | Private work still works. Leave reviewed submissions pending; explain the missing HTTP capability or failed reachability check. |
+| Optional sending | Only after the researcher requests a connection check or opts into a network feature, invoke `{"action":"connection.check"}` directly through the launcher. | Private work still works. Leave reviewed submissions pending; explain the missing HTTP capability or failed reachability check. |
 
 `connection.check` performs only a bounded GET of the public Science Works study
 catalog. It sends no contributor ID or research content, opens no private store,
-changes no consent and submits no record. A successful check proves reachability,
+changes no consent and submits no record.
+The request contacts `ingest.benchside.science.works`; normal request metadata
+includes the connection's source address, request time and Benchside version.
+Do not describe it as sending no information at all. A successful check proves reachability,
 not POST permission or delivery. Only an approved submission with a matching
 receipt proves delivery. Do not enable surveys or send dummy records as part of
 ordinary setup. Do not run this check repeatedly in research conversations.

@@ -60,7 +60,9 @@ installation approvals may still need their action.
    (or `claude`, or `generic --skills-dir <actual host skill directory>`).
    Preserve custom work and read [SETUP.md](SETUP.md) for alternatives.
 5. Read the installed skill and its onboarding guide. Run the actual runtime
-   version check, then offer only storage this host can read and safely update.
+   version check, then inspect storage tools without writing and offer suitable
+   candidates as not yet verified. Test writes only after the researcher chooses
+   the store, using a labelled synthetic project.
    Ask where private records should live, which project to use, and about optional
    research participation once those preferences can be saved.
    Store journals outside Git; a disposable execution directory is not memory.
