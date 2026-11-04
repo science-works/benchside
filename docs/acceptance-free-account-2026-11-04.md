@@ -46,6 +46,13 @@ did not independently operate or inspect the free account's tools.
 | Local storage | No access demonstrated. The researcher was using the website without a connected desktop app; supplying a Mac path did not provide access. |
 | Save/readback/fresh-chat recall | Not completed. The second chat was an onboarding attempt, not a saved-record restore. |
 
+The researcher subsequently confirmed that the free web account has no Work
+option. When asked whether it could send synthetic data, the chat reported no
+executable Benchside runtime or outbound HTTP tool and said nothing was sent.
+This is a host capability blocker, not a failed collector request or evidence
+that the Science Works endpoint is down. The runtime's execution remains
+unverified because no actual invocation/result was supplied.
+
 The earlier successful ChatGPT web memory tests used the maintainer's configured
 paid account. They are separate from this new free-account installation test.
 The second chat eventually proposed a generic folder of Markdown files for

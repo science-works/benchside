@@ -50,6 +50,13 @@ notes is a separate workflow, not verified Benchside memory.
 
 ## Choose an installation route
 
+For the current rollout, use a paid ChatGPT web account with verified runtime
+and private storage tools, a paid Claude plugin-capable account after the same
+checks, or a capable local agent. Paid status alone does not establish those
+capabilities. Free ChatGPT web is not currently supported for the complete
+recording and sharing workflow. See the [support and testing plan](host-support.md)
+for evidence, the generic local route and outstanding fresh-user checks.
+
 Benchside is one research toolkit with several delivery methods. “App package”
 means the installable bundle, not a separate Benchside chat app or a replacement
 for the Git/terminal route. A plugin packages skills and their supporting runtime.

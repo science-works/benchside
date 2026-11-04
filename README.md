@@ -67,12 +67,15 @@ installation approvals may still need their action.
    Report whether fresh-chat recall was actually tested. Only then describe
    installation and memory as working; preserve existing records and preferences.
 
-**ChatGPT availability:** there is no public Benchside plugin-directory listing
-yet. The new free-account test reports successful installation after the researcher
-uploaded the release ZIP. Automatic download, runtime execution and persistent
-memory have not passed in that account. Check tools in the intended account. See
-[Getting started](docs/getting-started.md) and the
-[test notes](docs/acceptance-free-account-2026-11-04.md).
+**Which setup to use:** for ChatGPT web, our current recommended route is a paid
+account with verified execution and private storage tools. The tested free web
+account could install an uploaded ZIP but could not complete recording or sending.
+Claude plugins use paid accounts; fresh-user verification remains needed. Local
+agents can use the generic installer with other providers or locally hosted
+models when their tools meet the same requirements. See the
+[support and testing plan](docs/host-support.md) and
+[Getting started](docs/getting-started.md). There is no public Benchside
+plugin-directory listing yet.
 
 ## Research roles
 

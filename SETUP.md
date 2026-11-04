@@ -31,6 +31,10 @@ Inspect the tools actually available: code execution, durable local files,
 plugin/skill installation, and native or connected document storage. The runtime
 needs Python 3.11–3.14 on macOS or Linux. A browser chat's execution directory is
 temporary; it is not durable research storage.
+Use the [support guidance](docs/host-support.md) to explain tested routes, but
+check actual tools rather than accepting or rejecting an account solely by plan
+name. Private recording and optional network sending are separate capabilities:
+blocked networking does not prevent a working local journal from being used.
 
 If Benchside is already installed, read its `SKILL.md` and run its entry script to
 check the version. Reuse the chosen storage and existing projects. Do not install
