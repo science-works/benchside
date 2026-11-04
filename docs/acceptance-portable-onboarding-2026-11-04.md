@@ -147,10 +147,20 @@ revisions remained unchanged.
 The final rebuild after the review fixes below has wheel SHA-256
 `2be639d8e5d13f041e510f0d1d9c070717022a3901596f8707b7151fa833d5de`.
 All three final archives passed full smoke tests, and GitHub's Python 3.11/3.14
-push checks passed. Its Claude replacement was submitted, but the subsequent
-plugin/new-chat pages rendered blank, including after reload. The exact final
-installed checksum therefore remains unconfirmed. Repeat that small live check
-before publishing; the earlier cloud tests are not evidence for this final hash.
+push and PR checks passed. After the temporary blank-page problem cleared, a
+fresh Claude chat ran the installed launcher and returned version 0.3.2 and this
+exact wheel hash, matching its manifest. It also confirmed the final storage-choice
+and network opt-in instructions and the bundled `HTTPException` handler. This
+closes the final installed-build verification gap; it does not establish fresh
+account support or repeat the earlier cloud-memory tests.
+
+The version call bootstrapped the bundled runtime into the cloud session's
+temporary cache, using offline, hash-checked dependencies. It therefore made
+temporary filesystem writes despite the verification prompt describing the check
+as read-only/no-install. It did not update the plugin or system Python, open
+research notebooks, change consent, create records or contact Science Works.
+Future verification prompts should permit this normal cache initialization and
+reserve “read-only” for research records and external services.
 
 ## Independent Claude code review and fixes
 
