@@ -225,8 +225,8 @@ def cmd_setup(args) -> int:
         destination.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
         print(f"installed /bench-init skill -> {destination}")
     print(f"Benchside instructions installed in {target}.")
-    print("Ask your agent to set up Benchside; it will ask where to store your records.")
-    print(
-        "Other agents can read benchside/SKILL.md explicitly if they do not discover skills here."
-    )
+    print(f"Next, the agent should read {target / 'benchside' / 'SKILL.md'}.")
+    print(f"Use the installed launcher: {target / 'benchside' / 'scripts' / 'benchside_app.py'}")
+    print('Pass {"action":"version"} on stdin, then follow the installed onboarding guide.')
+    print("Scientific recording still needs a chosen private store and verified save/restore.")
     return 0

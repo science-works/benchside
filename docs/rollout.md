@@ -6,6 +6,18 @@ arrives. The rollout is informal; no fixed cohort or required follow-up session.
 
 ## Current verification
 
+**4 November:** the published GitHub release is **0.3.1**. The new **0.3.2 review
+build** adds capability checks and generic-agent onboarding; it is not published
+yet. Use [host support](host-support.md) and the [portable onboarding test
+report](acceptance-portable-onboarding-2026-11-04.md) for current installation
+limits and candidate evidence. Free ChatGPT web has not passed the complete
+workflow; installation alone does not prove runtime, memory or sending access.
+
+The dated notes below are historical verification records, not current deployment
+or merge status.
+
+## Earlier verification
+
 **0.2.0 review update:** the branch adds pseudonymous contributions, researcher-written
 survey answers under prior study agreement, selected-conversation gaps and supporting
 activity categories with definitions. New tests cover consent renewal, exact survey

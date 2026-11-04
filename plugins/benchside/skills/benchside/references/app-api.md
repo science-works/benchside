@@ -17,6 +17,12 @@ Provide one JSON object on stdin. Responses are JSON: `ok` plus `result`, or an
 error. Read the result before continuing. Python 3.11+ and POSIX storage are required.
 Use `{"action":"version"}` to check the running Benchside version without opening
 research storage. Do not import modules directly from the sealed runtime cache.
+`{"action":"connection.check"}` checks the official collector with a read-only
+GET of `/v1/studies`, without opening a store or enabling participation. The result
+includes `reachable`, `endpoint`, `method:GET` and `submitted:false`. This action
+is called directly, not inside `native.run`/`native.batch`; it neither needs nor
+updates a cloud notebook. It ignores test endpoint overrides. Success does not
+prove that POST submissions work; only a verified receipt confirms delivery.
 
 For native saves, the launcher accepts `--response-file /absolute/private/new-response.json`.
 It writes the complete JSON response to a new owner-only file and prints a compact

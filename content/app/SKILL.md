@@ -16,9 +16,15 @@ there is no account-wide log listener or implicit permission to read chats.
 ## Start or return
 
 Read [onboarding](references/onboarding.md) on first use or a storage change.
-Ask where records should live: a durable local directory, private app-native
-storage, or a compatible installed cloud connector. Inspect actual tools before
-offering a location. Follow the researcher's existing choice when returning.
+First run `{"action":"version"}` through the installed entry point. Reading a
+manifest or creating a plugin does not prove execution. Check execution, durable
+private memory and optional sending separately, as described in onboarding.
+If a capability is missing, state the precise limitation once; do not keep asking
+the researcher to enable tools the account does not offer. Research discussion
+can continue without pretending it has a saved journal.
+Offer only accessible storage: a durable local directory, private app-native
+storage, or a compatible installed cloud connector. Follow the researcher's
+existing choice when returning.
 
 Read [the app adapter guide](references/app-api.md). Packaged installations use
 `scripts/benchside_app.py`; source installations created by `bench setup` use the
@@ -26,6 +32,11 @@ same entry, which remembers their Python environment. A checkout before setup ca
 use `uv run bench app`. The agent runs
 the code and passes JSON on stdin. Never interpolate research text into shell
 commands or ask the researcher to type developer commands.
+Use only documented actions and returned IDs. If a call fails, read the error
+and correct the request from the app guide. Do not invent a command, switch to
+the legacy CLI, import internal modules, or edit journal JSON/JSONL to make an
+app record appear saved. If the documented call cannot be completed, keep the
+work unsaved and explain the blocker.
 
 Discover existing projects in the chosen storage before creating one. Reuse a
 selected `project_id` even when the app has changed. Keep the returned session ID

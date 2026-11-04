@@ -4,13 +4,42 @@ Use this flow on first use and when the researcher asks to change storage. Do no
 infer a storage preference from the model or app name. Setup has two independent
 choices: where private research records live, and optional contributions to Science Works.
 
-## Find the available tools
+## Check the host before asking setup questions
 
 Inspect the current host's actual tools and installed connectors. Check code
 execution (Python 3.11+, POSIX), durable local filesystem access, and native or
 connected document storage. Do not install a cloud connector or create an account
 without the researcher's request. A connector being installed does not prove it
 can write or safely update records. Ordinary chat memory is not a journal.
+
+Use the following checks separately. Report what actually passed, what failed
+and what has not been tested; do not infer capabilities from a plan name.
+
+| Check | Evidence required | If unavailable |
+|---|---|---|
+| Execution | Invoke the installed launcher with `{"action":"version"}` and read its successful response. | Say the package may be installed but this chat cannot run it. Do not claim a running journal or ask storage/consent questions that cannot be saved. |
+| Private memory | Access a chosen durable store, save a synthetic Benchside decision, read it back, then restore it in a fresh chat/process. | Offer another actually available store, or continue an explicitly unsaved research discussion. Same-chat readback is provisional until fresh-chat restore passes. |
+| Optional sending | When requested or setting up a sending feature, invoke `{"action":"connection.check"}` directly through the launcher. | Private work still works. Leave reviewed submissions pending; explain the missing HTTP capability or failed reachability check. |
+
+`connection.check` performs only a bounded GET of the public Science Works study
+catalog. It sends no contributor ID or research content, opens no private store,
+changes no consent and submits no record. A successful check proves reachability,
+not POST permission or delivery. Only an approved submission with a matching
+receipt proves delivery. Do not enable surveys or send dummy records as part of
+ordinary setup. Do not run this check repeatedly in research conversations.
+
+If a tool is missing, check the host's documented tool-discovery mechanism once.
+If it remains unavailable, explain the limit and the simplest supported route.
+Do not propose Work mode when the account has no such option, ask for unavailable
+connectors repeatedly, or promise that upgrading alone guarantees the tools.
+The current supported ChatGPT route is a paid account with working execution
+and private document tools; free web Chat has not passed these checks. Claude
+and local agents must pass the same checks with their own tools.
+
+Never substitute an invented Markdown directory, the chat transcript, a Library
+upload, or a disposable sandbox for Benchside's private journal. Exporting notes
+for the researcher is possible when requested, but is not installed persistence.
+The collector receives optional metascience contributions, never private notebooks.
 
 For an installed skill, invoke `scripts/benchside_app.py`. A packaged skill uses
 `runtime/manifest.json`; source setup saves `runtime/source.json` with the original
@@ -30,6 +59,7 @@ it in `~/.claude/skills` with the legacy `/bench-init` helper. For another host,
 use `--agent generic --skills-dir <its observed skill directory>`. If it cannot
 automatically discover skills, tell the researcher to reference the installed
 `benchside/SKILL.md` in a new conversation. Do not claim automatic discovery until tested.
+For non-OpenAI/non-Anthropic hosts, follow [generic agents](generic-agents.md).
 
 When changing installation method or replacing a release, use the host's complete
 plugin update flow or stage the replacement in a clean directory. Do not unzip a
@@ -105,6 +135,8 @@ locator in the host's durable setup context, not just in the execution sandbox.
 Run the appropriate save/readback probe and test discovery in a fresh conversation.
 A same-process test is useful but does not establish fresh-chat continuity. Report
 what was verified and what still needs the researcher to reopen a chat.
+Keep any synthetic decision in a clearly labelled test project, separate from
+real scientific work. Check the returned record, not merely whether a file exists.
 
 Two agents with access to the **same local directory** can select the same project
 and continue its records. Local transactions use filesystem locks. Two agents
@@ -115,6 +147,11 @@ filesystem locks do not coordinate across sync clients; use a conditional-write
 cloud connector or one local machine instead.
 
 ## Ask about contributing to metascience research
+
+Ask these questions only after working execution and a writable private store
+are established, so choices can actually be recorded. A fresh-chat restore test
+may still be pending; say so. Use the host's question UI if it has one, otherwise
+use concise questions in chat. Missing pop-up controls do not block setup.
 
 During first setup, explicitly ask about optional participation; do not defer this
 question until the end of the first scientific discussion. Read `participation.status`,

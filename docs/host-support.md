@@ -10,8 +10,9 @@ private storage; optional contributions additionally need outbound HTTPS.
 |---|---|
 | ChatGPT web | Use a paid account with the required execution and storage tools. This is the route verified in the maintainer's account, not a guarantee for every paid plan or workspace. |
 | Free ChatGPT web | Not currently supported for the complete workflow. The tested account installed an uploaded ZIP, but had no Work option and reported no usable journal storage or outbound request tool. Runtime execution was not demonstrated. |
-| Claude web/plugin | Use a paid plugin-capable account. Earlier account-specific memory and approved-send checks passed; a fresh-user install-to-recall-and-send check remains required. |
-| Local agent | Use an agent that can read the skill, execute Python and access a durable local directory. The generic installer and JSON bridge exist. Additional provider/model combinations need live acceptance tests before being named as verified. |
+| Claude web/plugin | Use a paid plugin-capable account. The 0.3.2 review update passed new-store setup and fresh-chat restore in the configured maintainer account; earlier approved-send tests passed. A new/free account's tools are not established by that result. |
+| Independent local agent, hosted model | OpenCode 1.19.5 with DeepSeek V4.1 Flash Free passed candidate installation, local recording, fresh-session restore, project separation and declined sharing. This verifies integration, not scientific quality or all providers. |
+| Locally hosted model | The same generic installer and runtime are available, but the tested Qwen3 8B and Qwen3.5 9B workflows did not pass reliable onboarding/recording. Do not recommend those combinations as verified. |
 
 These are Benchside's current rollout recommendations, not a universal statement
 about account entitlements. OpenAI says available plugin actions depend on plan
@@ -22,7 +23,8 @@ Always inspect the tools in the actual account. Do not require a particular UI
 mode if the needed tools already work, or suggest switching to a mode the account
 does not offer.
 
-Evidence: [free-account investigation](acceptance-free-account-2026-11-04.md),
+Evidence: [portable onboarding checks](acceptance-portable-onboarding-2026-11-04.md),
+[free-account investigation](acceptance-free-account-2026-11-04.md),
 [earlier memory tests](acceptance-2026-10-28.md), and
 [Claude transfer/send findings](claude-memory-and-sending-findings-2026-10-29.md).
 
@@ -35,7 +37,8 @@ Evidence: [free-account investigation](acceptance-free-account-2026-11-04.md),
    conversation/process. A local folder must be accessible and durable; a
    cloud connector must support exact transfer and guarded updates.
 3. **Optional sending:** check the host's HTTP capability when requested or
-   when setting up an opted-in network feature. A read-only `GET /v1/studies`
+   when setting up an opted-in network feature. In 0.3.2, call the launcher with
+   `{"action":"connection.check"}`. Its read-only `GET /v1/studies`
    can establish reachability without submitting a record. It is not proof
    that a contribution was stored. A send test requires a separate synthetic
    preview, explicit approval, the real client send and a matching receipt.
@@ -80,30 +83,29 @@ Local record storage also does not mean a remotely hosted model processes the
 conversation locally. Both the model and its execution/storage must be local
 for that arrangement; optional approved sharing still uses the collector.
 
-## Next implementation and validation
+## Remaining validation before wider support claims
 
-1. Update the packaged onboarding instructions to perform the three checks and
-   report each result before offering unavailable features. Keep the single
-   repository-link setup request and the existing runtime, storage and consent
-   actions. Avoid adding a new service for this step.
-2. Test the Claude release as a new user: installation, one scientific role,
+The 0.3.2 candidate implements the three checks and generic-agent guidance, using
+the existing runtime. The [acceptance report](acceptance-portable-onboarding-2026-11-04.md)
+separates passing checks from failures. The following remain broader rollout gates:
+
+1. Test the Claude release as a new account: installation, one scientific role,
    save, fresh-chat recall and one approved synthetic contribution. Verify its
    network allowance without changing account settings silently. Repeat private
    work with sending unavailable. Prior configured-account tests are useful
    evidence but do not pass fresh installation.
-3. Test one independent local agent with a non-OpenAI/non-Anthropic hosted model
-   and with one locally hosted model. Use the same script: setup from the repo
+2. Qualify a reliable locally hosted model. Use the same script: setup from the repo
    link, choose storage, save and recall a decision across processes/chats,
    check project separation, decline sharing, then separately exercise an
    approved synthetic send and retry. Record the exact host/model versions.
    Include a scientific task check; runtime tests alone do not validate the model.
-4. If a tested host needs it, add only a thin process/tool adapter. Keep one
+3. If a tested host needs it, add only a thin process/tool adapter. Keep one
    Benchside implementation and the same reviewed collection formats. A new
    MCP server or hosted private-memory service is not required by the existing
    local route and is outside this compatibility pass.
-5. Build a new patch release when packaged instructions/adapters change. Do not
-   replace the published 0.3.1 binaries. Install that release in the tested hosts
-   and verify the update preserves records before changing the support claims.
+4. Review and publish the new patch after the candidate gates pass. Do not
+   replace the published 0.3.1 binaries. Install the final build in the tested
+   hosts and verify the update preserves records before changing support claims.
 
 Register any live synthetic payloads for exclusion from research reporting.
 Do not send test records as part of ordinary researcher installation. Public

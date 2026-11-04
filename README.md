@@ -59,8 +59,10 @@ installation approvals may still need their action.
    directory, run `uv sync --frozen`, then `uv run bench setup --agent codex`
    (or `claude`, or `generic --skills-dir <actual host skill directory>`).
    Preserve custom work and read [SETUP.md](SETUP.md) for alternatives.
-5. Read the installed skill and its onboarding guide. Ask where private records
-   should live, which project to use, and about optional research participation.
+5. Read the installed skill and its onboarding guide. Run the actual runtime
+   version check, then offer only storage this host can read and safely update.
+   Ask where private records should live, which project to use, and about optional
+   research participation once those preferences can be saved.
    Store journals outside Git; a disposable execution directory is not memory.
    Do not submit research records or test submissions during setup.
 6. Verify the installed version and an isolated synthetic save/readback/restore.
@@ -99,6 +101,10 @@ repository. The current package is 0.3.1. There is no public plugin-directory
 listing yet. Give a new agent the repository URL and
 [setup instructions](docs/getting-started.md)
 rather than relying on discovery by name alone.
+
+This development branch prepares 0.3.2 with capability-based onboarding,
+generic-agent instructions and a read-only connection check. Use the latest
+published release for ordinary installation; a review build is not a release.
 
 Native memory uses a private notebook in a capable host, with readable journals
 per project. Guarded saves and readback protect the validated record; the
