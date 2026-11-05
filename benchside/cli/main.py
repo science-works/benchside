@@ -252,6 +252,8 @@ def build_parser() -> argparse.ArgumentParser:
     # --- journal views ---
     p = sub.add_parser("journal", help="query the project record")
     views = p.add_subparsers(dest="view", required=True, metavar="<view>")
+    v = views.add_parser("export", help="refresh private ODT and Markdown reading copies")
+    v.add_argument("--project", default=None)
     v = views.add_parser("show", help="summary of the whole record")
     v.add_argument("--project", default=None)
     v = views.add_parser("sittings", help="past sittings and their end states")

@@ -67,15 +67,41 @@ integration test. The project source and researcher journals are separate.
   their separate inclusion preference. `profile.set` takes `demographics` and
   boolean `include_in_usage`; see [sharing](sharing.md) for valid categories.
   Both actions work through `native.run` as well as local storage.
-- `{"action":"storage.location"}` returns the effective local storage path without writing.
+- `{"action":"storage.location"}` returns the chosen local root as `storage`,
+  internal state as `agent`, and readable-copy root as `researcher`, without writing.
 - `{"action":"storage.configure","directory":"/absolute/chosen/folder"}` verifies
   a write and remembers the local choice. Use only after the researcher chooses it.
-  Not applicable inside `native.run`.
+  New configured stores use `agent/` for state and `researcher/projects/` for
+  human-readable ODT/Markdown files. Selecting an existing flat store does not
+  silently move its records. Not applicable inside `native.run`.
+- `{"action":"storage.organise","confirm_idle":true}` explicitly upgrades an
+  existing local store. First update **every** agent that shares it to 0.4.0 or
+  newer and stop their active use; obtain the researcher's confirmation if that
+  cannot be established. Do not supply `confirm_idle:true` just to get past an error.
+  This copies and verifies existing state, switches to `agent/`, retains the
+  original in `agent/legacy-backup/`, and exports all saved projects. It never
+  changes project IDs, choices or receipts. Reopen the runtime afterward.
+  Old clients cannot understand the new layout; do not restart them against it.
+  Do not delete the backup automatically. Failed migrations retain the original
+  or verified active data; report the error without trying a manual file shuffle.
+- `{"action":"records.export","project_id":"<ID>"}` refreshes the complete private
+  ODT and Markdown reading copies. Returns `odt` and `markdown` paths. ODT is the
+  default human document; both include all saved events, not just recent recall.
+  A refresh also occurs after each journal append and during local project setup.
+  If `readable_records_warning` is returned alongside a successful save, the
+  scientific record is already saved: retry only `records.export`, never the
+  recording action. Copies are generated views; edits do not change the journal.
+  Local CLI users can run `bench journal export`. This action needs durable local
+  storage; native cloud documents keep their existing human-readable pages and
+  use the host's own document-download tools if available.
 - `{"action":"projects"}` lists existing local app project IDs/titles.
 - `{"action":"setup","project_id":"<selected existing ID>","host":"claude","surface":"desktop"}`
   starts a new session in an existing project, including one created by another app.
   Session app metadata is isolated; creation identity never changes.
-  For new projects supply `project_key` instead, with an optional `title` for discovery.
+  For new projects supply `project_key` instead and a friendly `title` based on
+  the researcher's project description. When no useful name is known, ask once.
+  Supplying `title` with an existing project updates its display name and readable
+  folder, preserving its stable ID, scientific history and other files in that folder.
 - `{"action":"storage.probe"}` writes a random marker and returns its token.
 - `{"action":"storage.check","token":"<returned token>"}` checks the same store.
   Run this after moving to a fresh conversation and resetting its execution

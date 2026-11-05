@@ -272,3 +272,21 @@ change scientific advice; adapt advice to the actual task and stated preferences
 Finish by naming the chosen storage, project, continuity test status, available
 roles and saved research-participation choices. Name any unverified capability.
 Do not suggest that any private journal must be uploaded to Science Works.
+
+## Readable records in local storage
+
+Use the chosen root, not a source checkout. New configured stores separate
+`agent/` (runtime-managed state) from `researcher/projects/<friendly name>/`.
+ODT is the default reading document, with Markdown alongside it. They contain
+all saved project events and refresh after recording. Return the actual file
+links from setup or `records.export`; do not ask the scientist to read JSON or
+navigate hashed internal project IDs. Give each project a friendly title.
+
+Existing flat stores remain readable until explicitly upgraded through
+`storage.organise`. Update every sharing agent first, stop their active use,
+then follow the app guide's confirmed upgrade. The runtime verifies copies and
+retains a private legacy backup. Do not move a store while someone is testing
+in another agent. File exports stay outside Git, remain private, and do not
+change consent. They are reading copies; ask Benchside to save corrections.
+Native cloud notebooks keep the existing private notebook and readable pages;
+do not promise ODT download when that host lacks a document-export tool.

@@ -86,6 +86,7 @@ def smoke(archive_path: Path):
             == (root / "private-records").resolve()
         )
         assert run({"action": "storage.check", "token": probe["token"]})["matched"]
+        assert Path(run({"action": "storage.location"})["agent"]) == (root / "private-records/agent").resolve()
         roles = run({"action": "roles"})
         assert len(roles) == 8
         for role in roles:
@@ -142,12 +143,19 @@ def smoke(archive_path: Path):
                 {"action": "close", "converged": True, "detail": "Agreed next check", **context}
             )
             assert closed["recall"]["last_sitting_state"] == "converged"
+            readable = run({"action": "records.export", "project_id": context["project_id"]})
+            assert Path(readable["odt"]).is_relative_to((root / "private-records/researcher/projects").resolve())
+            assert "Check the independent comparison" in Path(readable["markdown"]).read_text()
+            with zipfile.ZipFile(readable["odt"]) as document:
+                assert document.read("mimetype") == b"application/vnd.oasis.opendocument.text"
+                assert b"Check the independent comparison" in document.read("content.xml")
         status = run({"action": "sharing.status"})
         assert all(not status[channel]["enabled"] for channel in ("gaps", "feedback", "usage"))
         print(
             "Packaged runtime: all eight roles saved, resumed and concluded across fresh processes."
         )
         print("Private storage persisted locally. All submission endpoints were disabled.")
+        print("ODT and Markdown records exported for all eight roles in the researcher folder.")
         print(
             "This checks the package, not ChatGPT/Claude cloud account persistence or scientific advice quality."
         )

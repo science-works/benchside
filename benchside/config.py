@@ -17,6 +17,7 @@ class Paths(BaseModel):
 
     home: Path
     repo_root: Path
+    store_root: Path | None = None
 
     @property
     def journal_dir(self) -> Path:
@@ -82,7 +83,14 @@ def resolve_paths() -> Paths:
         data_root = Path(xdg_data).expanduser() if xdg_data else Path.home() / ".local" / "share"
         home = data_root / "benchside"
     repo_root = Path(os.environ.get("BENCHSIDE_REPO", Path(__file__).resolve().parent.parent))
-    return Paths(home=home, repo_root=repo_root)
+    return local_paths(home, repo_root)
+
+
+def local_paths(root: Path, repo_root: Path) -> Paths:
+    from benchside.infrastructure.storage_layout import organised
+
+    root = root.expanduser().resolve()
+    return Paths(home=root / "agent" if organised(root) else root, store_root=root, repo_root=repo_root)
 
 
 def storage_profile_path() -> Path:
@@ -104,7 +112,11 @@ def configure_local_storage(directory: str) -> dict:
         raise ValueError(
             "BENCHSIDE_HOME overrides this choice; remove it or choose the same directory"
         )
-    paths = Paths(home=home, repo_root=Path(__file__).resolve().parent.parent)
+    from benchside.infrastructure.storage_layout import STATE_NAMES, initialise, organised
+
+    if not organised(home) and not any((home / name).exists() for name in STATE_NAMES):
+        initialise(home)
+    paths = local_paths(home, Path(__file__).resolve().parent.parent)
     probe = App(paths).run({"action": "storage.probe"})
     atomic_json(storage_profile_path(), {"local_directory": str(home)})
     return {**probe, "preference": str(storage_profile_path()), "migrated": False}

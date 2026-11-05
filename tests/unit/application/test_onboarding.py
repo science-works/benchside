@@ -63,7 +63,7 @@ def test_local_choice_is_remembered_without_migration(monkeypatch, tmp_path):
     target = tmp_path / "research records"
     configured = configure_local_storage(str(target))
     assert not configured["migrated"]
-    assert resolve_paths().home == target
+    assert resolve_paths().home == target / "agent"
     assert run({"action": "storage.check", "token": configured["token"]})["matched"]
     assert (old / "untouched").read_text() == "original records"
     assert not (target / "untouched").exists()

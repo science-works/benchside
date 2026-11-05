@@ -137,8 +137,11 @@ recorded as abandonment.
 ## Private records
 
 The append-only journal lives outside Git: in the private native notebook for
-cloud accounts, or by default at `~/.local/share/benchside/projects/<id>/journal.jsonl`
-for local desktop use. The runtime records
+cloud accounts, or in the chosen local store. New configured local stores use
+`agent/projects/<id>/journal.jsonl` for internal state and
+`researcher/projects/<friendly name>/Research record.odt` for the complete readable
+record, with a Markdown copy alongside it. Existing flat stores remain supported;
+see [the folder guide](docs/readable-records.md) before upgrading one. The runtime records
 hypotheses, targeted critiques and resolutions, decisions with rationale,
 research questions and their answers,
 role-specific scientific outputs with sources, and local workflow observations.

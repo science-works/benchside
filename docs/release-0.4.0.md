@@ -18,6 +18,18 @@
   conversation. They work with any host/model that loads the skill; they do not
   create an account-wide listener or guarantee that an unloaded skill activates.
 
+## Readable records
+
+New configured local stores separate internal state in `agent/` from complete
+ODT and Markdown reading copies in `researcher/projects/<friendly name>/`.
+Copies refresh after saves and contain all saved events, not just the latest five.
+They are private generated views: document edits do not alter the journal.
+An export failure reports a warning without undoing a save or inviting a duplicate.
+Existing stores can be explicitly organised after updating and stopping every
+sharing agent; verified migration preserves IDs, preferences and receipts and
+retains a private backup. Native notebook formats remain unchanged. See
+[readable records](readable-records.md).
+
 ## Lighter setup
 
 Keep the five independent participation choices together, with nothing selected

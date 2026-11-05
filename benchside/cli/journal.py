@@ -32,6 +32,12 @@ def cmd_journal(args) -> int:
             ui.info(f"project '{project_id.root}': no recorded history yet")
             return 0
         match args.view:
+            case "export":
+                from benchside.infrastructure.readable_records import export_project
+
+                result = export_project(runtime.current_paths(), uow.get(Journal), project_id.root)
+                ui.success(result["odt"])
+                ui.detail(result["markdown"])
             case "show":
                 _show(ui, project, uow.get(ConsultationRepository).list_for_project(project_id))
             case "sittings":

@@ -44,7 +44,12 @@ work unsaved and explain the blocker.
 Discover existing projects in the chosen storage before creating one. Reuse a
 selected `project_id` even when the app has changed. Keep the returned session ID
 for this conversation. Do not use changing chat titles as identity.
-For native or connected cloud storage, use [native memory](references/native-memory.md):
+For local stores, use a friendly project `title` and tell the researcher where
+`researcher/projects/<name>/Research record.odt` and its Markdown copy are saved.
+These contain the complete saved journal and refresh automatically; their edits
+are not imported. Keep all journal and consent state private in `agent/` for
+organised stores. See the app guide before upgrading a legacy flat store; never
+move an active store or delete its backup. For native or connected cloud storage, use [native memory](references/native-memory.md):
 read the shared notebook, run the action, conditionally save and verify readback.
 Group already justified private actions from the same turn with `native.batch`
 to avoid a separate cloud save for every setup or recording step. Keep submission

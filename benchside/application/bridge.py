@@ -35,7 +35,9 @@ def run(request):
     if request["action"] == "storage.configure":
         return configure_local_storage(request["directory"])
     if request["action"] == "storage.location":
-        return {"storage": str(resolve_paths().home)}
+        paths = resolve_paths()
+        return {"storage": str(paths.store_root or paths.home), "agent": str(paths.home),
+                "researcher": str((paths.store_root or paths.home) / "researcher")}
     return App(resolve_paths()).run(request)
 
 
