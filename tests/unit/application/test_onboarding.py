@@ -90,7 +90,7 @@ def test_source_install_provides_shared_skill_and_json_bridge(agent, tmp_path, m
     assert main(["setup", "--agent", agent, "--skills-dir", str(target)]) == 0
     capsys.readouterr()
     assert (target / "benchside/references/onboarding.md").is_file()
-    assert len(list((target / "benchside/references/roles").glob("*.md"))) == 7
+    assert len(list((target / "benchside/references/roles").glob("*.md"))) == 8
     assert not (target / "settings.json").exists()
     monkeypatch.setattr(
         sys, "stdin", io.StringIO(json.dumps({"action": "setup", "project_key": "synthetic"}))

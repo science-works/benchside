@@ -56,7 +56,7 @@ integration test. The project source and researcher journals are separate.
 
 ## Setup and continuity
 
-- `{"action":"roles"}` lists the seven roles.
+- `{"action":"roles"}` lists the eight roles.
 - `{"action":"participation.status"}` returns `response`: `unasked`, `declined`,
   `deferred` or `configured`. After an explicit answer use `participation.set`
   with `response:declined`, `deferred`, or `configured`. This remembers whether
@@ -99,6 +99,10 @@ integration test. The project source and researcher journals are separate.
   a conversation session; `start` resumes an unambiguous existing open sitting
   for the role rather than creating another discussion.
   If multiple matching sittings exist, choose one from recall using `sitting_id`.
+  Explicit `new_sitting:true` opens a separate sitting, leaving existing ones intact;
+  do not combine it with `sitting_id`. Existing sittings keep their original rules.
+  `role_update_available:true` means its saved role version differs from the installed
+  definition. Use a new sitting for the changed rules when the researcher wants that.
 
 ## Recording
 
@@ -107,6 +111,8 @@ Every recording request includes the returned `project_id`, `session_id` and
 
 | Action | Additional fields |
 |---|---|
+| `question` | `question`: nonempty text; returns its new ID |
+| `answer` | `question_id`, `answer`: nonempty text; answers an open question in this project |
 | `hypothesis` | `statement`; optional `supersedes` |
 | `record` | `record: {kind, summary, details: [...], sources: [...]}` |
 | `critique` | `target: {kind: "claim", claim, ground}`, `{kind: "method", step, flaw}`, or `{kind: "interpretation", result, alternative}` |
@@ -119,8 +125,21 @@ Record kinds: study-design → `study-design`; methods-clinic → `methods`;
 results-meeting → `results`; repro-check → `reproducibility`;
 journal-club → `literature`; peer-review → `review`.
 These roles need a research record and decision before concluding. A literature
-record also needs a real inspected source locator. `/pi` retains its hypothesis
-requirement. Do not manufacture a critique to complete a phase.
+record also needs a real inspected source locator. `/pi` needs a decision to close
+converged, not a hypothesis. `/pi-hypothesis` retains the focused hypothesis
+requirement. All roles can save questions and answers. Open research questions do
+not prevent a converged close; unresolved critiques do. Do not manufacture a
+hypothesis, critique or decision to satisfy a rule.
+
+`recall` includes `open_research_questions` with IDs and `recent_questions` with
+answers (latest five, or all with `history:all`), plus `total_questions`.
+`open_questions` is a readable list of unresolved research questions and critiques.
+An answer is append-only: an already answered question cannot be overwritten.
+Record a new question if new evidence reopens it. Questions and answers are private;
+optional usage only counts these events in `records.record`. Legacy CLI supports
+`bench question "..."` and `bench answer <question-id> "..."`.
+Update all clients sharing a store before recording questions; older runtimes
+cannot read the new question events.
 
 Method flaws: `missing_control`, `confound`, `under_powered`, `pseudoreplication`,
 `selection_bias`, `unvalidated_instrument`. For concerns outside these categories,

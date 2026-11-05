@@ -55,7 +55,7 @@ Use the installed onboarding guide for an update or storage change.
    With `uv`, run `uv sync --frozen`. Without `uv`, use Python 3.11–3.14 to create
    a virtual environment and install the checkout into it with `pip install .`.
    Do not install Benchside globally into the operating system's Python.
-3. Install the shared seven-role skill with **one** matching command:
+3. Install the shared eight-role skill with **one** matching command:
 
    | Host | Command from the checkout |
    |---|---|
@@ -99,6 +99,16 @@ See [OpenAI's plugin creation guide](https://learn.chatgpt.com/docs/build-plugin
 | OpenAI / portable custom plugin | `benchside-plugin-<version>.zip` |
 | Claude custom skill | `benchside-claude-<version>.zip` |
 
+The two plugin archives contain the same skills, Python runtime and Claude/Codex
+manifests. The portable archive wraps them in a `benchside/` directory; the Claude
+plugin archive places them at the ZIP root. The standalone skill archive contains
+the skill directory without the plugin wrapper. These are installer formats, not
+different scientific capabilities or model-specific runtimes. Prefer the documented
+format for a new installation, but if the host already accepted another variant,
+inspect the installed skill and run its version action. Do not require reinstallation
+solely because the uploaded filename differs. A successful check of one variant in
+one account does not establish that every installer accepts every layout.
+
 Download the appropriate asset from the release, keeping the ZIP intact for
 upload. GitHub's generated **Source code** archives are not plugin packages.
 If the host exposes an installation tool, use it under its normal permission
@@ -121,6 +131,11 @@ Tests in an already configured account do not establish first-time installation
 support in another account. The [free-account test](docs/acceptance-free-account-2026-11-04.md)
 reports installation from a researcher-uploaded ZIP, but has not verified an
 automatic download, runtime execution or saved memory.
+The separate [free-Claude report](docs/acceptance-free-claude-2026-11-05.md) reached
+native notebook setup after manual plugin upload before a usage-limit pause.
+Neither report establishes a complete fresh-account workflow yet. Do not treat a
+custom skill as a guaranteed workaround for a plan or tool restriction; inspect
+whether that installation route and the required runtime/storage tools exist.
 
 ## 3. Keep first setup short
 

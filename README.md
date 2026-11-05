@@ -52,6 +52,9 @@ installation approvals may still need their action.
    [latest release](https://github.com/science-works/benchside/releases/latest):
    `benchside-plugin-<version>.zip` for OpenAI/portable flows or
    `benchside-claude-plugin-<version>.zip` for Claude plugins. Keep it intact.
+   These contain the same Benchside code; their archive layouts suit different
+   installers. If another variant is already installed and its runtime works,
+   continue verification rather than reinstalling solely because of its filename.
    Attaching a ZIP to an ordinary chat is not itself installation. If only a
    manual installer is available, give its observed steps; if neither route is
    available, state the missing capability rather than invent an upload control.
@@ -74,7 +77,10 @@ installation approvals may still need their action.
 **Which setup to use:** for ChatGPT web, our current recommended route is a paid
 account with verified execution and private storage tools. The tested free web
 account could install an uploaded ZIP but could not complete recording or sending.
-Claude plugins use paid accounts; fresh-user verification remains needed. Local
+Claude's paid-account workflow has passed; a researcher-reported free-account
+test also installed the plugin and reached native notebook setup, but paused at
+the usage limit before full verification. Check actual tools rather than rejecting
+an account by plan name. Local
 agents can use the generic installer with other providers or locally hosted
 models when their tools meet the same requirements. See the
 [support and testing plan](docs/host-support.md) and
@@ -83,11 +89,12 @@ plugin-directory listing yet.
 
 ## Research roles
 
-All seven roles are included:
+All eight roles are included:
 
 | Role | Scientific output |
 |---|---|
-| `/pi` | Hypothesis, challenges and next step |
+| `/pi` | Research direction, decisions, unresolved questions and next step |
+| `/pi-hypothesis` | Focused hypothesis challenge and discriminating experiment |
 | `/study-design` | Study outline, comparisons, controls and assumptions |
 | `/methods-clinic` | Discrepancy, possible causes and diagnostic checks |
 | `/results-meeting` | Evidence-to-claim assessment and follow-up |
@@ -99,14 +106,15 @@ All seven roles are included:
 
 See [Getting started](docs/getting-started.md) for setup without terminal commands
 or API keys. Installable Claude and ChatGPT/Codex packages are built from this
-repository. The current package is 0.3.1. There is no public plugin-directory
+repository. The current package is 0.4.0. There is no public plugin-directory
 listing yet. Give a new agent the repository URL and
 [setup instructions](docs/getting-started.md)
 rather than relying on discovery by name alone.
 
-This development branch prepares 0.3.2 with capability-based onboarding,
-generic-agent instructions and a read-only connection check. Use the latest
-published release for ordinary installation; a review build is not a release.
+Version 0.4.0 adds capability-based onboarding, lighter setup, multi-discipline
+profiles, a broad research supervisor and a focused hypothesis reviewer. Decisions
+and unresolved questions are saved privately as the discussion progresses. See
+[the release notes](docs/release-0.4.0.md), including the shared-store update note.
 
 Native memory uses a private notebook in a capable host, with readable journals
 per project. Guarded saves and readback protect the validated record; the
@@ -122,8 +130,8 @@ inviting researchers through a particular app route.
 
 A research sitting can continue across conversations. New roles save an
 appropriate scientific output and a decision before concluding; they can discuss
-a method, result or paper without inventing a hypothesis. `/pi` keeps its
-hypothesis requirement. Pausing leaves the sitting open; closing a chat is not
+a method, result or paper without inventing a hypothesis. `/pi` is broad supervision;
+`/pi-hypothesis` keeps the focused hypothesis requirement. Pausing leaves the sitting open; closing a chat is not
 recorded as abandonment.
 
 ## Private records
@@ -132,6 +140,7 @@ The append-only journal lives outside Git: in the private native notebook for
 cloud accounts, or by default at `~/.local/share/benchside/projects/<id>/journal.jsonl`
 for local desktop use. The runtime records
 hypotheses, targeted critiques and resolutions, decisions with rationale,
+research questions and their answers,
 role-specific scientific outputs with sources, and local workflow observations.
 It restores the project record and unfinished sittings when you return.
 
@@ -210,7 +219,7 @@ uv sync --frozen
 uv run bench setup --agent codex
 ```
 
-This installs one shared entry for all seven roles. Use `--agent claude` for
+This installs one shared entry for all eight roles. Use `--agent claude` for
 Claude Code or `--agent generic --skills-dir <its skill directory>` for another
 agent. Then follow guided onboarding; `bench init` is only needed when choosing
 a project-scoped installation. The shared Benchside skill includes every
@@ -259,9 +268,9 @@ uv run --with pip python scripts/build_release.py
 
 Personas are YAML records; edit their sources and run `bench compile`. The app
 package uses the same records, core wheel and pinned dependency lock. Build
-outputs are `dist/benchside-claude-0.3.1.zip` (standalone skill),
-`dist/benchside-plugin-0.3.1.zip` (OpenAI/portable plugin), and
-`dist/benchside-claude-plugin-0.3.1.zip` (Claude plugin upload). All use the same
+outputs are `dist/benchside-claude-0.4.0.zip` (standalone skill),
+`dist/benchside-plugin-0.4.0.zip` (OpenAI/portable plugin), and
+`dist/benchside-claude-plugin-0.4.0.zip` (Claude plugin upload). All use the same
 core and central submission endpoints. The build downloads hash-locked wheels
 for CPython 3.11–3.14 on macOS (Intel/Apple Silicon) and glibc Linux (x86-64/ARM64).
 Installed app packages bootstrap offline; they do not need access to PyPI.

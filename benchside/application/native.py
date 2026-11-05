@@ -699,6 +699,11 @@ def journal_view(app, project_id, projects, revision, history="recent"):
     lines.append(f"## {label} decisions")
     for decision in recall["recent_decisions"]:
         lines.extend([_quote(decision["decision"]), _quote(decision["rationale"])])
+    lines.extend(["", f"## {label} research questions and answers"])
+    for question in recall["recent_questions"]:
+        lines.extend([_quote(question["question"]), _quote(question["answer"] or "Unresolved")])
+    if not recall["recent_questions"]:
+        lines.append("None recorded.")
     lines.append(f"## {label} research records")
     for record in recall["recent_records"]:
         lines.append(_quote(record["summary"]))
@@ -725,6 +730,8 @@ BATCH_ACTIONS = {
     "start",
     "hypothesis",
     "record",
+    "question",
+    "answer",
     "critique",
     "resolve",
     "decide",

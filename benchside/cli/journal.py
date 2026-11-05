@@ -40,6 +40,12 @@ def cmd_journal(args) -> int:
                 _hypotheses(ui, project)
             case "records":
                 _records(ui, project)
+            case "questions":
+                ui.header("Research questions")
+                for question in project.questions:
+                    ui.section(question.id)
+                    ui.block(question.question)
+                    ui.detail(question.answer or "Unresolved")
             case "critiques":
                 _critiques(ui, project, only_open=args.open)
             case "decisions":
@@ -73,6 +79,8 @@ def _show(ui: UI, project, sittings) -> None:
     )
     ui.info("")
 
+    if project.questions:
+        ui.detail(_plural(len(project.questions), "research question"))
     current = project.current_hypothesis
     if current:
         ui.section("hypothesis", meta=current.id)
@@ -85,8 +93,11 @@ def _show(ui: UI, project, sittings) -> None:
 
     ui.info("")
     live = [s for s in sittings if s.state.kind not in ("converged", "abandoned")]
-    if open_critiques or live:
+    open_questions = [q for q in project.questions if q.answer is None]
+    if open_critiques or live or open_questions:
         ui.section("needs attention")
+        for question in open_questions:
+            ui.warn(f"{question.id}  {question.question}")
         for critique in open_critiques:
             ui.warn(f"{critique.id}  {_target_line(critique.target)}")
         for sitting in live:

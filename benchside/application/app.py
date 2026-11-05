@@ -287,7 +287,12 @@ class App:
                 persona = self.personas.get(PersonaId(request["role"]))
                 if persona is None:
                     raise ValidationError("Unknown research role")
-                candidates = [
+                new_sitting = request.get("new_sitting", False)
+                if type(new_sitting) is not bool:
+                    raise ValidationError("new_sitting must be true or false")
+                if new_sitting and request.get("sitting_id"):
+                    raise ValidationError("Choose a sitting_id or new_sitting, not both")
+                candidates = [] if new_sitting else [
                     sitting
                     for sitting in self.consultations.list_for_project(project_id)
                     if sitting.persona_id == persona.id
@@ -320,6 +325,7 @@ class App:
                 )
                 return {
                     "sitting": sitting.model_dump(mode="json"),
+                    "role_update_available": sitting.persona_version != persona.version,
                     "recall": recalled(),
                 }
             sitting = self.service.get(request["sitting_id"])
@@ -329,6 +335,15 @@ class App:
             identifier = uuid.uuid4().hex
             common = {"consultation_id": sitting.id}
             match action:
+                case "question":
+                    from benchside.domain.consultation.model.value import ResearchQuestion
+
+                    question = ResearchQuestion(id=f"q-{identifier}", question=request["question"])
+                    self.service.record_question(**common, question=question)
+                    identifier = question.id
+                case "answer":
+                    identifier = request["question_id"]
+                    self.service.answer_question(**common, question_id=identifier, answer=request["answer"])
                 case "record":
                     record = ResearchRecord(id=f"r-{identifier}", **request["record"])
                     self.service.record_research(**common, record=record)

@@ -173,7 +173,9 @@ Use a short invitation, for example:
 > science? You can choose what to contribute, keep everything private, or decide later.
 
 A general expression of interest is not consent to every category. If interested,
-show the following choices together, with nothing preselected:
+show the following choices together, with nothing preselected. Use multi-select
+when available, or accept a list in chat. “Decline all” is mutually exclusive
+with enabling categories; ask only if the response is contradictory:
 
 | Choice | What participation means |
 |---|---|
@@ -216,14 +218,21 @@ marker is private setup history, not consent. Legacy notebooks may lack it: do
 not interpret a returning project's `unasked` marker as permission to repeat the
 pitch. Preserve existing choices and let the researcher reopen them.
 
-If conversation analysis is selected, ask only then which accessible projects or
-conversations may be analysed, and whether supporting activity categories
-should remain private or be prepared for review. Reviewed problems use gap sharing.
-For example: activity = coding, obstacle = tool failure, verification = ran a test.
-These categories describe how the tool was used, never the scientific result. Save the selected source scope before reading
-additional conversation bodies. Do not infer permission for other chats, background
-monitoring or scheduled runs. The existing sampling and invitation limits apply;
-ordinary setup requires no notification schedule.
+If conversation analysis is selected, save that preference and finish setup.
+Do not ask for source scopes or supporting activity-category sharing yet. Leave
+new scopes empty and activity sharing off. At the first actual analysis request,
+explain which conversations the host can access, let the researcher select them,
+and save the scope before reading their contents. Preserve existing scoped
+choices when returning; never broaden them from a general opt-in.
+
+At that first analysis, offer the optional supporting context in plain language:
+“For example, we can count literature review or data analysis, whether a tool
+failed, and whether you checked its output. Would you like to review those labels
+alongside the workflow problems?” They describe how AI was used, not scientific
+results. Nothing is sent without review. Shared batches include the same random
+contributor ID, but no project or conversation identifiers. Keep this secondary
+to finding workflow gaps, and do not present internal field names as a setup quiz.
+No background monitoring or scheduled runs are implied.
 
 Consent during setup enables the selected workflow, not automatic transmission.
 Gap, feedback, usage and activity submissions require exact preview and approval.
@@ -241,7 +250,7 @@ question if the conversation has not already answered it:
 
 > What are you working on, and what would you like help with first?
 
-Use that answer to suggest a role; all seven remain available. Do not require a
+Use that answer to suggest a role; all eight remain available. Do not require a
 fixed role, institution, email address or demographic profile. Ask for source
 documents or more scientific detail when the actual task needs them.
 
@@ -251,7 +260,7 @@ Offer one optional demographic question, following [sharing](sharing.md):
 > skip either. If you choose to include them in reviewed usage reports, they help
 > Science Works understand which groups are trying Benchside.
 
-Let the researcher select broad categories; never infer them from papers, names,
+Let the researcher select multiple broad disciplines if applicable and one career stage; never infer them from papers, names,
 institution or conversation content. Then ask whether to include those choices
 in usage reports or keep them private. This does not turn on usage reporting.
 Use `profile.status` to preserve existing choices; do not ask again on every visit.

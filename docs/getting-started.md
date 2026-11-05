@@ -1,6 +1,6 @@
 # Getting started with Benchside
 
-Benchside offers seven research colleagues: a supervisor, study-design consultant,
+Benchside offers eight research roles: a supervisor, focused hypothesis reviewer, study-design consultant,
 methods troubleshooter, results discussant, reproducibility auditor, journal-club
 discussant and scientific peer reviewer.
 
@@ -64,11 +64,11 @@ for the Git/terminal route. A plugin packages skills and their supporting runtim
 | Route | Current implementation |
 |---|---|
 | Clone GitHub and ask an agent to set it up | Install source dependencies and run guided setup. The installed skill remembers the runtime so later chats work outside the checkout. No model-specific backend is needed. |
-| Codex or another local agent | `bench setup --agent codex` or `--agent generic --skills-dir <host directory>` installs the shared seven-role skill. The agent runs setup for the researcher. |
+| Codex or another local agent | `bench setup --agent codex` or `--agent generic --skills-dir <host directory>` installs the shared eight-role skill. The agent runs setup for the researcher. |
 | Terminal / Claude Code | Shared skill through `bench setup --agent claude` or `bench init`; explicit `bench init --legacy-cli` provides legacy role commands and local session hooks. |
-| OpenAI plugin | `benchside-plugin-0.3.1.zip` includes the portable manifest, Codex compatibility manifest, setup entry and bundled skill/runtime. |
-| Claude plugin | `benchside-claude-plugin-0.3.1.zip` includes `.claude-plugin/plugin.json`, the shared skill, role references and runtime. The manifest passes Claude's validator. |
-| Claude standalone skill | `benchside-claude-0.3.1.zip` remains available for custom-skill installation. |
+| OpenAI plugin | `benchside-plugin-0.4.0.zip` includes the portable manifest, Codex compatibility manifest, setup entry and bundled skill/runtime. |
+| Claude plugin | `benchside-claude-plugin-0.4.0.zip` includes `.claude-plugin/plugin.json`, the shared skill, role references and runtime. The manifest passes Claude's validator. |
+| Claude standalone skill | `benchside-claude-0.4.0.zip` remains available for custom-skill installation. |
 
 Download app packages from the [latest GitHub release](https://github.com/science-works/benchside/releases/latest).
 The expanded implementation is merged into `main`; agents should install the
@@ -246,9 +246,9 @@ uv run --with pip python scripts/build_release.py
 
 This produces:
 
-- `dist/benchside-claude-0.3.1.zip`: standalone Claude skill, with all roles.
-- `dist/benchside-claude-plugin-0.3.1.zip`: Claude plugin upload, with manifest at the archive root.
-- `dist/benchside-plugin-0.3.1.zip`: portable/OpenAI plugin with Codex compatibility metadata.
+- `dist/benchside-claude-0.4.0.zip`: standalone Claude skill, with all roles.
+- `dist/benchside-claude-plugin-0.4.0.zip`: Claude plugin upload, with manifest at the archive root.
+- `dist/benchside-plugin-0.4.0.zip`: portable/OpenAI plugin with Codex compatibility metadata.
 
 All packages are generated from the same code and role definitions. Claude packaging
 adds its manifest and upload layout; it does not fork the implementation or create

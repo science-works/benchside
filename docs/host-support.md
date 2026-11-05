@@ -1,6 +1,6 @@
 # Supported routes and next compatibility checks
 
-Updated 4 November 2026. A plugin appearing in an account is only an installation
+Updated 5 November 2026. A plugin appearing in an account is only an installation
 result. The full Benchside workflow also needs runtime execution and durable
 private storage; optional contributions additionally need outbound HTTPS.
 
@@ -10,21 +10,27 @@ private storage; optional contributions additionally need outbound HTTPS.
 |---|---|
 | ChatGPT web | Use a paid account with the required execution and storage tools. This is the route verified in the maintainer's account, not a guarantee for every paid plan or workspace. |
 | Free ChatGPT web | Not currently supported for the complete workflow. The tested account installed an uploaded ZIP, but had no Work option and reported no usable journal storage or outbound request tool. Runtime execution was not demonstrated. |
-| Claude web/plugin | Use a paid plugin-capable account. The 0.3.2 review update passed new-store setup and fresh-chat restore in the configured maintainer account; earlier approved-send tests passed. A new/free account's tools are not established by that result. |
+| Claude web/plugin, configured paid account | The 0.3.2 review update passed new-store setup and fresh-chat restore in the maintainer account; earlier approved-send tests passed. This does not establish every account's tools. |
+| Free Claude web | Partial, researcher-reported: manual plugin upload succeeded, the skill loaded, and the chat reported running the runtime, creating a private Claude Doc and checking its checksum. A usage-limit pause interrupted consent setup. Actual version output, a scientific record, fresh-chat restore and sending remain unverified. |
 | Independent local agent, hosted model | OpenCode 1.19.5 with DeepSeek V4.1 Flash Free passed candidate installation, local recording, fresh-session restore, project separation and declined sharing. This verifies integration, not scientific quality or all providers. |
 | Locally hosted model | The same generic installer and runtime are available, but the tested Qwen3 8B and Qwen3.5 9B workflows did not pass reliable onboarding/recording. Do not recommend those combinations as verified. |
 
 These are Benchside's current rollout recommendations, not a universal statement
 about account entitlements. OpenAI says available plugin actions depend on plan
 and workspace ([guidance](https://developers.openai.com/training/walkthroughs/plugins-and-skills)).
-Anthropic currently lists plugins for paid plans
-([guidance](https://support.claude.com/en/articles/13837440-use-plugins-in-claude)).
+Anthropic's plugin guide currently lists paid plans
+([guidance](https://support.claude.com/en/articles/13837440-use-plugins-in-claude)),
+but the supplied free-Claude test reports a working installation route and initial
+native storage operations. Preserve this account-specific evidence rather than
+using the plan label to reject working tools.
 Always inspect the tools in the actual account. Do not require a particular UI
 mode if the needed tools already work, or suggest switching to a mode the account
 does not offer.
 
 Evidence: [portable onboarding checks](acceptance-portable-onboarding-2026-11-04.md),
 [free-account investigation](acceptance-free-account-2026-11-04.md),
+[free-Claude partial setup](acceptance-free-claude-2026-11-05.md),
+[OpenRouter PI check and limitations](acceptance-openrouter-pi-2026-11-05.md),
 [earlier memory tests](acceptance-2026-10-28.md), and
 [Claude transfer/send findings](claude-memory-and-sending-findings-2026-10-29.md).
 
@@ -85,7 +91,7 @@ for that arrangement; optional approved sharing still uses the collector.
 
 ## Remaining validation before wider support claims
 
-The 0.3.2 candidate implements the three checks and generic-agent guidance, using
+The capability checks first tested in the 0.3.2 candidate, included in 0.4.0, implement the three checks and generic-agent guidance, using
 the existing runtime. The [acceptance report](acceptance-portable-onboarding-2026-11-04.md)
 separates passing checks from failures. The following remain broader rollout gates:
 

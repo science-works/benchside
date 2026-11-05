@@ -16,6 +16,7 @@ from benchside.domain.consultation.event import (
     HypothesisStated,
     ResearchRecorded,
 )
+from benchside.domain.consultation.event.question import QuestionAnswered, QuestionRecorded
 from benchside.domain.export.event.reporting import (
     FeedbackRecorded,
     ReportingConsentChanged,
@@ -46,6 +47,8 @@ from benchside.domain.shared.service import Service
 
 REPORTING_PROJECT = ProjectId("reporting-ledger")
 RECORD_EVENTS = {
+    QuestionRecorded: "record",
+    QuestionAnswered: "record",
     HypothesisStated: "hypothesis",
     CritiqueRaised: "critique",
     CritiqueResolved: "resolution",

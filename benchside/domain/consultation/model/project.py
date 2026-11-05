@@ -11,6 +11,7 @@ from benchside.domain.consultation.model.value import (
     Critique,
     Decision,
     Hypothesis,
+    ResearchQuestion,
     ResearchRecord,
     Resolution,
     Target,
@@ -27,6 +28,7 @@ class Project(Aggregate):
     critiques: list[Critique] = Field(default_factory=list)
     decisions: list[Decision] = Field(default_factory=list)
     research_records: list[ResearchRecord] = Field(default_factory=list)
+    questions: list[ResearchQuestion] = Field(default_factory=list)
 
     @property
     def open_critiques(self) -> tuple[CritiqueId, ...]:

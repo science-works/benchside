@@ -105,7 +105,7 @@ without interrupting their work or creating an unsolicited automation.
 choice has been saved). `profile.set` replaces it:
 
 ```json
-{"action":"profile.set","demographics":{"discipline":"life_sciences","career_stage":"doctoral_researcher"},"include_in_usage":true}
+{"action":"profile.set","demographics":{"discipline":["computer_information_sciences","life_sciences"],"career_stage":"doctoral_researcher"},"include_in_usage":true}
 ```
 
 Only save the researcher's actual selections. `demographics:{}` skips both;
@@ -113,6 +113,14 @@ either field may be omitted or null. `include_in_usage` defaults to false in a
 new store and must be explicitly supplied when changing the profile. It is
 independent of usage consent and never sends data by itself. The host uses normal
 native save/readback for this state when cloud storage is selected.
+
+Allow multiple disciplines; a researcher working across computer science and
+life sciences can select both. Use a multi-select control or accept a list in
+chat. Never require a single umbrella “interdisciplinary” answer. Legacy single
+string values remain supported; new multiple selections use a nonempty array
+of distinct category values. “Prefer not to say” cannot be combined with other
+disciplines. Career stage remains a single choice. No need to expose schema
+constraints or ask repeatedly for skipped answers.
 
 Present these values with readable labels, not code identifiers:
 
@@ -137,5 +145,6 @@ random installation ID. They never enter gap observations, feedback, survey or
 activity payloads. Changing or disabling the profile invalidates pending usage
 drafts; make a new preview and obtain approval. It does not erase reports already
 received. Aggregate reports count the latest accepted profile per participating
-store. New pseudonymous contributions can be grouped with it internally; published
+store; each selected discipline counts once, so discipline totals can exceed
+the number of installations. New pseudonymous contributions can be grouped with it internally; published
 reports should contain aggregate counts, not identifiers or raw responses.

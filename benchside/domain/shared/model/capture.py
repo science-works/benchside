@@ -22,6 +22,8 @@ class CaptureKind(StrEnum):
     DECISION = "decision"
     GAP = "gap"
     RECORD = "record"
+    QUESTION = "question"
+    ANSWER = "answer"
 
 
 class CloseRequirement(ValueObject):

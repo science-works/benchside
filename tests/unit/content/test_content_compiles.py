@@ -8,7 +8,6 @@ import yaml
 
 from benchside.config import resolve_content_root
 from benchside.domain.authoring.model.persona import Persona
-from benchside.domain.authoring.service.authoring import AuthoringService
 from benchside.domain.shared.model.capture import CaptureKind
 from benchside.domain.shared.model.ids import PersonaId
 from benchside.infrastructure.content.loader import (
@@ -19,7 +18,7 @@ from benchside.infrastructure.content.renderer import PlaceholderRenderer
 
 
 def load_pi() -> Persona:
-    persona = YamlPersonaRepository(resolve_content_root() / "personas").get(PersonaId("pi"))
+    persona = YamlPersonaRepository(resolve_content_root() / "personas").get(PersonaId("pi-hypothesis"))
     assert persona is not None, "content/personas/pi.yaml must exist"
     return persona
 
@@ -55,7 +54,7 @@ class TestPiPersona:
         assert text.lstrip().startswith("---")
         _, frontmatter, body = text.split("---", 2)
         meta = yaml.safe_load(frontmatter)
-        assert meta["name"] == "pi"
+        assert meta["name"] == "pi-hypothesis"
         assert "bench" in meta["allowed-tools"], "bench calls must be pre-approved"
         assert "description" in meta
 
@@ -65,3 +64,10 @@ class TestPiPersona:
         assert "bench sitting close" in body
         assert "bench gap" in body, "gap capture must be instructed"
         assert "recommend" in body.lower(), "user sovereignty must be stated"
+
+
+def test_broad_pi_does_not_require_a_hypothesis():
+    persona = YamlPersonaRepository(resolve_content_root() / "personas").get(PersonaId("pi"))
+    assert not persona.critique_requires_hypothesis
+    assert {r.kind for r in persona.flow.close_requires} == {CaptureKind.DECISION}
+    assert all(CaptureKind.HYPOTHESIS not in p.captures for p in persona.flow.phases)
