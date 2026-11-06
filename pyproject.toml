@@ -2,9 +2,25 @@
 name = "benchside"
 version = "0.4.1"
 description = "Research colleagues with private project memory and optional workflow reporting."
-readme = "README.md"
+readme = "docs/package-description.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
     { name = "Rory Byrne", email = "rory@rory.bio" }
+]
+maintainers = [{ name = "Science Works" }]
+keywords = ["research", "science", "agents", "research-journal"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
 ]
 requires-python = ">=3.11"
 dependencies = [
@@ -18,12 +34,19 @@ dependencies = [
 [project.scripts]
 bench = "benchside.cli.main:main"
 
+[project.urls]
+Homepage = "https://github.com/science-works/benchside"
+Documentation = "https://github.com/science-works/benchside/blob/main/SETUP.md"
+Source = "https://github.com/science-works/benchside"
+Issues = "https://github.com/science-works/benchside/issues"
+Changelog = "https://github.com/science-works/benchside/releases"
+
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["benchside", "content", "README.md", "SETUP.md", "LICENSE", "pyproject.toml", "uv.lock"]
+only-include = ["benchside", "content", "README.md", "SETUP.md", "LICENSE", "pyproject.toml", "uv.lock", "docs/package-description.md"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["benchside"]

@@ -19,7 +19,18 @@ jobs:
       - run: uv run pytest
       - run: uv run ruff check benchside scripts content/app/scripts
       - run: uv run bench compile --check
-      - run: uv build --wheel
+      - run: uv build --no-sources
+      - run: uvx twine check --strict dist/*.whl dist/*.tar.gz
+      - name: Check Python wheel and source installs
+        shell: bash
+        run: |
+          benchside_version="$(uv run --frozen python -c 'from benchside import __version__; print(__version__)')"
+          uv venv --python "$UV_PYTHON" "$RUNNER_TEMP/benchside-wheel"
+          uv pip install --python "$RUNNER_TEMP/benchside-wheel/bin/python" dist/*.whl
+          uv run --frozen python scripts/smoke_distribution.py --python "$RUNNER_TEMP/benchside-wheel/bin/python" --version "$benchside_version"
+          uv venv --python "$UV_PYTHON" "$RUNNER_TEMP/benchside-sdist"
+          uv pip install --python "$RUNNER_TEMP/benchside-sdist/bin/python" dist/*.tar.gz
+          uv run --frozen python scripts/smoke_distribution.py --python "$RUNNER_TEMP/benchside-sdist/bin/python" --version "$benchside_version"
       - run: uv run --with pip python scripts/build_release.py
       - name: Check all release archives
         run: |
