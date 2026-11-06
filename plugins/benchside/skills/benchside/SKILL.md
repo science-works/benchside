@@ -111,7 +111,14 @@ Call `start` for the role. It resumes an unambiguous open sitting or starts one.
 Save meaningful checkpoints as the conversation progresses: the researcher's
 actual decisions and reasons (`decide`), unresolved research questions (`question`),
 and their answers when settled (`answer`). Use returned question IDs, not invented
-critiques. Preserve supplied decision wording and meaning. Do not record every
+critiques. A request for advice is not a decision: keep your recommendation in
+discussion or a research record until the researcher chooses. Preserve supplied
+decision wording exactly, with rationale separate;
+do not turn suggested additions into agreed actions. Unknown answers stay open.
+Before recording, distinguish supplied evidence from inference and proposals.
+If a saved interpretation changes, append an explicit corrected record identifying
+the old record, corrected claim and reason; follow the app guide. On recall, quote
+decisions accurately and account for later corrections. Do not record every
 utterance or the full chat. Batch related private saves within a turn; do not
 wait until the conversation ends. These records stay private; usage can count
 records but never includes their text. The adapter validates

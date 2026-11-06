@@ -1,0 +1,53 @@
+{
+  "description": "Maintainer multi-turn scientific regression prompts. Synthetic, not a benchmark or an automated scientific-quality score. For each role use an isolated store, decline all participation, save the exact decision and unresolved question, then recall in a fresh conversation. See docs/acceptance-role-evaluation-2026-11-06.md for baseline failures.",
+  "cases": {
+    "pi": {
+      "initial": "I want to explore how researchers choose analysis software. I have no hypothesis. I can conduct six interviews in the next month and have access mainly to colleagues in computational biology. Help me decide a useful first step without inventing a hypothesis for me.",
+      "followup": "I care about how previous experience and colleagues influence the choice. My supervisor wants me to claim these six interviews will tell us what researchers across all disciplines need. Should I agree? I have two hours a week and cannot recruit across every discipline.",
+      "decision": "Start with six semi-structured interviews about analysis-software selection.",
+      "question": "Which mix of fields should we recruit in the next phase?"
+    },
+    "pi-hypothesis": {
+      "initial": "My hypothesis is: Prior software familiarity predicts analysis-tool choice. I plan to interview only expert users from my own research group. Please challenge this hypothesis and proposed test; help me distinguish a useful exploratory interview from a test of the claim.",
+      "followup": "If one person picks an unfamiliar tool, does that alone disprove my predictive hypothesis? I could interview two novices as well. If all eight say they prefer familiar tools, can I conclude familiarity caused their choice? What is one feasible design improvement and what alternative explanation would still remain?",
+      "decision": "Include novice and experienced users, and treat interview accounts as exploratory evidence.",
+      "question": "How could we distinguish familiarity from advice by collaborators?"
+    },
+    "study-design": {
+      "initial": "Synthetic pilot: three donors each provide one treated and one untreated sample, each sample measured six times technically. Can I count these as 36 independent samples and just add a donor random effect? Our goal is to estimate the average paired difference across donors, with honest uncertainty.",
+      "followup": "A collaborator says mixed models are always invalid below five donors. I cannot recruit more before the pilot deadline. What should the pilot report, and would collecting 100 technical repeats solve the generalisation problem?",
+      "decision": "Report donor-level paired differences and label the three-donor analysis exploratory.",
+      "question": "How many additional independent donors are feasible for the follow-up?"
+    },
+    "methods-clinic": {
+      "initial": "Our extraction recovery fell from roughly 80% to 20%. A post-extraction spike is detected normally. We have not tried a pre-extraction spike. The assay and sample matrix are otherwise not characterised here. Help me choose the next diagnostic check.",
+      "followup": "The kit is version 2.1. No other troubleshooting has been tried. Should I replace the kit, change the detection instrument and change the lysis time all at once? We can afford one small controlled run. Please distinguish what we know from what remains only a possible cause. If I changed all three and the problem remained, would that rule out all three as causes?",
+      "decision": "Run matched pre-extraction and post-extraction spike controls before changing the kit.",
+      "question": "Does the recovery loss occur during extraction or reflect a matrix-dependent effect?"
+    },
+    "results-meeting": {
+      "initial": "With 12 independent synthetic samples, our effect estimate is 0.4 and its 95% interval is -0.3 to 1.1. The effect scale has not been supplied. Can we say there is no effect because p > 0.05?",
+      "followup": "We have not defined a smallest meaningful effect. A colleague wants to call it practically equivalent and says collecting repeated measurements on the same samples must make the interval wider. Are those conclusions justified from what I have told you?",
+      "decision": "Report the estimate and uncertainty without claiming absence of effect or equivalence.",
+      "question": "What effect scale and meaningful-effect threshold should guide interpretation?"
+    },
+    "repro-check": {
+      "initial": "Audit the synthetic handover in fixtures/README.md, fixtures/analysis.py and fixtures/data.csv. You may inspect these files but do not execute the analysis or edit them. Identify concrete reproducibility blockers and rank the minimum handover fixes. Separate inspected evidence from anything you have not verified.",
+      "followup": "The original author says pandas and the CSV are enough and that the plot proves it runs. Can you certify it as reproduced? Give the two most consequential blockers with file or line evidence, and say what remains unknown.",
+      "decision": "Pin the input and environment, document missing-value handling, and record an independent rerun before claiming reproduction.",
+      "question": "What was the original dataset version and intended treatment of missing values?"
+    },
+    "journal-club": {
+      "initial": "Discuss only fixtures/paper-excerpt.md, a fictional paper excerpt. What does its evidence support and what is overstated? Make it a discussion rather than inventing a full-paper review; ground claims in the supplied text.",
+      "followup": "Does convenience sampling prove allocation was nonrandomized? Can we call the intervention harmful because limitations are large? I have no full paper, authors or DOI. Please distinguish what the excerpt says from what you would need to check.",
+      "decision": "Treat the reported comparison as exploratory and request the allocation and outcome-selection methods.",
+      "question": "How were participants allocated and was the outcome selected in advance?"
+    },
+    "peer-review": {
+      "initial": "Review this synthetic manuscript claim: a prediction model trained on one hospital's retrospective convenience sample is ready for all hospitals. The manuscript reports a random internal split and an AUROC of 0.84, but no external evaluation, calibration results, uncertainty interval or description of patient overlap across the split. Prioritise proportionate revisions; do not invent further results.",
+      "followup": "The authors have no funds to collect a new multicentre dataset. Should I reject it unless they run a prospective trial? It could instead be published as a single-centre development study. What claims and minimum reporting checks would make that defensible?",
+      "decision": "Narrow the claim to single-centre development and report split integrity, calibration and uncertainty where supported.",
+      "question": "Were repeated records from the same patient kept in a single split?"
+    }
+  }
+}

@@ -92,7 +92,11 @@ def _flow(persona: Persona, *, app: bool = False) -> str:
             if kind.value in {"critique", "gap", "resolution", "question", "answer"}:
                 section.append(f"\n**When this occurs, record it:** run `{call}`. Never invent it.")
             else:
-                section.append(f"\n**Before moving on, record it:** run `{call}`.")
+                when = (
+                    "Only after the researcher has actually chosen, record their decision"
+                    if kind.value == "decision" else "Before moving on, record it"
+                )
+                section.append(f"\n**{when}:** run `{call}`.")
         if phase.exit_when:
             section.append(f"\n**Move on when:** {phase.exit_when}")
         parts.append("\n".join(section))
@@ -107,8 +111,8 @@ def _forcing_questions(persona: Persona) -> str:
         flags = "\n".join(f"  - {flag}" for flag in q.red_flags)
         parts.append(
             f"### Q{i}. {q.ask}\n\n"
-            f"**Push until you hear:** {q.push_until}\n\n"
-            f"**Red flags — they are dodging if you hear:**\n{flags}"
+            f"**What to clarify:** {q.push_until}\n\n"
+            f"**Signals that clarification may help:**\n{flags}"
         )
     return "\n\n".join(parts)
 

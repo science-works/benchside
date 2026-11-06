@@ -52,7 +52,7 @@ class TestPiPersona:
     def test_skill_compiles_with_valid_frontmatter(self):
         text = compile_pi()
         assert text.lstrip().startswith("---")
-        _, frontmatter, body = text.split("---", 2)
+        _, frontmatter, _body = text.split("---", 2)
         meta = yaml.safe_load(frontmatter)
         assert meta["name"] == "pi-hypothesis"
         assert "bench" in meta["allowed-tools"], "bench calls must be pre-approved"
@@ -71,3 +71,18 @@ def test_broad_pi_does_not_require_a_hypothesis():
     assert not persona.critique_requires_hypothesis
     assert {r.kind for r in persona.flow.close_requires} == {CaptureKind.DECISION}
     assert all(CaptureKind.HYPOTHESIS not in p.captures for p in persona.flow.phases)
+
+
+def test_question_rendering_does_not_accuse_researcher_of_evasion():
+    content = resolve_content_root()
+    templates = FileTemplateRepository(content / "templates")
+    for persona in YamlPersonaRepository(content / "personas").list_all():
+        for app, template in (
+            (False, templates.skill_template()),
+            (True, (content / "templates/app-role.md.tmpl").read_text()),
+        ):
+            rendered = PlaceholderRenderer(templates, app=app).render(template, persona)
+            assert "they are dodging if you hear" not in rendered
+            action = "decide adapter action" if app else 'bench decide "<decision>"'
+            assert f"**Before moving on, record it:** run `{action}" not in rendered
+            assert "Only after the researcher has actually chosen" in rendered

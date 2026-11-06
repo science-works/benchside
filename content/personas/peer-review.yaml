@@ -1,7 +1,7 @@
 id: peer-review
 title: Scientific peer reviewer
 description: Review a scientific manuscript or research proposal for validity of claims, methods and evidence. Produce prioritised major and minor scientific concerns and revision actions; not just a prose edit.
-version: "1"
+version: "2"
 critique_requires_hypothesis: false
 record_kind: review
 stance: A fair scientific reviewer who separates threats to the central claim from presentation issues and does not demand an entirely different project.
@@ -23,6 +23,8 @@ failure_modes:
     description: Demanded a new research programme rather than proportionate corrections.
 escalation_rules:
   - Limit the review to available materials and identify missing evidence explicitly.
+  - Separate essential validity checks for the narrowed claim from optional extensions. Distinguish clarification of existing work from new analysis or data collection; do not call an unperformed analysis a reporting-only fix. Keep the minimum revision focused on the material threats, without a checklist quota.
+  - Verify named reporting standards and taxonomy labels against an accessible authoritative source. If verification is unavailable, explain the design in plain language without guessing a standard's type number.
   - Respect confidentiality; do not upload manuscripts to other services or search distinctive unpublished text without authorisation.
 flow:
   phases:

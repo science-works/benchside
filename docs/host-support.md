@@ -1,6 +1,6 @@
 # Supported routes and next compatibility checks
 
-Updated 5 November 2026. A plugin appearing in an account is only an installation
+Updated 6 November 2026. A plugin appearing in an account is only an installation
 result. The full Benchside workflow also needs runtime execution and durable
 private storage; optional contributions additionally need outbound HTTPS.
 
@@ -12,7 +12,7 @@ private storage; optional contributions additionally need outbound HTTPS.
 | Free ChatGPT web | Not currently supported for the complete workflow. The tested account installed an uploaded ZIP, but had no Work option and reported no usable journal storage or outbound request tool. Runtime execution was not demonstrated. |
 | Claude web/plugin, configured paid account | The 0.3.2 review update passed new-store setup and fresh-chat restore in the maintainer account; earlier approved-send tests passed. This does not establish every account's tools. |
 | Free Claude web | Partial, researcher-reported: manual plugin upload succeeded, the skill loaded, and the chat reported running the runtime, creating a private Claude Doc and checking its checksum. A usage-limit pause interrupted consent setup. Actual version output, a scientific record, fresh-chat restore and sending remain unverified. |
-| Independent local agent, hosted model | OpenCode 1.19.5 with DeepSeek V4.1 Flash Free passed candidate installation, local recording, fresh-session restore, project separation and declined sharing. This verifies integration, not scientific quality or all providers. |
+| Independent local agent, hosted model | Earlier OpenCode 1.19.5/DeepSeek checks passed candidate installation and isolation. The 0.4.0 evaluation on OpenCode 2.2.5 completed all eight roles, local recording and fresh-chat restore with GLM, plus four DeepSeek comparisons through OpenRouter. It also found scientific-quality weaknesses; these results do not qualify all models or providers. |
 | Locally hosted model | The same generic installer and runtime are available, but the tested Qwen3 8B and Qwen3.5 9B workflows did not pass reliable onboarding/recording. Do not recommend those combinations as verified. |
 
 These are Benchside's current rollout recommendations, not a universal statement
@@ -28,6 +28,8 @@ mode if the needed tools already work, or suggest switching to a mode the accoun
 does not offer.
 
 Evidence: [portable onboarding checks](acceptance-portable-onboarding-2026-11-04.md),
+[0.4.0 conversational role evaluation](acceptance-role-evaluation-2026-11-06.md),
+[0.4.1 review-branch follow-up and remaining limitations](acceptance-role-followup-2026-11-06.md),
 [free-account investigation](acceptance-free-account-2026-11-04.md),
 [free-Claude partial setup](acceptance-free-claude-2026-11-05.md),
 [OpenRouter PI check and limitations](acceptance-openrouter-pi-2026-11-05.md),
@@ -43,7 +45,7 @@ Evidence: [portable onboarding checks](acceptance-portable-onboarding-2026-11-04
    conversation/process. A local folder must be accessible and durable; a
    cloud connector must support exact transfer and guarded updates.
 3. **Optional sending:** check the host's HTTP capability when requested or
-   when setting up an opted-in network feature. In 0.3.2, call the launcher with
+   when setting up an opted-in network feature. In 0.4.0, call the launcher with
    `{"action":"connection.check"}`. Its read-only `GET /v1/studies`
    can establish reachability without submitting a record. It is not proof
    that a contribution was stored. A send test requires a separate synthetic
@@ -109,9 +111,11 @@ separates passing checks from failures. The following remain broader rollout gat
    Benchside implementation and the same reviewed collection formats. A new
    MCP server or hosted private-memory service is not required by the existing
    local route and is outside this compatibility pass.
-4. Review and publish the new patch after the candidate gates pass. Do not
-   replace the published 0.3.1 binaries. Install the final build in the tested
-   hosts and verify the update preserves records before changing support claims.
+4. The [0.4.0 release](https://github.com/science-works/benchside/releases/tag/v0.4.0)
+   is published. Verify updates and record preservation in each installed host
+   before broadening its support claim; package checks alone do not establish
+   that every account or model can complete the workflow. Older release assets
+   remain available unchanged.
 
 Register any live synthetic payloads for exclusion from research reporting.
 Do not send test records as part of ordinary researcher installation. Public
