@@ -50,6 +50,20 @@ receipt, replay and guarded-write protections.
 All records and test submissions here were synthetic and local. No production
 collector request or live account installation was part of this regression run.
 
+## Follow-up: linked Claude Code settings
+
+The shared atomic writer already refused symlinks, but legacy `bench init` could
+create `.bench/config.yaml` or change the storage preference before reaching that
+refusal. It now checks the settings shortcut before those writes. The error names
+the file and its destination and explains default setup and manual hook options;
+it does not write through or replace the link. Default setup leaves unrelated
+linked settings alone, and also checks early when it must remove old Benchside
+hooks. Five regression cases cover absolute/relative/dangling links, old-hook
+removal, and successful default shared-skill installation with unrelated settings.
+The existing general atomic-writer symlink refusal remains unchanged.
+The four refusal cases reproduced the partial-setup problem before the fix; all
+**582 tests now pass on Python 3.11 and 3.14**. Ruff and compiled-role checks pass.
+
 ## Limits and remaining work
 
 - Batching avoids repeated exports within a command. A single-event command

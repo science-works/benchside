@@ -61,6 +61,79 @@ def env(tmp_path, monkeypatch, capsys):
 
 
 class TestInit:
+    @pytest.mark.parametrize("relative,dangling", [(False, False), (True, False), (True, True)])
+    def test_legacy_symlink_refusal_leaves_no_partial_setup(
+        self, env, monkeypatch, relative, dangling
+    ):
+        from benchside.cli import install
+
+        run, home, project_dir = env
+        settings = project_dir / ".claude/settings.json"
+        settings.parent.mkdir()
+        shared = project_dir / "shared-settings.json"
+        original = '{"permissions": {"allow": []}}\n'
+        if not dangling:
+            shared.write_text(original)
+        settings.symlink_to("../shared-settings.json" if relative else shared)
+        configured = []
+        monkeypatch.setattr(install, "_configure_storage", lambda args: configured.append(args.storage))
+
+        code, out = run("init", "--yes", "--legacy-cli", "--storage", str(home))
+
+        assert code == 1
+        assert not configured, "preflight must run before changing the storage preference"
+        assert not (project_dir / ".bench").exists()
+        assert not (project_dir / ".claude/skills").exists()
+        assert not home.exists()
+        assert settings.is_symlink()
+        assert (not shared.exists()) if dangling else shared.read_text() == original
+        assert str(settings) in out and str(shared) in out
+        assert "nothing was written" in out.lower()
+        assert "settings.local.json" in out
+        assert "session-start" in out and "session-end" in out
+
+    def test_default_setup_checks_link_before_removing_old_hooks(self, env, monkeypatch):
+        from benchside.cli import install
+
+        run, home, project_dir = env
+        settings = project_dir / ".claude/settings.json"
+        settings.parent.mkdir()
+        shared = project_dir / "shared-settings.json"
+        original = json.dumps({"hooks": {"SessionStart": [{"_benchside": "v1"}]}})
+        shared.write_text(original)
+        settings.symlink_to(shared)
+        configured = []
+        monkeypatch.setattr(install, "_configure_storage", lambda args: configured.append(args.storage))
+
+        code, out = run("init", "--yes", "--storage", str(home))
+
+        assert code == 1
+        assert not configured
+        assert not (project_dir / ".bench").exists()
+        assert not (project_dir / ".claude/skills").exists()
+        assert not home.exists()
+        assert settings.is_symlink() and shared.read_text() == original
+        assert str(settings) in out and str(shared) in out
+        assert "nothing was written" in out.lower()
+        assert "remove" in out.lower() and "_benchside" in out
+
+    def test_default_setup_preserves_unrelated_linked_settings(self, env, monkeypatch):
+        run, _, project_dir = env
+        monkeypatch.delenv("BENCHSIDE_REPO")  # Install the actual shared app skill.
+        settings = project_dir / ".claude/settings.json"
+        settings.parent.mkdir()
+        shared = project_dir / "shared-settings.json"
+        original = json.dumps({"hooks": {"SessionStart": [{"hooks": [{"command": "echo other"}]}]}})
+        shared.write_text(original)
+        settings.symlink_to(shared)
+
+        code, _ = run("init", "--yes")
+
+        assert code == 0
+        assert settings.is_symlink() and shared.read_text() == original
+        assert (project_dir / ".bench/config.yaml").is_file()
+        assert (project_dir / ".claude/skills/benchside/SKILL.md").is_file()
+
     def test_init_materializes_config_skill_and_hooks(self, env):
         run, home, project_dir = env
         code, out = run("init", "--yes", "--legacy-cli")
