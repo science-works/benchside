@@ -182,6 +182,18 @@ The error lists the registered IDs. Clear only an ended conversation, then resum
 the chosen unfinished sitting explicitly if needed. Researchers can request this
 recovery in chat; they do not need to open a terminal.
 
+If `.claude/settings.json` is a symlink (a shortcut to shared settings), legacy
+`bench init --legacy-cli` stops before writing setup files or changing the storage
+preference. The error names the shortcut and its destination. Benchside does not
+replace the shortcut or write through it. Default `bench init --agent claude`
+can leave it alone unless old Benchside hooks need removing; in that case the
+agent should explain the shared-file implications before the researcher chooses
+how to remove them. Manual legacy hook configuration can use
+`.claude/settings.local.json` for this project, or the shared file if every linked
+project should receive those hooks. Automatic legacy init still requires a
+regular `.claude/settings.json` file; manually adding hooks does not complete
+Benchside's remaining setup steps.
+
 ## Optional sharing
 
 During first setup, Benchside asks whether you would like to contribute to

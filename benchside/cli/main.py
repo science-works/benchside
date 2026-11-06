@@ -45,6 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     args.ui = UI.create()
     try:
         from benchside.infrastructure.files import file_lock
+        from benchside.infrastructure.readable_refresh import readable_refresh
         from benchside.infrastructure.session_context import recording_context
 
         transaction = (
@@ -58,7 +59,11 @@ def main(argv: list[str] | None = None) -> int:
             else recording_context(provenance=runtime.recording_provenance())
         )
         with transaction, context:
-            return args.run(args)
+            with readable_refresh() as readable:
+                result = args.run(args)
+            if readable.warning:
+                args.ui.warn(readable.warning)
+            return result
     except BenchsideError as err:
         _record_failure(args.command, err)
         args.ui.error(err.message, hint=err.hint)
@@ -437,7 +442,8 @@ def cmd_question(args) -> int:
             service.answer_question(
                 consultation_id=pointer["sitting_id"], question_id=identifier, answer=args.answer,
             )
-    args.ui.success(f"research question saved: {identifier}")
+    message = "research question saved" if args.command == "question" else "answer saved"
+    args.ui.success(f"{message}: {identifier}")
     return 0
 
 

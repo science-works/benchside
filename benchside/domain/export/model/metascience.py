@@ -155,9 +155,10 @@ class LinkedSurveyPayload(SurveyPayload):
             if isinstance(question, TextQuestion):
                 if (
                     not isinstance(answer, TextAnswer)
+                    or not answer.text.strip()
                     or len(answer.text.encode("utf-16-le")) // 2 > question.max_length
                 ):
-                    raise ValueError("Invalid or overlong text answer")
+                    raise ValueError("Invalid, blank or overlong text answer; omit skipped questions")
             elif (
                 not isinstance(question, Question)
                 or not isinstance(answer, str)

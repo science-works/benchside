@@ -297,6 +297,8 @@ submissions across channels. Installation counts are not exact people.
 [ARCHITECTURE.md](ARCHITECTURE.md) explains the implementation.
 [Rollout notes](docs/rollout.md) describe the remaining live-app checks and keep
 the original workshop evaluation separate from exploratory rollout results.
+[Future distribution](docs/distribution-roadmap.md) tracks PyPI/uv installation
+and public plugin-directory publishing; these routes are not live yet.
 
 ## License
 

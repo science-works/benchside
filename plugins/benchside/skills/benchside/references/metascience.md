@@ -19,12 +19,16 @@ explain these independent choices and record each explicit answer:
 1. **Study invitations:** receive occasional surveys, at most one invitation per
    seven days. Explain the study, use, retention and random contributor ID before
    agreement. Once the researcher agrees to that study, their answers are sent
-   without asking for a second approval.
+   without asking for a second approval. Flagged sensitive text must be edited
+   by the researcher before it can be sent; it is never rewritten automatically.
 2. **Private conversation analysis:** examine up to 20 research conversations
    from the previous complete UTC week, selected randomly from relevant accessible
    conversations or explicitly chosen by the researcher. This includes work
    outside Benchside roles. Analysis stays within the existing AI environment;
    Benchside does not send logs to Science Works.
+   Cloud notebooks retain this optional history within a finite allowance;
+   if it fills, pause optional collection and discuss larger storage or an
+   explicitly approved archive/summary plan. Do not summarise history in advance.
 3. **Share supporting activity categories:** optionally review broad labels such
    as literature review or data analysis, tool failures and output checks.
    These support the main goal of identifying workflow gaps. Nothing is sent
@@ -95,6 +99,14 @@ answers, prepare the draft and call `metascience.send` with its exact returned
 digest, without a second approval prompt. Do not send if they withdraw or ask
 not to send. Omit skipped questions; if all are skipped, create no response.
 Overlong text needs the researcher to shorten it; never truncate silently.
+Empty or whitespace-only answers are not responses: omit skipped questions.
+If the runtime returns `survey_answer_sensitive`, show the flagged question IDs
+and categories, and ask the researcher to edit or omit those answers. Do not
+send the existing draft or offer to bypass the check with another approval.
+The conservative check detects email addresses, credential patterns, local paths
+and URLs, not every sensitive detail; remind the researcher to exclude private
+scientific findings and participant/sample identifiers. Keep clean answers
+exactly as written, including whitespace. Pending older drafts are checked too.
 Changed answers need a new draft. Changed terms, destination or consent need a
 new agreement. Legacy v1 drafts without `join_study` still require exact approval.
 Closed/dismissed studies cannot be sent. The server verifies the definition hash.

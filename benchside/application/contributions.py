@@ -25,7 +25,12 @@ class ContributionPolicy(StrictValue):
 def contributor_id(paths):
     path = paths.home / "reporting/installation.json"
     if path.exists():
-        value = json.loads(path.read_text())["id"]
+        try:
+            value = json.loads(path.read_text())["id"]
+        except (OSError, ValueError, TypeError, KeyError) as error:
+            raise ValidationError(
+                "Invalid contributor identifier; preserve and repair this store"
+            ) from error
         if not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{32}", value):
             raise ValidationError("Invalid contributor identifier; preserve and repair this store")
         return value

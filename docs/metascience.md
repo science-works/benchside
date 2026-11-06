@@ -77,6 +77,11 @@ contents. Missing metadata/access must be reported or clarified, never invented.
   response ID, study ID/version/digest, option IDs and `{text: ...}` answers.
   Agreement is saved with `metascience.join_study` before questions and binds the
   definition, destination and current consent grant. Legacy v1 remains readable.
+  The 0.4.1 client refuses blank text answers and requires researcher edits when
+  its conservative text scan flags an email, credential, local path or URL.
+  It checks pending old drafts before sending too; ordinary answers retain their
+  exact wording and require no second approval. The receiver's matching blank-text
+  check remains a separately scheduled change/deployment.
 - `POST /v1/activity`: new `benchside.activity.v2` adds a random contributor ID
   to the same bounded categories, counts, rubric and selection method. Unknown
   fields remain rejected. Legacy v1 remains readable without inventing an ID.
@@ -120,8 +125,11 @@ contents. Missing metadata/access must be reported or clarified, never invented.
   Native size limits still apply. Optional study/analysis history has a 48 KiB
   compressed allowance, checked before new growth and before sends. This pauses
   optional work before it displaces research records. It retains existing history
-  rather than silently trimming it; research and opt-out remain available. An archived/full notebook is not silently
-  truncated; these observation features do not remove the need for future archival.
+  rather than silently trimming it; research and opt-out remain available.
+  The 6 November product decision is to retain history, explain the limit when
+  reached and offer larger storage or an explicitly approved archive/summary plan.
+  Automatic weekly compaction is not implemented. Summaries do not replace
+  consent state, unsent work or receipts; safe archival remains future work.
 
 Review `content/app/references/metascience.md` for the complete host flow and
 classification rubric. Tests use `tests/fixtures/metascience/`; its survey is

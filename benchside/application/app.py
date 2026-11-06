@@ -88,18 +88,20 @@ class App:
                             result["readable_records_warning"] = "Folder organisation succeeded; some readable copies need records.export to be retried."
                 return {**result, "readable_projects": count}
             with file_lock(self.paths.home / ".transaction.lock"):
+                from benchside.infrastructure.readable_refresh import readable_refresh
+
                 self._storage_boundary()
                 self.journal.readable_records_warning = None
-                result = self._dispatch(action, request)
-                if action == "setup" and self.paths.store_root:
-                    try:
-                        from benchside.infrastructure.readable_records import export_project
-
-                        result["readable_records"] = export_project(self.paths, self.journal, result["project_id"])
-                    except Exception:  # noqa: BLE001 - private setup already succeeded
-                        self.journal.readable_records_warning = "Private setup was saved; the readable copy needs records.export to be retried."
-                if isinstance(result, dict) and self.journal.readable_records_warning:
-                    result["readable_records_warning"] = self.journal.readable_records_warning
+                with readable_refresh() as readable:
+                    result = self._dispatch(action, request)
+                    if action == "setup":
+                        readable.mark(self.paths, self.journal, result["project_id"])
+                if action == "setup":
+                    exported = readable.results.get((self.paths.home.resolve(), result["project_id"]))
+                    if exported:
+                        result["readable_records"] = exported
+                if isinstance(result, dict) and readable.warning:
+                    result["readable_records_warning"] = readable.warning
                 return result
         except BenchsideError as error:
             self._failure(action, error)

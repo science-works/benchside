@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -11,6 +12,7 @@ from benchside.cli import runtime
 from benchside.domain.authoring.port.renderer import TemplateRenderer
 from benchside.domain.authoring.port.repository import PersonaRepository, TemplateRepository
 from benchside.domain.authoring.service.authoring import AuthoringService
+from benchside.domain.shared.error import ConfigurationError
 from benchside.infrastructure.content.writer import FileSkillWriter
 from benchside.infrastructure.files import atomic_json
 from benchside.util.di import Scope
@@ -67,17 +69,20 @@ def cmd_init(args) -> int:
     ):
         print("init cancelled; nothing written")
         return 1
+    settings = project_dir / ".claude" / "settings.json"
+    if args.agent == "claude":
+        _check_hook_settings(settings, register=hooks)
     _configure_storage(args)
     config = project_dir / ".bench" / "config.yaml"
     config.parent.mkdir(parents=True, exist_ok=True)
     if not config.is_file():
         config.write_text(f"project: {project_id.root}\n", encoding="utf-8")
     if hooks:
-        _register_hooks(project_dir / ".claude" / "settings.json")
+        _register_hooks(settings)
         _compile_skills(target, explicit=True)
     else:
         if args.agent == "claude":
-            _remove_hooks(project_dir / ".claude" / "settings.json")
+            _remove_hooks(settings)
             from benchside.infrastructure.session_context import clear_project_sessions
 
             clear_project_sessions(runtime.current_paths(), runtime.resolve_project(cwd=project_dir))
@@ -99,6 +104,45 @@ def _confirm(prompt: str) -> bool:
         print("non-interactive session: pass --yes to consent to init", file=sys.stderr)
         return False
     return input(f"{prompt} [y/N] ").strip().lower() in {"y", "yes"}
+
+
+def _check_hook_settings(settings_path: Path, *, register: bool) -> None:
+    """Refuse edits through a settings shortcut before init writes any state."""
+    if not settings_path.is_symlink():
+        return
+    if not register:
+        if not settings_path.is_file():
+            return
+        settings = json.loads(settings_path.read_text(encoding="utf-8") or "{}")
+        if not any(
+            group.get(_TAG) == "v1"
+            for groups in settings.get("hooks", {}).values()
+            for group in groups
+        ):
+            return  # The shared route does not need to edit unrelated settings.
+    # Show where a relative shortcut points without following a chain of links.
+    destination = os.path.abspath(settings_path.parent / settings_path.readlink())
+    if register:
+        hint = (
+            "Use `bench init --agent claude` for the default setup without legacy hooks. "
+            "For manual legacy setup, add `bench hook session-start` to SessionStart and "
+            "`bench hook session-end` to SessionEnd in .claude/settings.local.json, or "
+            "edit the shared file yourself only if all linked projects should use those hooks. "
+            "Automatic legacy init requires a regular .claude/settings.json file."
+        )
+    else:
+        hint = (
+            "Default setup needs to remove old Benchside hooks tagged _benchside: v1. "
+            "Review their removal in the shared file yourself, or give this project a "
+            "regular settings.json copy and rerun init. Editing the shared file affects "
+            "every project linked to it."
+        )
+    raise ConfigurationError(
+        f"Claude settings file {settings_path} is a symlink (shortcut) to {destination}. "
+        "Benchside will not replace the shortcut or edit its shared target; nothing was written.",
+        code="claude_settings_symlink",
+        hint=hint,
+    )
 
 
 def _register_hooks(settings_path: Path) -> None:

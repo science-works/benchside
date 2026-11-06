@@ -5,7 +5,6 @@ import io
 import json
 import os
 import re
-import tempfile
 import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
@@ -13,7 +12,7 @@ from xml.etree import ElementTree as ET
 
 from benchside.domain.shared.error import ValidationError
 from benchside.domain.shared.model.ids import user_project_id
-from benchside.infrastructure.files import atomic_json
+from benchside.infrastructure.files import atomic_bytes, atomic_json
 
 ODT_TYPE = "application/vnd.oasis.opendocument.text"
 FORMATS = ("odt", "markdown", "both")
@@ -73,20 +72,6 @@ def odt_bytes(blocks):
         archive.writestr("styles.xml", xml(styles))
         archive.writestr("META-INF/manifest.xml", xml(manifest))
     return output.getvalue()
-
-
-def _atomic_bytes(path, data):
-    if path.is_symlink():
-        raise ValidationError("Readable record destination must not be a symlink")
-    fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".benchside-")
-    try:
-        with os.fdopen(fd, "wb") as handle:
-            handle.write(data)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-    finally:
-        Path(temporary).unlink(missing_ok=True)
 
 
 def _fields(value, prefix=""):
@@ -213,10 +198,10 @@ def export_project(paths, journal, project_id):
     md = folder / "Research record.md"
     result = {"format": document_format, "events": len(events), "generated_view": True}
     if document_format in {"odt", "both"}:
-        _atomic_bytes(odt, odt_bytes(blocks))
+        atomic_bytes(odt, odt_bytes(blocks))
         result["odt"] = str(odt)
     if document_format in {"markdown", "both"}:
-        _atomic_bytes(md, markdown.encode())
+        atomic_bytes(md, markdown.encode())
         result["markdown"] = str(md)
     # Preserve earlier copies (and any reader edits) when the preference changes.
     # Only return the files refreshed by this export.
