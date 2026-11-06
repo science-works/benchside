@@ -170,7 +170,8 @@ def summarise(files):
     for report in latest.values():
         if report.demographics:
             for field, value in report.demographics.model_dump(exclude_none=True).items():
-                demographic_counts[field][value] += 1
+                for category in value if isinstance(value, list) else [value]:
+                    demographic_counts[field][category] += 1
     weeks_by_installation = Counter(i for installations in active.values() for i in installations)
     contributors = {
         "gaps": {gap_contributors[key] for key in gaps if gap_contributors.get(key)},
@@ -268,7 +269,7 @@ def markdown(report):
         ("Workflow problems", "workflow_kinds"),
         ("Contributing stores by workflow kind", "contributing_stores_by_workflow_kind"),
         ("Workflow observation sources", "workflow_origins"),
-        ("Optional discipline buckets (installations)", "installations_by_discipline"),
+        ("Optional disciplines (installations; multiple choices allowed)", "installations_by_discipline"),
         ("Optional career-stage buckets (installations)", "installations_by_career_stage"),
         ("Roles used", "consultations_by_role"),
         ("Apps used", "consultations_by_app"),

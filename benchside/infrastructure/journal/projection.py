@@ -16,6 +16,7 @@ from benchside.domain.consultation.event.decision_recorded import DecisionRecord
 from benchside.domain.consultation.event.gap_observed import GapObserved
 from benchside.domain.consultation.event.hypothesis_stated import HypothesisStated
 from benchside.domain.consultation.event.opened import ConsultationOpened
+from benchside.domain.consultation.event.question import QuestionAnswered, QuestionRecorded
 from benchside.domain.consultation.event.research_recorded import ResearchRecorded
 from benchside.domain.consultation.model.consultation import Consultation
 from benchside.domain.consultation.model.project import Project
@@ -57,6 +58,13 @@ class JournalProjectRepository:
         project = Project(id=project_id, title=project_id.root)
         for event in events:
             match event:
+                case QuestionRecorded():
+                    project.questions.append(event.question)
+                case QuestionAnswered():
+                    for i, question in enumerate(project.questions):
+                        if question.id == event.question_id:
+                            project.questions[i] = question.model_copy(update={"answer": event.answer})
+                            break
                 case ResearchRecorded():
                     project.research_records.append(event.record)
                 case HypothesisStated():

@@ -14,6 +14,7 @@ from pydantic import (
 
 Role = Literal[
     "pi",
+    "pi-hypothesis",
     "study-design",
     "methods-clinic",
     "results-meeting",
@@ -79,7 +80,18 @@ CareerStage = Literal[
 
 
 class Demographics(StrictValue):
-    discipline: Discipline | None = None
+    discipline: Discipline | list[Discipline] | None = None
+
+    @field_validator("discipline")
+    @classmethod
+    def disciplines(cls, value):
+        if isinstance(value, list):
+            if not value or len(value) != len(set(value)):
+                raise ValueError("Choose one or more distinct disciplines, or leave unset")
+            if "prefer_not_to_say" in value and len(value) != 1:
+                raise ValueError("Prefer not to say cannot be combined with a discipline")
+        return value
+
     career_stage: CareerStage | None = None
 
 

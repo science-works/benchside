@@ -70,7 +70,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _record_failure(command, error):
-    if command not in {"sitting", "hypothesis", "record", "critique", "resolve", "decide", "gap"}:
+    if command not in {"sitting", "hypothesis", "record", "question", "answer", "critique", "resolve", "decide", "gap"}:
         return
     from benchside.domain.export.service.reporting import ReportingService
     from benchside.domain.shared.error import StorageUnavailableError
@@ -185,6 +185,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--supersedes", default=None)
     p.set_defaults(run=cmd_hypothesis)
 
+    p = sub.add_parser("question", help="save an unresolved research question")
+    p.add_argument("question")
+    p.set_defaults(run=cmd_question)
+
+    p = sub.add_parser("answer", help="record an answer to a saved research question")
+    p.add_argument("question_id")
+    p.add_argument("answer")
+    p.set_defaults(run=cmd_question)
+
     p = sub.add_parser("critique", help="record a critique against the project")
     p.add_argument("--target", required=True, choices=["claim", "method", "interpretation"])
     p.add_argument("--claim"), p.add_argument("--ground")
@@ -243,6 +252,8 @@ def build_parser() -> argparse.ArgumentParser:
     # --- journal views ---
     p = sub.add_parser("journal", help="query the project record")
     views = p.add_subparsers(dest="view", required=True, metavar="<view>")
+    v = views.add_parser("export", help="refresh private ODT and Markdown reading copies")
+    v.add_argument("--project", default=None)
     v = views.add_parser("show", help="summary of the whole record")
     v.add_argument("--project", default=None)
     v = views.add_parser("sittings", help="past sittings and their end states")
@@ -250,6 +261,8 @@ def build_parser() -> argparse.ArgumentParser:
     v = views.add_parser("hypotheses", help="the supersession chain")
     v.add_argument("--project", default=None)
     v = views.add_parser("records", help="research outputs with evidence and sources")
+    v.add_argument("--project", default=None)
+    v = views.add_parser("questions", help="research questions and their answers")
     v.add_argument("--project", default=None)
     v = views.add_parser("critiques", help="critiques and their resolutions")
     v.add_argument("--open", action="store_true", help="only open critiques")
@@ -401,6 +414,30 @@ def cmd_resume(args) -> int:
         persona_id=sitting.persona_id.root,
     )
     args.ui.success(f"Resumed {sitting.id} with /{sitting.persona_id.root}")
+    return 0
+
+
+def cmd_question(args) -> int:
+    from benchside.domain.consultation.model.value import ResearchQuestion
+    from benchside.domain.consultation.service.consultation import ConsultationService
+
+    _guard_initialized()
+    pointer = runtime.require_pointer(runtime.current_paths(), runtime.resolve_project())
+    container, uow = _uow()
+    with container, uow:
+        service = uow.get(ConsultationService)
+        if args.command == "question":
+            identifier = runtime.short_id("q")
+            service.record_question(
+                consultation_id=pointer["sitting_id"],
+                question=ResearchQuestion(id=identifier, question=args.question),
+            )
+        else:
+            identifier = args.question_id
+            service.answer_question(
+                consultation_id=pointer["sitting_id"], question_id=identifier, answer=args.answer,
+            )
+    args.ui.success(f"research question saved: {identifier}")
     return 0
 
 

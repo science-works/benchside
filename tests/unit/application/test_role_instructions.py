@@ -21,6 +21,7 @@ def test_generated_role_capture_instructions_dispatch(paths, tmp_path):
         start = app.run({"action": "start", "role": role["id"], **context})
         context["sitting_id"] = start["sitting"]["id"]
         payloads = {
+            "question": {"question": "Which sampling frame should we use?"},
             "hypothesis": {"statement": "Synthetic controls explain measurement loss"},
             "critique": {
                 "target": {"kind": "method", "step": "Synthetic assay", "flaw": "missing_control"}

@@ -11,7 +11,10 @@ reading a sampled conversation. Restore current state at the start of every run.
 
 ## Explain and select the choices
 
-All three choices start off. Explain them together and record each explicit choice:
+All three choices start off. During initial setup, record invitation and analysis
+preferences only if chosen; defer source selection and the supporting-category
+choice until the first actual analysis. When the researcher requests analysis,
+explain these independent choices and record each explicit answer:
 
 1. **Study invitations:** receive occasional surveys, at most one invitation per
    seven days. Explain the study, use, retention and random contributor ID before
@@ -22,7 +25,8 @@ All three choices start off. Explain them together and record each explicit choi
    conversations or explicitly chosen by the researcher. This includes work
    outside Benchside roles. Analysis stays within the existing AI environment;
    Benchside does not send logs to Science Works.
-3. **Share supporting activity categories:** prepare fixed categories for review.
+3. **Share supporting activity categories:** optionally review broad labels such
+   as literature review or data analysis, tool failures and output checks.
    These support the main goal of identifying workflow gaps. Nothing is sent
    automatically. The same random contributor ID used by other opted-in
    contributions links batches over time; no account, project or conversation

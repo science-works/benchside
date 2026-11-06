@@ -12,6 +12,7 @@ from benchside.domain.shared.error import BenchsideError
 
 ROLES = {
     "pi": None,
+    "pi-hypothesis": None,
     "study-design": "study-design",
     "methods-clinic": "methods",
     "results-meeting": "results",
@@ -127,7 +128,7 @@ def test_native_roles_restore_without_a_shared_execution_directory(
     context = {k: setup[k] for k in ("project_id", "session_id")}
     sitting = notebook.run({"action": "start", "role": role, **context})["result"]["sitting"]
     context["sitting_id"] = sitting["id"]
-    if role == "pi":
+    if role in {"pi", "pi-hypothesis"}:
         notebook.run(
             {"action": "hypothesis", "statement": "Synthetic private hypothesis", **context}
         )

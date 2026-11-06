@@ -8,7 +8,12 @@ from typing import Literal
 
 from pydantic import Field
 
-from benchside.domain.consultation.model.value import Decision, ResearchRecord, Target
+from benchside.domain.consultation.model.value import (
+    Decision,
+    ResearchQuestion,
+    ResearchRecord,
+    Target,
+)
 from benchside.domain.consultation.service.consultation import ConsultationService
 from benchside.domain.shared.command import Result
 from benchside.domain.shared.error import NotFoundError
@@ -27,6 +32,9 @@ class ProjectRecall(Result):
     history: Literal["recent", "all"] = "recent"
     total_decisions: int = 0
     total_records: int = 0
+    total_questions: int = 0
+    open_research_questions: list[ResearchQuestion] = Field(default_factory=list)
+    recent_questions: list[ResearchQuestion] = Field(default_factory=list)
     current_hypothesis: str | None = None
     open_questions: list[str] = Field(default_factory=list)
     recent_decisions: list[Decision] = Field(default_factory=list)
@@ -55,8 +63,12 @@ class RecallProjectHandler(QueryHandler[RecallProject, ProjectRecall]):
             history=query.history,
             total_decisions=len(project.decisions),
             total_records=len(project.research_records),
+            total_questions=len(project.questions),
+            open_research_questions=[q for q in project.questions if q.answer is None],
+            recent_questions=project.questions if query.history == "all" else project.questions[-5:],
             current_hypothesis=current.statement if current else None,
-            open_questions=[describe_target(c.target) for c in project.critiques if c.is_open],
+            open_questions=([q.question for q in project.questions if q.answer is None]
+                            + [describe_target(c.target) for c in project.critiques if c.is_open]),
             recent_decisions=project.decisions
             if query.history == "all"
             else project.decisions[-5:],

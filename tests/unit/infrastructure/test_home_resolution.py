@@ -10,7 +10,8 @@ class TestHomeResolution:
         monkeypatch.setenv("BENCHSIDE_HOME", str(tmp_path / "custom"))
         assert resolve_paths().home == tmp_path / "custom"
 
-    def test_default_is_xdg_data_home(self, monkeypatch):
+    def test_default_is_xdg_data_home(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
         monkeypatch.delenv("BENCHSIDE_HOME", raising=False)
         monkeypatch.setenv("XDG_DATA_HOME", "/xdg/data")
         assert resolve_paths().home == Path("/xdg/data/benchside")

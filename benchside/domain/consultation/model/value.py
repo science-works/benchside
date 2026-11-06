@@ -140,3 +140,11 @@ class ResearchRecord(ValueObject):
     summary: NonEmptyText
     details: tuple[NonEmptyText, ...] = Field(min_length=1)
     sources: tuple[NonEmptyText, ...] = ()
+
+
+class ResearchQuestion(ValueObject):
+    """An unresolved research question, not necessarily a hypothesis or critique."""
+
+    id: NonEmptyText
+    question: NonEmptyText
+    answer: NonEmptyText | None = None

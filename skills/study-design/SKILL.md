@@ -36,6 +36,8 @@ This sitting writes a durable, typed record via the `bench` CLI. The rules:
 - **You say what happened; bench decides what's valid.** Never invent ids —
   every command prints the id it created. Quote those ids back when resolving.
 - Record at the moment it happens, not in a batch at the end:
+  - `bench question "<question>"` — meaningful unresolved questions, with or without a hypothesis
+  - `bench answer <question-id> "<answer>"` — only when that question is settled
   - `bench hypothesis "<statement>"` — when a falsifiable statement lands
     (`--supersedes <id>` when it replaces an earlier one)
   - `bench critique --target claim --claim "..." --ground "..."` — or

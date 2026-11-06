@@ -17,6 +17,12 @@ Provide one JSON object on stdin. Responses are JSON: `ok` plus `result`, or an
 error. Read the result before continuing. Python 3.11+ and POSIX storage are required.
 Use `{"action":"version"}` to check the running Benchside version without opening
 research storage. Do not import modules directly from the sealed runtime cache.
+`{"action":"connection.check"}` checks the official collector with a read-only
+GET of `/v1/studies`, without opening a store or enabling participation. The result
+includes `reachable`, `endpoint`, `method:GET` and `submitted:false`. This action
+is called directly, not inside `native.run`/`native.batch`; it neither needs nor
+updates a cloud notebook. It ignores test endpoint overrides. Success does not
+prove that POST submissions work; only a verified receipt confirms delivery.
 
 For native saves, the launcher accepts `--response-file /absolute/private/new-response.json`.
 It writes the complete JSON response to a new owner-only file and prints a compact
@@ -50,7 +56,7 @@ integration test. The project source and researcher journals are separate.
 
 ## Setup and continuity
 
-- `{"action":"roles"}` lists the seven roles.
+- `{"action":"roles"}` lists the eight roles.
 - `{"action":"participation.status"}` returns `response`: `unasked`, `declined`,
   `deferred` or `configured`. After an explicit answer use `participation.set`
   with `response:declined`, `deferred`, or `configured`. This remembers whether
@@ -61,15 +67,50 @@ integration test. The project source and researcher journals are separate.
   their separate inclusion preference. `profile.set` takes `demographics` and
   boolean `include_in_usage`; see [sharing](sharing.md) for valid categories.
   Both actions work through `native.run` as well as local storage.
-- `{"action":"storage.location"}` returns the effective local storage path without writing.
+- `{"action":"storage.location"}` returns the chosen local root as `storage`,
+  internal state as `agent`, and readable-copy root as `researcher`, without writing.
 - `{"action":"storage.configure","directory":"/absolute/chosen/folder"}` verifies
   a write and remembers the local choice. Use only after the researcher chooses it.
-  Not applicable inside `native.run`.
+  New configured stores use `agent/` for state and `researcher/projects/` for
+  human-readable ODT/Markdown files. Selecting an existing flat store does not
+  silently move its records. Not applicable inside `native.run`.
+- `{"action":"storage.organise","confirm_idle":true}` explicitly upgrades an
+  existing local store. First update **every** agent that shares it to 0.4.0 or
+  newer and stop their active use; obtain the researcher's confirmation if that
+  cannot be established. Do not supply `confirm_idle:true` just to get past an error.
+  This copies and verifies existing state, switches to `agent/`, retains the
+  original in `agent/legacy-backup/`, and exports all saved projects. It never
+  changes project IDs, choices or receipts. Reopen the runtime afterward.
+  Old clients cannot understand the new layout; do not restart them against it.
+  Do not delete the backup automatically. Failed migrations retain the original
+  or verified active data; report the error without trying a manual file shuffle.
+- `{"action":"records.preferences"}` reads this local store's document `format`
+  and whether it has been `configured`. An unset preference defaults to `odt`.
+- `{"action":"records.configure","format":"both"}` saves the researcher's
+  choice of `odt`, `markdown` or `both` for every project in this local store.
+  It changes no journal or sharing choice. It applies to subsequent saves/exports;
+  refresh the current project after changing it. These actions are local-only;
+  native cloud documents retain the host's supported format.
+- `{"action":"records.export","project_id":"<ID>"}` refreshes the complete private
+  reading copies in the selected format. Returns `odt` and/or `markdown` paths
+  only for files just refreshed. Each includes all saved events, not just recent recall.
+  Old unselected files are preserved and listed in `previous_copies_not_refreshed`;
+  do not present them as current or delete them automatically.
+  A refresh also occurs after each journal append and during local project setup.
+  If `readable_records_warning` is returned alongside a successful save, the
+  scientific record is already saved: retry only `records.export`, never the
+  recording action. Copies are generated views; edits do not change the journal.
+  Local CLI users can run `bench journal export`. This action needs durable local
+  storage; native cloud documents keep their existing human-readable pages and
+  use the host's own document-download tools if available.
 - `{"action":"projects"}` lists existing local app project IDs/titles.
 - `{"action":"setup","project_id":"<selected existing ID>","host":"claude","surface":"desktop"}`
   starts a new session in an existing project, including one created by another app.
   Session app metadata is isolated; creation identity never changes.
-  For new projects supply `project_key` instead, with an optional `title` for discovery.
+  For new projects supply `project_key` instead and a friendly `title` based on
+  the researcher's project description. When no useful name is known, ask once.
+  Supplying `title` with an existing project updates its display name and readable
+  folder, preserving its stable ID, scientific history and other files in that folder.
 - `{"action":"storage.probe"}` writes a random marker and returns its token.
 - `{"action":"storage.check","token":"<returned token>"}` checks the same store.
   Run this after moving to a fresh conversation and resetting its execution
@@ -93,6 +134,10 @@ integration test. The project source and researcher journals are separate.
   a conversation session; `start` resumes an unambiguous existing open sitting
   for the role rather than creating another discussion.
   If multiple matching sittings exist, choose one from recall using `sitting_id`.
+  Explicit `new_sitting:true` opens a separate sitting, leaving existing ones intact;
+  do not combine it with `sitting_id`. Existing sittings keep their original rules.
+  `role_update_available:true` means its saved role version differs from the installed
+  definition. Use a new sitting for the changed rules when the researcher wants that.
 
 ## Recording
 
@@ -101,6 +146,8 @@ Every recording request includes the returned `project_id`, `session_id` and
 
 | Action | Additional fields |
 |---|---|
+| `question` | `question`: nonempty text; returns its new ID |
+| `answer` | `question_id`, `answer`: nonempty text; answers an open question in this project |
 | `hypothesis` | `statement`; optional `supersedes` |
 | `record` | `record: {kind, summary, details: [...], sources: [...]}` |
 | `critique` | `target: {kind: "claim", claim, ground}`, `{kind: "method", step, flaw}`, or `{kind: "interpretation", result, alternative}` |
@@ -113,8 +160,21 @@ Record kinds: study-design → `study-design`; methods-clinic → `methods`;
 results-meeting → `results`; repro-check → `reproducibility`;
 journal-club → `literature`; peer-review → `review`.
 These roles need a research record and decision before concluding. A literature
-record also needs a real inspected source locator. `/pi` retains its hypothesis
-requirement. Do not manufacture a critique to complete a phase.
+record also needs a real inspected source locator. `/pi` needs a decision to close
+converged, not a hypothesis. `/pi-hypothesis` retains the focused hypothesis
+requirement. All roles can save questions and answers. Open research questions do
+not prevent a converged close; unresolved critiques do. Do not manufacture a
+hypothesis, critique or decision to satisfy a rule.
+
+`recall` includes `open_research_questions` with IDs and `recent_questions` with
+answers (latest five, or all with `history:all`), plus `total_questions`.
+`open_questions` is a readable list of unresolved research questions and critiques.
+An answer is append-only: an already answered question cannot be overwritten.
+Record a new question if new evidence reopens it. Questions and answers are private;
+optional usage only counts these events in `records.record`. Legacy CLI supports
+`bench question "..."` and `bench answer <question-id> "..."`.
+Update all clients sharing a store before recording questions; older runtimes
+cannot read the new question events.
 
 Method flaws: `missing_control`, `confound`, `under_powered`, `pseudoreplication`,
 `selection_bias`, `unvalidated_instrument`. For concerns outside these categories,

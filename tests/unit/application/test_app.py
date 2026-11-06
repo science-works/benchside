@@ -137,8 +137,8 @@ def test_git_journal_storage_is_refused(paths):
 
 def test_role_metadata_is_specific(paths):
     roles = App(paths).run({"action": "roles"})
-    assert len(roles) == 7
-    assert len({r["title"] for r in roles}) == 7
+    assert len(roles) == 8
+    assert len({r["title"] for r in roles}) == 8
 
 
 def test_app_release_version_is_preserved_in_optional_usage(paths):

@@ -16,7 +16,10 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from benchside.config import Paths
-from benchside.domain.shared.error import ConfigurationError, StorageUnavailableError
+from benchside.domain.shared.error import (
+    ConfigurationError,
+    StorageUnavailableError,
+)
 from benchside.domain.shared.event import Event
 from benchside.domain.shared.model.ids import ProjectId
 from benchside.infrastructure.files import file_lock
@@ -32,9 +35,15 @@ class JsonlJournal:
         if any((directory / ".git").exists() for directory in (root, *root.parents)):
             raise ConfigurationError("Benchside journals must be stored outside Git")
         self._paths = paths
+        self.readable_records_warning = None
         ensure_events_registered()
 
     def append(self, project_id: ProjectId, event: Event) -> None:
+        from benchside.infrastructure.storage_layout import organised
+
+        root = self._paths.store_root
+        if root and organised(root) and self._paths.home.resolve() != (root / "agent").resolve():
+            raise ConfigurationError("This store moved into agent; reopen Benchside before recording")
         path = self._paths.journal_file(project_id.root)
         try:
             path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -59,6 +68,19 @@ class JsonlJournal:
                 os.fsync(handle.fileno())
         except OSError as err:
             raise StorageUnavailableError(f"Could not append to journal at {path}: {err}") from err
+
+        if self._paths.store_root and project_id.root not in {"consent-ledger", "reporting-ledger"}:
+            from benchside.infrastructure.readable_records import export_project
+
+            try:
+                export_project(self._paths, self, project_id.root)
+            except Exception as error:  # noqa: BLE001 - derived views must never obscure a durable save
+                # The scientific event is already durable. Do not make agents retry it.
+                self.readable_records_warning = (
+                    "The scientific record was saved, but its readable ODT/Markdown copy "
+                    "could not be refreshed. Retry records.export; do not repeat the recording action."
+                )
+                logger.warning("Readable record refresh failed (%s)", type(error).__name__)
 
     def read(self, project_id: ProjectId) -> Iterable[Event]:
         path = self._paths.journal_file(project_id.root)

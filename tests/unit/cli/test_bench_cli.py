@@ -182,3 +182,19 @@ class TestJournalViews:
         monkeypatch.chdir(outside)
         code, out = run("journal", "show")
         assert code != 0 and "bench init" in out
+
+
+def test_question_answer_and_recall_do_not_require_hypothesis(env):
+    run, _, _ = env
+    assert run("sitting", "open", "--persona", "pi")[0] == 0
+    code, text = run("question", "Which sampling frame?")
+    assert code == 0
+    identifier = text.strip().split()[-1]
+    code, text = run("recall", "--json")
+    assert code == 0
+    assert json.loads(text)["open_research_questions"][0]["id"] == identifier
+    assert run("answer", identifier, "CS and life sciences.")[0] == 0
+    code, text = run("recall", "--json")
+    assert json.loads(text)["recent_questions"][0]["answer"] == "CS and life sciences."
+    assert json.loads(text)["open_questions"] == []
+    assert run("answer", identifier, "Overwrite")[0] == 1

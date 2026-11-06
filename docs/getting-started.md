@@ -1,6 +1,6 @@
 # Getting started with Benchside
 
-Benchside offers seven research colleagues: a supervisor, study-design consultant,
+Benchside offers eight research roles: a supervisor, focused hypothesis reviewer, study-design consultant,
 methods troubleshooter, results discussant, reproducibility auditor, journal-club
 discussant and scientific peer reviewer.
 
@@ -8,18 +8,54 @@ discussant and scientific peer reviewer.
 
 Give your agent this message:
 
-> Set up Benchside for me from https://github.com/science-works/benchside.
-> Follow SETUP.md and do the installation for this app. Ask where to keep my
-> private records and whether I want optional research sharing, then help me
-> start my first research project. Verify saving and restoring a test decision.
+> Set up Benchside for me in this app: https://github.com/science-works/benchside
+
+You do not need to name an installer or choose a ZIP. The agent should find the
+installation route, download the right package, guide your project and private
+storage choices, explain optional sharing, and check that records can be restored.
 
 The [agent setup guide](../SETUP.md) tells an agent how to install, reuse an
 existing installation and verify storage. With local execution tools, the agent
-can perform the installation. In a hosted app, it uses the app's installation
-tools or gives you the package link and the upload step your account supports.
-You do not need to run terminal commands or provide API keys.
+can perform the installation. In a hosted app, it discovers and uses the app's
+installation tools first. You may need to approve a connection or installation.
+If only a manual installer is available, the agent gives its actual steps; it
+must not invent a missing upload control. You should not need terminal commands
+or API keys. If the agent cannot fetch `SETUP.md`, the
+[README's setup essentials](../README.md#agent-setup-essentials) provide a fallback.
+
+Benchside needs no MCP server. Its package contains the skill and Python runtime;
+the receiving HTTPS API is already operated by Science Works.
+
+### ChatGPT account checks
+
+The agent's setup instructions tell it to discover and use **Plugin Creator**
+when needed; you should not have to know about it or mention it in your request.
+If enabling a tool needs your approval, the agent should present that step and
+continue afterward. It should explain any manual-only step or missing capability
+in your account rather than send you through repeated setup requests.
+
+In the new free-account test, the agent reports **successful plugin installation
+after the researcher uploaded the release ZIP**. It could not download the ZIP
+itself. Runtime execution and persistent memory are **not yet verified**: the
+follow-up chat reported no suitable native storage or available Google Drive
+connection. Earlier ChatGPT memory tests used an already configured paid account.
+These observations do not establish which capabilities every free account has.
+See the [test notes](acceptance-free-account-2026-11-04.md) and
+[OpenAI's conditional creation requirements](https://learn.chatgpt.com/docs/build-plugins).
+
+Installing the plugin does not grant access to your computer's folders or add
+a storage connector. If your chat has no supported storage route, the agent
+should explain that the journal is not set up. A folder of manually downloaded
+notes is a separate workflow, not verified Benchside memory.
 
 ## Choose an installation route
+
+For the current rollout, use a paid ChatGPT web account with verified runtime
+and private storage tools, a paid Claude plugin-capable account after the same
+checks, or a capable local agent. Paid status alone does not establish those
+capabilities. Free ChatGPT web is not currently supported for the complete
+recording and sharing workflow. See the [support and testing plan](host-support.md)
+for evidence, the generic local route and outstanding fresh-user checks.
 
 Benchside is one research toolkit with several delivery methods. “App package”
 means the installable bundle, not a separate Benchside chat app or a replacement
@@ -28,11 +64,11 @@ for the Git/terminal route. A plugin packages skills and their supporting runtim
 | Route | Current implementation |
 |---|---|
 | Clone GitHub and ask an agent to set it up | Install source dependencies and run guided setup. The installed skill remembers the runtime so later chats work outside the checkout. No model-specific backend is needed. |
-| Codex or another local agent | `bench setup --agent codex` or `--agent generic --skills-dir <host directory>` installs the shared seven-role skill. The agent runs setup for the researcher. |
+| Codex or another local agent | `bench setup --agent codex` or `--agent generic --skills-dir <host directory>` installs the shared eight-role skill. The agent runs setup for the researcher. |
 | Terminal / Claude Code | Shared skill through `bench setup --agent claude` or `bench init`; explicit `bench init --legacy-cli` provides legacy role commands and local session hooks. |
-| OpenAI plugin | `benchside-plugin-0.3.1.zip` includes the portable manifest, Codex compatibility manifest, setup entry and bundled skill/runtime. |
-| Claude plugin | `benchside-claude-plugin-0.3.1.zip` includes `.claude-plugin/plugin.json`, the shared skill, role references and runtime. The manifest passes Claude's validator. |
-| Claude standalone skill | `benchside-claude-0.3.1.zip` remains available for custom-skill installation. |
+| OpenAI plugin | `benchside-plugin-0.4.0.zip` includes the portable manifest, Codex compatibility manifest, setup entry and bundled skill/runtime. |
+| Claude plugin | `benchside-claude-plugin-0.4.0.zip` includes `.claude-plugin/plugin.json`, the shared skill, role references and runtime. The manifest passes Claude's validator. |
+| Claude standalone skill | `benchside-claude-0.4.0.zip` remains available for custom-skill installation. |
 
 Download app packages from the [latest GitHub release](https://github.com/science-works/benchside/releases/latest).
 The expanded implementation is merged into `main`; agents should install the
@@ -45,7 +81,9 @@ Name-only discovery is not guaranteed: give the repository URL. Reading a GitHub
 page does not install a plugin. Keep the release ZIP intact for app uploads;
 GitHub's automatic **Source code** download is not an app package. In Claude,
 use Plugins (or Customize → Plugins) for the Claude plugin ZIP, or Skills for
-the standalone skill ZIP. In OpenAI apps, use the supported custom-plugin flow.
+the standalone skill ZIP. In OpenAI apps, use the custom-plugin flow available
+to the intended account. Uploading the ZIP as a chat attachment alone is not
+installation.
 Another person's private OpenAI listing is not an installation link for colleagues.
 
 Once installed, test recognition in a fresh conversation. If the host does not
@@ -208,9 +246,9 @@ uv run --with pip python scripts/build_release.py
 
 This produces:
 
-- `dist/benchside-claude-0.3.1.zip`: standalone Claude skill, with all roles.
-- `dist/benchside-claude-plugin-0.3.1.zip`: Claude plugin upload, with manifest at the archive root.
-- `dist/benchside-plugin-0.3.1.zip`: portable/OpenAI plugin with Codex compatibility metadata.
+- `dist/benchside-claude-0.4.0.zip`: standalone Claude skill, with all roles.
+- `dist/benchside-claude-plugin-0.4.0.zip`: Claude plugin upload, with manifest at the archive root.
+- `dist/benchside-plugin-0.4.0.zip`: portable/OpenAI plugin with Codex compatibility metadata.
 
 All packages are generated from the same code and role definitions. Claude packaging
 adds its manifest and upload layout; it does not fork the implementation or create

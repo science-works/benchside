@@ -62,6 +62,8 @@ class PlaceholderRenderer:
 
 
 _CAPTURE_CALL = {
+    "question": 'bench question "<question>"',
+    "answer": 'bench answer <question-id> "<answer>"',
     "hypothesis": 'bench hypothesis "<statement>"',
     "critique": "bench critique --target <claim|method|interpretation> ...",
     "resolution": "bench resolve <critique-id> --as <resolution>",
@@ -87,7 +89,7 @@ def _flow(persona: Persona, *, app: bool = False) -> str:
                 if app
                 else _CAPTURE_CALL[kind.value]
             )
-            if kind.value in {"critique", "gap", "resolution"}:
+            if kind.value in {"critique", "gap", "resolution", "question", "answer"}:
                 section.append(f"\n**When this occurs, record it:** run `{call}`. Never invent it.")
             else:
                 section.append(f"\n**Before moving on, record it:** run `{call}`.")

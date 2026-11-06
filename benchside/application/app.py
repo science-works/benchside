@@ -32,6 +32,8 @@ from benchside.infrastructure.session_context import recording_context
 
 READ_ACTIONS = {
     "recall",
+    "records.export",
+    "records.preferences",
     "roles",
     "projects",
     "profile.status",
@@ -63,8 +65,42 @@ class App:
             raise ValidationError("An app action is required")
         try:
             self._storage_boundary()
+            if action == "storage.organise":
+                from benchside.infrastructure.storage_layout import organise
+
+                if self.paths.store_root is None:
+                    raise ValidationError("Folder organisation is only available for durable local storage")
+                result = organise(self.paths.store_root, request.get("confirm_idle", False))
+                from benchside.config import local_paths
+                from benchside.infrastructure.readable_records import export_project
+
+                refreshed = App(local_paths(self.paths.store_root, self.paths.repo_root))
+                projects = {p.root for p in refreshed.journal.projects()} | {
+                    p.stem for p in (refreshed.paths.home / "app-projects").glob("p-*.json")
+                }
+                count = 0
+                with file_lock(refreshed.paths.home / ".transaction.lock"):
+                    for project in sorted(projects - {"consent-ledger", "reporting-ledger"}):
+                        try:
+                            export_project(refreshed.paths, refreshed.journal, project)
+                            count += 1
+                        except Exception:  # noqa: BLE001 - migration succeeded; derived copy can retry
+                            result["readable_records_warning"] = "Folder organisation succeeded; some readable copies need records.export to be retried."
+                return {**result, "readable_projects": count}
             with file_lock(self.paths.home / ".transaction.lock"):
-                return self._dispatch(action, request)
+                self._storage_boundary()
+                self.journal.readable_records_warning = None
+                result = self._dispatch(action, request)
+                if action == "setup" and self.paths.store_root:
+                    try:
+                        from benchside.infrastructure.readable_records import export_project
+
+                        result["readable_records"] = export_project(self.paths, self.journal, result["project_id"])
+                    except Exception:  # noqa: BLE001 - private setup already succeeded
+                        self.journal.readable_records_warning = "Private setup was saved; the readable copy needs records.export to be retried."
+                if isinstance(result, dict) and self.journal.readable_records_warning:
+                    result["readable_records_warning"] = self.journal.readable_records_warning
+                return result
         except BenchsideError as error:
             self._failure(action, error)
             raise
@@ -76,7 +112,7 @@ class App:
         if (
             action in READ_ACTIONS
             or action.startswith(
-                ("sharing.", "storage.", "metascience.", "profile.", "participation.")
+                ("sharing.", "storage.", "metascience.", "profile.", "participation.", "records.")
             )
             or action == "setup"
         ):
@@ -96,11 +132,20 @@ class App:
             pass  # A reporting failure must not mask the scientific-record failure.
 
     def _storage_boundary(self):
+        from benchside.infrastructure.storage_layout import organised
+
+        root = self.paths.store_root
+        if root and organised(root) and self.paths.home.resolve() != (root / "agent").resolve():
+            raise InvalidStateError("This store moved into agent; reopen Benchside before recording")
         home = self.paths.home.resolve()
         if any((directory / ".git").exists() for directory in (home, *home.parents)):
             raise InvalidStateError("Benchside's journal must be stored outside Git")
 
     def _dispatch(self, action, request):
+        if action in {"records.preferences", "records.configure"}:
+            from benchside.infrastructure.readable_records import configure, preferences
+
+            return preferences(self.paths) if action == "records.preferences" else configure(self.paths, request["format"])
         if action.startswith("metascience."):
             from benchside.application.metascience import Metascience
 
@@ -110,7 +155,8 @@ class App:
             atomic_json(self.paths.home / "app-probe.json", {"token": token})
             return {
                 "token": token,
-                "storage": str(self.paths.home),
+                "storage": str(self.paths.store_root or self.paths.home),
+                "agent": str(self.paths.home),
                 "status": "written",
                 "next": "In a new conversation, call storage.check with this token.",
             }
@@ -119,7 +165,8 @@ class App:
             return {
                 "matched": probe.exists()
                 and json.loads(probe.read_text()).get("token") == request["token"],
-                "storage": str(self.paths.home),
+                "storage": str(self.paths.store_root or self.paths.home),
+                "agent": str(self.paths.home),
                 "note": "A same-process or same-sandbox check does not prove cross-chat persistence.",
             }
         if action == "projects":
@@ -213,6 +260,10 @@ class App:
                     raise InvalidStateError(
                         "Choose an existing project from projects or create a new one"
                     )
+                if title is not None:
+                    identity = json.loads(config.read_text())
+                    identity["title"] = title
+                    atomic_json(config, identity)
             else:
                 key = request.get("project_key")
                 if not isinstance(key, str) or not key.strip():
@@ -261,6 +312,10 @@ class App:
                 result["title"] = project_title
             return result
 
+        if action == "records.export":
+            from benchside.infrastructure.readable_records import export_project
+
+            return export_project(self.paths, self.journal, project_id.root)
         if action == "recall":
             return recalled()
         session = request.get("session_id")
@@ -287,7 +342,12 @@ class App:
                 persona = self.personas.get(PersonaId(request["role"]))
                 if persona is None:
                     raise ValidationError("Unknown research role")
-                candidates = [
+                new_sitting = request.get("new_sitting", False)
+                if type(new_sitting) is not bool:
+                    raise ValidationError("new_sitting must be true or false")
+                if new_sitting and request.get("sitting_id"):
+                    raise ValidationError("Choose a sitting_id or new_sitting, not both")
+                candidates = [] if new_sitting else [
                     sitting
                     for sitting in self.consultations.list_for_project(project_id)
                     if sitting.persona_id == persona.id
@@ -320,6 +380,7 @@ class App:
                 )
                 return {
                     "sitting": sitting.model_dump(mode="json"),
+                    "role_update_available": sitting.persona_version != persona.version,
                     "recall": recalled(),
                 }
             sitting = self.service.get(request["sitting_id"])
@@ -329,6 +390,15 @@ class App:
             identifier = uuid.uuid4().hex
             common = {"consultation_id": sitting.id}
             match action:
+                case "question":
+                    from benchside.domain.consultation.model.value import ResearchQuestion
+
+                    question = ResearchQuestion(id=f"q-{identifier}", question=request["question"])
+                    self.service.record_question(**common, question=question)
+                    identifier = question.id
+                case "answer":
+                    identifier = request["question_id"]
+                    self.service.answer_question(**common, question_id=identifier, answer=request["answer"])
                 case "record":
                     record = ResearchRecord(id=f"r-{identifier}", **request["record"])
                     self.service.record_research(**common, record=record)

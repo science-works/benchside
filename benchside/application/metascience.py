@@ -9,6 +9,7 @@ import json
 import os
 import uuid
 from datetime import UTC, date, datetime, timedelta
+from http.client import HTTPException
 from urllib.error import URLError
 from urllib.request import Request
 
@@ -63,7 +64,7 @@ class StudyClient:
                 if response.status != 200 or len(raw) > 131072:
                     raise ValueError("Invalid catalog response")
             return StudyCatalog.model_validate_json(raw)
-        except (URLError, OSError, ValueError) as err:
+        except (URLError, OSError, ValueError, HTTPException) as err:
             if hasattr(err, "close"):
                 err.close()
             raise InfrastructureError(

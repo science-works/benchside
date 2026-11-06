@@ -86,8 +86,12 @@ def smoke(archive_path: Path):
             == (root / "private-records").resolve()
         )
         assert run({"action": "storage.check", "token": probe["token"]})["matched"]
+        assert run({"action": "records.preferences"}) == {"format": "odt", "configured": False}
+        run({"action": "records.configure", "format": "both"})
+        assert run({"action": "records.preferences"}) == {"format": "both", "configured": True}
+        assert Path(run({"action": "storage.location"})["agent"]) == (root / "private-records/agent").resolve()
         roles = run({"action": "roles"})
-        assert len(roles) == 7
+        assert len(roles) == 8
         for role in roles:
             setup = run(
                 {
@@ -100,7 +104,7 @@ def smoke(archive_path: Path):
             context = {k: setup[k] for k in ("project_id", "session_id")}
             started = run({"action": "start", "role": role["id"], **context})
             context["sitting_id"] = started["sitting"]["id"]
-            if role["id"] == "pi":
+            if role["id"] == "pi-hypothesis":
                 run(
                     {
                         "action": "hypothesis",
@@ -108,6 +112,8 @@ def smoke(archive_path: Path):
                         **context,
                     }
                 )
+            elif role["id"] == "pi":
+                run({"action": "question", "question": "Which sampling frame?", **context})
             else:
                 run(
                     {
@@ -140,12 +146,19 @@ def smoke(archive_path: Path):
                 {"action": "close", "converged": True, "detail": "Agreed next check", **context}
             )
             assert closed["recall"]["last_sitting_state"] == "converged"
+            readable = run({"action": "records.export", "project_id": context["project_id"]})
+            assert Path(readable["odt"]).is_relative_to((root / "private-records/researcher/projects").resolve())
+            assert "Check the independent comparison" in Path(readable["markdown"]).read_text()
+            with zipfile.ZipFile(readable["odt"]) as document:
+                assert document.read("mimetype") == b"application/vnd.oasis.opendocument.text"
+                assert b"Check the independent comparison" in document.read("content.xml")
         status = run({"action": "sharing.status"})
         assert all(not status[channel]["enabled"] for channel in ("gaps", "feedback", "usage"))
         print(
-            "Packaged runtime: all seven roles saved, resumed and concluded across fresh processes."
+            "Packaged runtime: all eight roles saved, resumed and concluded across fresh processes."
         )
         print("Private storage persisted locally. All submission endpoints were disabled.")
+        print("ODT and Markdown records exported for all eight roles in the researcher folder.")
         print(
             "This checks the package, not ChatGPT/Claude cloud account persistence or scientific advice quality."
         )
@@ -184,7 +197,7 @@ def smoke(archive_path: Path):
             context["sitting_id"] = native({"action": "start", "role": role["id"], **context})[
                 "sitting"
             ]["id"]
-            if role["id"] == "pi":
+            if role["id"] == "pi-hypothesis":
                 native(
                     {
                         "action": "hypothesis",
@@ -192,6 +205,8 @@ def smoke(archive_path: Path):
                         **context,
                     }
                 )
+            elif role["id"] == "pi":
+                native({"action": "question", "question": "Which sampling frame?", **context})
             else:
                 native(
                     {
@@ -224,7 +239,7 @@ def smoke(archive_path: Path):
             )
             native({"action": "close", "converged": True, "detail": "Agreed next step", **context})
         print(
-            "Native snapshots: all seven roles saved, restored and concluded across fresh processes."
+            "Native snapshots: all eight roles saved, restored and concluded across fresh processes."
         )
         print(
             "This simulates document transport; live native tool checks are a separate release gate."

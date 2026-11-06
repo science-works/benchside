@@ -18,6 +18,7 @@ from benchside.domain.consultation.event.decision_recorded import DecisionRecord
 from benchside.domain.consultation.event.gap_observed import GapObserved
 from benchside.domain.consultation.event.hypothesis_stated import HypothesisStated
 from benchside.domain.consultation.event.opened import ConsultationOpened
+from benchside.domain.consultation.event.question import QuestionAnswered, QuestionRecorded
 from benchside.domain.consultation.event.research_recorded import ResearchRecorded
 from benchside.domain.consultation.model.consultation import Consultation
 from benchside.domain.consultation.model.project import Project
@@ -26,6 +27,7 @@ from benchside.domain.consultation.model.value import (
     Decision,
     Hypothesis,
     RecordKind,
+    ResearchQuestion,
     ResearchRecord,
     Resolution,
     Target,
@@ -257,6 +259,31 @@ class ConsultationService(Service):
             ),
         )
 
+    def record_question(self, *, consultation_id: ConsultationId, question: ResearchQuestion) -> None:
+        consultation, project = self._load_pair(consultation_id)
+        consultation._require_live()
+        if question.answer is not None:
+            raise InvalidStateError("Record a question first, then answer it")
+        if any(q.id == question.id for q in project.questions):
+            raise InvalidStateError(f"Question already exists: {question.id}")
+        self.journal.append(project.id, QuestionRecorded(
+            id=new_event_id(), project_id=project.id,
+            consultation_id=consultation_id, question=question,
+        ))
+
+    def answer_question(self, *, consultation_id: ConsultationId, question_id: str, answer: str) -> None:
+        consultation, project = self._load_pair(consultation_id)
+        consultation._require_live()
+        question = next((q for q in project.questions if q.id == question_id), None)
+        if question is None:
+            raise NotFoundError(f"Question not found: {question_id}")
+        if question.answer is not None:
+            raise InvalidStateError(f"Question already answered: {question_id}")
+        self.journal.append(project.id, QuestionAnswered(
+            id=new_event_id(), project_id=project.id,
+            consultation_id=consultation_id, question_id=question_id, answer=answer,
+        ))
+
     def close(
         self,
         *,
@@ -332,6 +359,8 @@ class ConsultationService(Service):
             DecisionRecorded: CaptureKind.DECISION,
             GapObserved: CaptureKind.GAP,
             ResearchRecorded: CaptureKind.RECORD,
+            QuestionRecorded: CaptureKind.QUESTION,
+            QuestionAnswered: CaptureKind.ANSWER,
         }
         for event in self.journal.read(consultation.project_id):
             kind = kind_by_event.get(type(event))

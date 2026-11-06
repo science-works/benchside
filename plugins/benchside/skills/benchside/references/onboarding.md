@@ -4,13 +4,49 @@ Use this flow on first use and when the researcher asks to change storage. Do no
 infer a storage preference from the model or app name. Setup has two independent
 choices: where private research records live, and optional contributions to Science Works.
 
-## Find the available tools
+## Inspect capabilities, then verify the researcher's choices
 
 Inspect the current host's actual tools and installed connectors. Check code
 execution (Python 3.11+, POSIX), durable local filesystem access, and native or
 connected document storage. Do not install a cloud connector or create an account
 without the researcher's request. A connector being installed does not prove it
 can write or safely update records. Ordinary chat memory is not a journal.
+Run the execution check and inspect storage tools without writing first. Offer
+candidate stores as available but not yet verified. Only after the researcher
+chooses a store may setup create its labelled synthetic test project and perform
+the write/readback probe. Keep existing records and participation choices intact.
+
+Use the following checks separately. Report what actually passed, what failed
+and what has not been tested; do not infer capabilities from a plan name.
+
+| Check | Evidence required | If unavailable |
+|---|---|---|
+| Execution | Invoke the installed launcher with `{"action":"version"}` and read its successful response. | Say the package may be installed but this chat cannot run it. Do not claim a running journal or ask storage/consent questions that cannot be saved. |
+| Private memory | Access a chosen durable store, save a synthetic Benchside decision, read it back, then restore it in a fresh chat/process. | Offer another actually available store, or continue an explicitly unsaved research discussion. Same-chat readback is provisional until fresh-chat restore passes. |
+| Optional sending | Only after the researcher requests a connection check or opts into a network feature, invoke `{"action":"connection.check"}` directly through the launcher. | Private work still works. Leave reviewed submissions pending; explain the missing HTTP capability or failed reachability check. |
+
+`connection.check` performs only a bounded GET of the public Science Works study
+catalog. It sends no contributor ID or research content, opens no private store,
+changes no consent and submits no record.
+The request contacts `ingest.benchside.science.works`; normal request metadata
+includes the connection's source address, request time and Benchside version.
+Do not describe it as sending no information at all. A successful check proves reachability,
+not POST permission or delivery. Only an approved submission with a matching
+receipt proves delivery. Do not enable surveys or send dummy records as part of
+ordinary setup. Do not run this check repeatedly in research conversations.
+
+If a tool is missing, check the host's documented tool-discovery mechanism once.
+If it remains unavailable, explain the limit and the simplest supported route.
+Do not propose Work mode when the account has no such option, ask for unavailable
+connectors repeatedly, or promise that upgrading alone guarantees the tools.
+The current supported ChatGPT route is a paid account with working execution
+and private document tools; free web Chat has not passed these checks. Claude
+and local agents must pass the same checks with their own tools.
+
+Never substitute an invented Markdown directory, the chat transcript, a Library
+upload, or a disposable sandbox for Benchside's private journal. Exporting notes
+for the researcher is possible when requested, but is not installed persistence.
+The collector receives optional metascience contributions, never private notebooks.
 
 For an installed skill, invoke `scripts/benchside_app.py`. A packaged skill uses
 `runtime/manifest.json`; source setup saves `runtime/source.json` with the original
@@ -30,6 +66,7 @@ it in `~/.claude/skills` with the legacy `/bench-init` helper. For another host,
 use `--agent generic --skills-dir <its observed skill directory>`. If it cannot
 automatically discover skills, tell the researcher to reference the installed
 `benchside/SKILL.md` in a new conversation. Do not claim automatic discovery until tested.
+For non-OpenAI/non-Anthropic hosts, follow [generic agents](generic-agents.md).
 
 When changing installation method or replacing a release, use the host's complete
 plugin update flow or stage the replacement in a clean directory. Do not unzip a
@@ -81,6 +118,16 @@ For native/connected storage, save the notebook locator and workspace ID in a
 private host-discoverable index. Always restore the complete notebook before
 continuing. The local path preference does not redirect native requests.
 
+For local storage, include one optional question with the storage choice:
+“Which format would you like for your readable records: ODT (default), Markdown,
+or both?” First read `records.preferences`; preserve a configured choice rather
+than asking on each visit. Save the answer with `records.configure` (`format` is
+`odt`, `markdown` or `both`). If the researcher skips the choice, explain that ODT
+will be used and save that default so it is not asked again. This applies to all
+projects in this store and can be changed later. It does not alter the agent's
+journal format or sharing consent. For cloud documents, explain the host's native
+format; only offer downloadable formats its tools actually support.
+
 ## Choose the project and prove continuity
 
 For local storage, call `projects`. For document storage, call `native.inspect`.
@@ -105,6 +152,8 @@ locator in the host's durable setup context, not just in the execution sandbox.
 Run the appropriate save/readback probe and test discovery in a fresh conversation.
 A same-process test is useful but does not establish fresh-chat continuity. Report
 what was verified and what still needs the researcher to reopen a chat.
+Keep any synthetic decision in a clearly labelled test project, separate from
+real scientific work. Check the returned record, not merely whether a file exists.
 
 Two agents with access to the **same local directory** can select the same project
 and continue its records. Local transactions use filesystem locks. Two agents
@@ -115,6 +164,11 @@ filesystem locks do not coordinate across sync clients; use a conditional-write
 cloud connector or one local machine instead.
 
 ## Ask about contributing to metascience research
+
+Ask these questions only after working execution and a writable private store
+are established, so choices can actually be recorded. A fresh-chat restore test
+may still be pending; say so. Use the host's question UI if it has one, otherwise
+use concise questions in chat. Missing pop-up controls do not block setup.
 
 During first setup, explicitly ask about optional participation; do not defer this
 question until the end of the first scientific discussion. Read `participation.status`,
@@ -129,7 +183,9 @@ Use a short invitation, for example:
 > science? You can choose what to contribute, keep everything private, or decide later.
 
 A general expression of interest is not consent to every category. If interested,
-show the following choices together, with nothing preselected:
+show the following choices together, with nothing preselected. Use multi-select
+when available, or accept a list in chat. “Decline all” is mutually exclusive
+with enabling categories; ask only if the response is contradictory:
 
 | Choice | What participation means |
 |---|---|
@@ -172,14 +228,21 @@ marker is private setup history, not consent. Legacy notebooks may lack it: do
 not interpret a returning project's `unasked` marker as permission to repeat the
 pitch. Preserve existing choices and let the researcher reopen them.
 
-If conversation analysis is selected, ask only then which accessible projects or
-conversations may be analysed, and whether supporting activity categories
-should remain private or be prepared for review. Reviewed problems use gap sharing.
-For example: activity = coding, obstacle = tool failure, verification = ran a test.
-These categories describe how the tool was used, never the scientific result. Save the selected source scope before reading
-additional conversation bodies. Do not infer permission for other chats, background
-monitoring or scheduled runs. The existing sampling and invitation limits apply;
-ordinary setup requires no notification schedule.
+If conversation analysis is selected, save that preference and finish setup.
+Do not ask for source scopes or supporting activity-category sharing yet. Leave
+new scopes empty and activity sharing off. At the first actual analysis request,
+explain which conversations the host can access, let the researcher select them,
+and save the scope before reading their contents. Preserve existing scoped
+choices when returning; never broaden them from a general opt-in.
+
+At that first analysis, offer the optional supporting context in plain language:
+“For example, we can count literature review or data analysis, whether a tool
+failed, and whether you checked its output. Would you like to review those labels
+alongside the workflow problems?” They describe how AI was used, not scientific
+results. Nothing is sent without review. Shared batches include the same random
+contributor ID, but no project or conversation identifiers. Keep this secondary
+to finding workflow gaps, and do not present internal field names as a setup quiz.
+No background monitoring or scheduled runs are implied.
 
 Consent during setup enables the selected workflow, not automatic transmission.
 Gap, feedback, usage and activity submissions require exact preview and approval.
@@ -197,7 +260,7 @@ question if the conversation has not already answered it:
 
 > What are you working on, and what would you like help with first?
 
-Use that answer to suggest a role; all seven remain available. Do not require a
+Use that answer to suggest a role; all eight remain available. Do not require a
 fixed role, institution, email address or demographic profile. Ask for source
 documents or more scientific detail when the actual task needs them.
 
@@ -207,7 +270,7 @@ Offer one optional demographic question, following [sharing](sharing.md):
 > skip either. If you choose to include them in reviewed usage reports, they help
 > Science Works understand which groups are trying Benchside.
 
-Let the researcher select broad categories; never infer them from papers, names,
+Let the researcher select multiple broad disciplines if applicable and one career stage; never infer them from papers, names,
 institution or conversation content. Then ask whether to include those choices
 in usage reports or keep them private. This does not turn on usage reporting.
 Use `profile.status` to preserve existing choices; do not ask again on every visit.
@@ -219,3 +282,25 @@ change scientific advice; adapt advice to the actual task and stated preferences
 Finish by naming the chosen storage, project, continuity test status, available
 roles and saved research-participation choices. Name any unverified capability.
 Do not suggest that any private journal must be uploaded to Science Works.
+
+## Readable records in local storage
+
+Use the chosen root, not a source checkout. New configured stores separate
+`agent/` (runtime-managed state) from `researcher/projects/<friendly name>/`.
+ODT is the default reading document; Markdown or both can be chosen. They contain
+all saved project events and refresh after recording. Return the actual file
+links from setup or `records.export`; do not ask the scientist to read JSON or
+navigate hashed internal project IDs. Give each project a friendly title.
+
+Existing flat stores remain readable until explicitly upgraded through
+`storage.organise`. Update every sharing agent first, stop their active use,
+then follow the app guide's confirmed upgrade. The runtime verifies copies and
+retains a private legacy backup. Do not move a store while someone is testing
+in another agent. File exports stay outside Git, remain private, and do not
+change consent. They are reading copies; ask Benchside to save corrections.
+After a format change, refresh the current project with `records.export` and
+link only the returned current files. `previous_copies_not_refreshed` lists old
+formats left untouched; explain that they are no longer refreshed. Do not delete
+them, as the researcher may have edited them.
+Native cloud notebooks keep the existing private notebook and readable pages;
+do not promise ODT download when that host lacks a document-export tool.

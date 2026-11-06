@@ -146,7 +146,7 @@ def test_source_launcher_restores_records_from_fresh_processes(source_skill, tmp
     metadata.write_text(json.dumps(settings))
     assert settings["python"] == str(Path(sys.executable).absolute())
     assert not (skill / "runtime/manifest.json").exists()
-    assert len(launch({"action": "roles"})["result"]) == 7
+    assert len(launch({"action": "roles"})["result"]) == 8
     setup = launch({"action": "setup", "project_key": "synthetic-source-check"})["result"]
     context = {key: setup[key] for key in ("project_id", "session_id")}
     started = launch({"action": "start", "role": "methods-clinic", **context})["result"]

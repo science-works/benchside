@@ -37,6 +37,15 @@ survey answers follow their accepted study agreement and are preserved as writte
 The format permits free text, so automatic identifier scrubbing cannot enforce
 this boundary by itself; the assistant must check the content before preview.
 
+Ground each proposed gap in an observed difficulty or an explicit researcher
+report. A suggested future task is not evidence that the researcher experienced
+manual toil. Say a tool was tried or failed only when a tool result or researcher
+report supports that claim. An assistant lacking access to a tool does not show
+that the tool cannot do the task or that no suitable tool exists. Preserve that
+distinction in the wording; if the problem itself is uncertain, ask one useful
+clarification at a natural pause or omit the candidate. Approval to send does not
+turn an unsupported inference into an observed fact.
+
 Data goes to Science Works' collector. These choices are separate from private
 scientific records. An installation is not necessarily a person. Revoking consent
 stops future submissions; it does not delete previously received data.
@@ -105,7 +114,7 @@ without interrupting their work or creating an unsolicited automation.
 choice has been saved). `profile.set` replaces it:
 
 ```json
-{"action":"profile.set","demographics":{"discipline":"life_sciences","career_stage":"doctoral_researcher"},"include_in_usage":true}
+{"action":"profile.set","demographics":{"discipline":["computer_information_sciences","life_sciences"],"career_stage":"doctoral_researcher"},"include_in_usage":true}
 ```
 
 Only save the researcher's actual selections. `demographics:{}` skips both;
@@ -113,6 +122,14 @@ either field may be omitted or null. `include_in_usage` defaults to false in a
 new store and must be explicitly supplied when changing the profile. It is
 independent of usage consent and never sends data by itself. The host uses normal
 native save/readback for this state when cloud storage is selected.
+
+Allow multiple disciplines; a researcher working across computer science and
+life sciences can select both. Use a multi-select control or accept a list in
+chat. Never require a single umbrella “interdisciplinary” answer. Legacy single
+string values remain supported; new multiple selections use a nonempty array
+of distinct category values. “Prefer not to say” cannot be combined with other
+disciplines. Career stage remains a single choice. No need to expose schema
+constraints or ask repeatedly for skipped answers.
 
 Present these values with readable labels, not code identifiers:
 
@@ -137,5 +154,6 @@ random installation ID. They never enter gap observations, feedback, survey or
 activity payloads. Changing or disabling the profile invalidates pending usage
 drafts; make a new preview and obtain approval. It does not erase reports already
 received. Aggregate reports count the latest accepted profile per participating
-store. New pseudonymous contributions can be grouped with it internally; published
+store; each selected discipline counts once, so discipline totals can exceed
+the number of installations. New pseudonymous contributions can be grouped with it internally; published
 reports should contain aggregate counts, not identifiers or raw responses.
