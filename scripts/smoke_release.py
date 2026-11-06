@@ -86,6 +86,9 @@ def smoke(archive_path: Path):
             == (root / "private-records").resolve()
         )
         assert run({"action": "storage.check", "token": probe["token"]})["matched"]
+        assert run({"action": "records.preferences"}) == {"format": "odt", "configured": False}
+        run({"action": "records.configure", "format": "both"})
+        assert run({"action": "records.preferences"}) == {"format": "both", "configured": True}
         assert Path(run({"action": "storage.location"})["agent"]) == (root / "private-records/agent").resolve()
         roles = run({"action": "roles"})
         assert len(roles) == 8

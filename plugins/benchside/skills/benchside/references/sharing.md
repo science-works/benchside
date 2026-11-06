@@ -37,6 +37,15 @@ survey answers follow their accepted study agreement and are preserved as writte
 The format permits free text, so automatic identifier scrubbing cannot enforce
 this boundary by itself; the assistant must check the content before preview.
 
+Ground each proposed gap in an observed difficulty or an explicit researcher
+report. A suggested future task is not evidence that the researcher experienced
+manual toil. Say a tool was tried or failed only when a tool result or researcher
+report supports that claim. An assistant lacking access to a tool does not show
+that the tool cannot do the task or that no suitable tool exists. Preserve that
+distinction in the wording; if the problem itself is uncertain, ask one useful
+clarification at a natural pause or omit the candidate. Approval to send does not
+turn an unsupported inference into an observed fact.
+
 Data goes to Science Works' collector. These choices are separate from private
 scientific records. An installation is not necessarily a person. Revoking consent
 stops future submissions; it does not delete previously received data.

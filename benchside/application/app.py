@@ -33,6 +33,7 @@ from benchside.infrastructure.session_context import recording_context
 READ_ACTIONS = {
     "recall",
     "records.export",
+    "records.preferences",
     "roles",
     "projects",
     "profile.status",
@@ -111,7 +112,7 @@ class App:
         if (
             action in READ_ACTIONS
             or action.startswith(
-                ("sharing.", "storage.", "metascience.", "profile.", "participation.")
+                ("sharing.", "storage.", "metascience.", "profile.", "participation.", "records.")
             )
             or action == "setup"
         ):
@@ -141,6 +142,10 @@ class App:
             raise InvalidStateError("Benchside's journal must be stored outside Git")
 
     def _dispatch(self, action, request):
+        if action in {"records.preferences", "records.configure"}:
+            from benchside.infrastructure.readable_records import configure, preferences
+
+            return preferences(self.paths) if action == "records.preferences" else configure(self.paths, request["format"])
         if action.startswith("metascience."):
             from benchside.application.metascience import Metascience
 

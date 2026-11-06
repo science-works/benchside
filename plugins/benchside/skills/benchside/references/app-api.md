@@ -84,9 +84,18 @@ integration test. The project source and researcher journals are separate.
   Old clients cannot understand the new layout; do not restart them against it.
   Do not delete the backup automatically. Failed migrations retain the original
   or verified active data; report the error without trying a manual file shuffle.
+- `{"action":"records.preferences"}` reads this local store's document `format`
+  and whether it has been `configured`. An unset preference defaults to `odt`.
+- `{"action":"records.configure","format":"both"}` saves the researcher's
+  choice of `odt`, `markdown` or `both` for every project in this local store.
+  It changes no journal or sharing choice. It applies to subsequent saves/exports;
+  refresh the current project after changing it. These actions are local-only;
+  native cloud documents retain the host's supported format.
 - `{"action":"records.export","project_id":"<ID>"}` refreshes the complete private
-  ODT and Markdown reading copies. Returns `odt` and `markdown` paths. ODT is the
-  default human document; both include all saved events, not just recent recall.
+  reading copies in the selected format. Returns `odt` and/or `markdown` paths
+  only for files just refreshed. Each includes all saved events, not just recent recall.
+  Old unselected files are preserved and listed in `previous_copies_not_refreshed`;
+  do not present them as current or delete them automatically.
   A refresh also occurs after each journal append and during local project setup.
   If `readable_records_warning` is returned alongside a successful save, the
   scientific record is already saved: retry only `records.export`, never the

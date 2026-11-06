@@ -21,7 +21,8 @@
 ## Readable records
 
 New configured local stores separate internal state in `agent/` from complete
-ODT and Markdown reading copies in `researcher/projects/<friendly name>/`.
+reading copies in `researcher/projects/<friendly name>/`. Setup asks once for
+ODT (default), Markdown or both, and remembers the choice for the store.
 Copies refresh after saves and contain all saved events, not just the latest five.
 They are private generated views: document edits do not alter the journal.
 An export failure reports a warning without undoing a save or inviting a duplicate.

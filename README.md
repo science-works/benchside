@@ -18,6 +18,13 @@
 Benchside turns research discussions into a private scientific record that you
 can return to: decisions, evidence, unresolved questions and next steps.
 
+We welcome researchers' own scientific role profiles and improvements through
+[pull requests](CONTRIBUTING.md). Our longer-term goal is a community where
+researchers can discover tools and workarounds that helped others with similar
+problems. **That community recommendation service is not built yet.** Today,
+Benchside offers private research support and optional reviewed workflow sharing.
+Read [the purpose and community direction](docs/community.md).
+
 ## Start here
 
 Give your agent this message:
@@ -84,7 +91,10 @@ an account by plan name. Local
 agents can use the generic installer with other providers or locally hosted
 models when their tools meet the same requirements. See the
 [support and testing plan](docs/host-support.md) and
-[Getting started](docs/getting-started.md). There is no public Benchside
+[Getting started](docs/getting-started.md). A [researcher-run OpenCode check](docs/acceptance-opencode-free-2026-11-06.md)
+with its free GLM model completed local recording and an approved gap submission;
+that run used 0.3.1 and does not establish on-device inference or every provider.
+There is no public Benchside
 plugin-directory listing yet.
 
 ## Research roles
@@ -140,7 +150,8 @@ The append-only journal lives outside Git: in the private native notebook for
 cloud accounts, or in the chosen local store. New configured local stores use
 `agent/projects/<id>/journal.jsonl` for internal state and
 `researcher/projects/<friendly name>/Research record.odt` for the complete readable
-record, with a Markdown copy alongside it. Existing flat stores remain supported;
+record by default. Setup offers ODT, Markdown or both and remembers the choice
+for that store. Existing flat stores remain supported;
 see [the folder guide](docs/readable-records.md) before upgrading one. The runtime records
 hypotheses, targeted critiques and resolutions, decisions with rationale,
 research questions and their answers,

@@ -118,6 +118,16 @@ For native/connected storage, save the notebook locator and workspace ID in a
 private host-discoverable index. Always restore the complete notebook before
 continuing. The local path preference does not redirect native requests.
 
+For local storage, include one optional question with the storage choice:
+“Which format would you like for your readable records: ODT (default), Markdown,
+or both?” First read `records.preferences`; preserve a configured choice rather
+than asking on each visit. Save the answer with `records.configure` (`format` is
+`odt`, `markdown` or `both`). If the researcher skips the choice, explain that ODT
+will be used and save that default so it is not asked again. This applies to all
+projects in this store and can be changed later. It does not alter the agent's
+journal format or sharing consent. For cloud documents, explain the host's native
+format; only offer downloadable formats its tools actually support.
+
 ## Choose the project and prove continuity
 
 For local storage, call `projects`. For document storage, call `native.inspect`.
@@ -277,7 +287,7 @@ Do not suggest that any private journal must be uploaded to Science Works.
 
 Use the chosen root, not a source checkout. New configured stores separate
 `agent/` (runtime-managed state) from `researcher/projects/<friendly name>/`.
-ODT is the default reading document, with Markdown alongside it. They contain
+ODT is the default reading document; Markdown or both can be chosen. They contain
 all saved project events and refresh after recording. Return the actual file
 links from setup or `records.export`; do not ask the scientist to read JSON or
 navigate hashed internal project IDs. Give each project a friendly title.
@@ -288,5 +298,9 @@ then follow the app guide's confirmed upgrade. The runtime verifies copies and
 retains a private legacy backup. Do not move a store while someone is testing
 in another agent. File exports stay outside Git, remain private, and do not
 change consent. They are reading copies; ask Benchside to save corrections.
+After a format change, refresh the current project with `records.export` and
+link only the returned current files. `previous_copies_not_refreshed` lists old
+formats left untouched; explain that they are no longer refreshed. Do not delete
+them, as the researcher may have edited them.
 Native cloud notebooks keep the existing private notebook and readable pages;
 do not promise ODT download when that host lacks a document-export tool.

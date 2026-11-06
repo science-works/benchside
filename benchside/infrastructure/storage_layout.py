@@ -10,7 +10,7 @@ from benchside.domain.shared.error import ValidationError
 from benchside.infrastructure.files import atomic_json, file_lock
 
 MARKER = ".benchside-layout.json"
-STATE_NAMES = ("projects", "sessions", "app-projects", "app-sessions", "reporting", "sharing", "metascience", "app-probe.json", "readable-index.json")
+STATE_NAMES = ("projects", "sessions", "app-projects", "app-sessions", "reporting", "sharing", "metascience", "app-probe.json", "readable-index.json", "records-preferences.json")
 
 
 def organised(root):

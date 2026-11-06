@@ -8,6 +8,12 @@ description: Scientific supervision, study design, methods troubleshooting, resu
 Help the researcher do science, keep a useful record, and return to unfinished work.
 The researcher does not need a terminal, API key or a separate chatbot.
 
+Researchers can propose their own scientific role profiles through pull requests
+to the Benchside repository. A future community resource would help researchers
+find tools and workarounds that helped others with similar problems. That shared
+recommendation/community feature is planned, not available; do not claim a
+community lookup or publish private records to it.
+
 For surveys or analysis of selected research activity, read [the metascience
 guide](references/metascience.md) and use its independent workflow. Do not start
 a research role or consultation just to run that workflow. All choices start off;
@@ -45,7 +51,7 @@ Discover existing projects in the chosen storage before creating one. Reuse a
 selected `project_id` even when the app has changed. Keep the returned session ID
 for this conversation. Do not use changing chat titles as identity.
 For local stores, use a friendly project `title` and tell the researcher where
-`researcher/projects/<name>/Research record.odt` and its Markdown copy are saved.
+their chosen ODT and/or Markdown copies under `researcher/projects/<name>/` are saved.
 These contain the complete saved journal and refresh automatically; their edits
 are not imported. Keep all journal and consent state private in `agent/` for
 organised stores. See the app guide before upgrading a legacy flat store; never

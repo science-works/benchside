@@ -145,6 +145,8 @@ inventing a second setup process. Ask only what is not already known:
 - **Where should private records live?** Offer a durable local folder outside
   Git, private app-native storage or a compatible connected store. Check actual
   read, guarded-write and readback tools before offering cloud storage.
+  For local records, offer ODT (default), Markdown or both once alongside this
+  choice; preserve the saved preference on return. Follow onboarding to save it.
 - **Which project?** List existing projects in that store and continue the
   selected one, or create a separate new project. Never merge projects by title.
 - **Optional metascience participation?** Explain the independent choices and

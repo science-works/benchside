@@ -20,6 +20,7 @@ def test_named_odt_and_markdown_include_all_history_and_preserve_private_journal
     paths = resolve_paths()
     assert paths.home == root / "agent"
     app = App(paths)
+    app.run({"action": "records.configure", "format": "both"})
     setup = app.run({"action": "setup", "project_key": "test", "title": "Software selection interviews"})
     ctx = {k: setup[k] for k in ("project_id", "session_id")}
     ctx["sitting_id"] = app.run({"action": "start", **ctx, "role": "pi"})["sitting"]["id"]
@@ -56,6 +57,7 @@ def test_legacy_move_preserves_every_private_file_and_identity(tmp_path, monkeyp
     root = tmp_path / "legacy"
     monkeypatch.setenv("BENCHSIDE_HOME", str(root))
     app = App(resolve_paths())
+    app.run({"action": "records.configure", "format": "markdown"})
     ctx = context(app)
     app.run({"action": "decide", **ctx, "decision": "Use interviews", "rationale": "Explore choices"})
     app.run({"action": "profile.set", "demographics": {"discipline": ["life_sciences", "computer_information_sciences"]}, "include_in_usage": False})
@@ -67,6 +69,7 @@ def test_legacy_move_preserves_every_private_file_and_identity(tmp_path, monkeyp
     for name, data in prior.items():
         assert (root / "agent" / name).read_bytes() == data
     fresh = App(resolve_paths())
+    assert fresh.run({"action": "records.preferences"}) == {"format": "markdown", "configured": True}
     assert fresh.run({"action": "recall", **ctx})["recent_decisions"][0]["decision"] == "Use interviews"
     assert fresh.run({"action": "profile.status"})["demographics"]["discipline"] == ["life_sciences", "computer_information_sciences"]
     assert fresh.run({"action": "storage.organise", "confirm_idle": True})["migrated"] is False
@@ -192,3 +195,41 @@ def test_long_unicode_title_stays_within_filesystem_name_limit(tmp_path):
     folder = Path(setup["readable_records"]["odt"]).parent
     assert len(folder.name.encode()) <= 255
     assert folder.exists()
+
+
+def test_readable_format_default_and_preference_persist_across_projects(tmp_path):
+    root = tmp_path / "store"
+    paths = Paths(home=root, store_root=root, repo_root=tmp_path)
+    app = App(paths)
+    assert app.run({"action": "records.preferences"}) == {"format": "odt", "configured": False}
+    first = app.run({"action": "setup", "project_key": "one", "title": "First"})
+    assert "odt" in first["readable_records"] and "markdown" not in first["readable_records"]
+    original = Path(first["readable_records"]["odt"]).read_bytes()
+    app.run({"action": "records.configure", "format": "markdown"})
+    fresh = App(paths)
+    assert fresh.run({"action": "records.preferences"}) == {"format": "markdown", "configured": True}
+    exported = fresh.run({"action": "records.export", "project_id": first["project_id"]})
+    assert "markdown" in exported and "odt" not in exported
+    assert Path(first["readable_records"]["odt"]).read_bytes() == original
+    assert exported["previous_copies_not_refreshed"] == [first["readable_records"]["odt"]]
+    second = fresh.run({"action": "setup", "project_key": "two", "title": "Second"})
+    assert "markdown" in second["readable_records"] and "odt" not in second["readable_records"]
+
+
+@pytest.mark.parametrize("invalid", ["pdf", "", None, [], True])
+def test_invalid_format_does_not_change_preference_or_research_records(tmp_path, invalid):
+    root = tmp_path / "store"
+    app = App(Paths(home=root, store_root=root, repo_root=tmp_path))
+    app.run({"action": "records.configure", "format": "both"})
+    with pytest.raises(BenchsideError, match="format"):
+        app.run({"action": "records.configure", "format": invalid})
+    assert app.run({"action": "records.preferences"})["format"] == "both"
+    assert not list(root.rglob("journal.jsonl"))
+
+
+def test_native_format_preferences_do_not_claim_local_file_support():
+    from tests.unit.application.test_native import Notebook
+    book = Notebook()
+    result = book.run({"action": "records.configure", "format": "odt"})
+    assert not result["ok"]
+    assert "local" in str(result["error"]).lower()

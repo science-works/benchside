@@ -14,8 +14,9 @@ Benchside/
         Research record.md
 ```
 
-**Open the ODT** in a compatible document reader such as Word or LibreOffice.
-Markdown is included for text editors and agents. Each contains the current
+Setup asks once whether you want **ODT (default), Markdown, or both**. The tree
+above shows both. Open the ODT in a compatible document reader such as Word or
+LibreOffice, or choose Markdown for a text editor. Each contains the current
 questions/decisions and the complete saved project history, including previous
 decisions, hypotheses, critiques, role outputs, question answers and workflow
 observations. This is the saved journal, not a copy of every chat message or
@@ -24,6 +25,12 @@ attached source file. A short suffix prevents similarly named projects colliding
 Benchside refreshes these copies after recording and during local setup.
 Ask “Refresh my readable records” to rebuild them explicitly. Your agent uses
 `records.export`; terminal users can use `bench journal export`.
+Ask “Use Markdown for my readable records” (or ODT/both) to change the preference
+for this store. The agent reads `records.preferences`, saves the choice with
+`records.configure`, and refreshes the current project. Other projects use the
+new format on their next save/export. Earlier copies of unselected formats are
+preserved but no longer refreshed; use the current returned file links. This
+preference does not change JSON journals or consent.
 If a copy cannot be updated, the scientific save still succeeds and Benchside
 reports the stale copy. Retry the export, not the scientific recording action.
 

@@ -16,6 +16,7 @@ from benchside.domain.shared.model.ids import user_project_id
 from benchside.infrastructure.files import atomic_json
 
 ODT_TYPE = "application/vnd.oasis.opendocument.text"
+FORMATS = ("odt", "markdown", "both")
 NS = {
     "office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
     "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
@@ -105,10 +106,32 @@ def _fields(value, prefix=""):
             yield f"{label}: {item}"
 
 
+def preferences(paths):
+    if paths.store_root is None:
+        raise ValidationError("Document format preferences need durable local storage; cloud documents use the host's supported format")
+    path = paths.home / "records-preferences.json"
+    if not path.exists():
+        return {"format": "odt", "configured": False}
+    value = json.loads(path.read_text())
+    if not isinstance(value, dict) or set(value) != {"format"} or value["format"] not in FORMATS:
+        raise ValidationError("Invalid readable document preference; choose odt, markdown or both again")
+    return {**value, "configured": True}
+
+
+def configure(paths, document_format):
+    if paths.store_root is None:
+        raise ValidationError("Document format preferences need durable local storage; cloud documents use the host's supported format")
+    if not isinstance(document_format, str) or document_format not in FORMATS:
+        raise ValidationError("Choose document format odt, markdown or both")
+    atomic_json(paths.home / "records-preferences.json", {"format": document_format})
+    return {"format": document_format, "configured": True}
+
+
 def export_project(paths, journal, project_id):
     project_id = user_project_id(project_id)
     if paths.store_root is None:
         raise ValidationError("Readable file export needs durable local storage; use the cloud host's document export instead")
+    document_format = preferences(paths)["format"]
     from benchside.domain.consultation.query.recall_project import describe_target
     from benchside.infrastructure.journal.projection import JournalProjectRepository
 
@@ -188,6 +211,16 @@ def export_project(paths, journal, project_id):
     markdown = "\n\n".join(("#" * level + " " + text) if level else "\n".join("> " + line for line in str(text).splitlines()) for level, text in blocks) + "\n"
     odt = folder / "Research record.odt"
     md = folder / "Research record.md"
-    _atomic_bytes(odt, odt_bytes(blocks))
-    _atomic_bytes(md, markdown.encode())
-    return {"odt": str(odt), "markdown": str(md), "events": len(events), "generated_view": True}
+    result = {"format": document_format, "events": len(events), "generated_view": True}
+    if document_format in {"odt", "both"}:
+        _atomic_bytes(odt, odt_bytes(blocks))
+        result["odt"] = str(odt)
+    if document_format in {"markdown", "both"}:
+        _atomic_bytes(md, markdown.encode())
+        result["markdown"] = str(md)
+    # Preserve earlier copies (and any reader edits) when the preference changes.
+    # Only return the files refreshed by this export.
+    retained = [str(path) for key, path in (("odt", odt), ("markdown", md)) if key not in result and path.exists()]
+    if retained:
+        result["previous_copies_not_refreshed"] = retained
+    return result
