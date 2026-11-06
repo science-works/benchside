@@ -65,10 +65,13 @@ installation approvals may still need their action.
    Attaching a ZIP to an ordinary chat is not itself installation. If only a
    manual installer is available, give its observed steps; if neither route is
    available, state the missing capability rather than invent an upload control.
-4. Local agents can clone the latest released tag into a durable installation
-   directory, run `uv sync --frozen`, then `uv run bench setup --agent codex`
+4. Local agents can install [Benchside from PyPI](https://pypi.org/project/benchside/)
+   with `uv tool install benchside`, then run `bench setup --agent codex`
    (or `claude`, or `generic --skills-dir <actual host skill directory>`).
-   Preserve custom work and read [SETUP.md](SETUP.md) for alternatives.
+   `python -m pip install benchside` also works inside a persistent Python
+   3.11+ virtual environment. The package is `benchside`; its command is `bench`.
+   Read [SETUP.md](SETUP.md) for source installs and updates. This installs the
+   local runtime and skill, not a plugin in a browser chat.
 5. Read the installed skill and its onboarding guide. Run the actual runtime
    version check, then inspect storage tools without writing and offer suitable
    candidates as not yet verified. Test writes only after the researcher chooses
@@ -116,15 +119,17 @@ All eight roles are included:
 
 See [Getting started](docs/getting-started.md) for setup without terminal commands
 or API keys. Installable Claude and ChatGPT/Codex packages are built from this
-repository. The current package is 0.4.0. There is no public plugin-directory
+repository. The current package is 0.4.1. There is no public plugin-directory
 listing yet. Give a new agent the repository URL and
 [setup instructions](docs/getting-started.md)
 rather than relying on discovery by name alone.
 
-Version 0.4.0 adds capability-based onboarding, lighter setup, multi-discipline
-profiles, a broad research supervisor and a focused hypothesis reviewer. Decisions
-and unresolved questions are saved privately as the discussion progresses. See
-[the release notes](docs/release-0.4.0.md), including the shared-store update note.
+Version 0.4.1 improves scientific recording, journal exports and survey checks,
+and is available through pip and uv. It includes the broad research supervisor,
+focused hypothesis reviewer and multi-discipline profiles introduced in 0.4.0.
+Decisions and unresolved questions are saved privately as the discussion progresses.
+**Update every app sharing a notebook to 0.4.1 or newer.** See
+[the release notes](docs/release-0.4.1.md) before updating an existing installation.
 
 Native memory uses a private notebook in a capable host, with readable journals
 per project. Guarded saves and readback protect the validated record; the
@@ -282,9 +287,9 @@ uv run --with pip python scripts/build_release.py
 
 Personas are YAML records; edit their sources and run `bench compile`. The app
 package uses the same records, core wheel and pinned dependency lock. Build
-outputs are `dist/benchside-claude-0.4.0.zip` (standalone skill),
-`dist/benchside-plugin-0.4.0.zip` (OpenAI/portable plugin), and
-`dist/benchside-claude-plugin-0.4.0.zip` (Claude plugin upload). All use the same
+outputs are `dist/benchside-claude-0.4.1.zip` (standalone skill),
+`dist/benchside-plugin-0.4.1.zip` (OpenAI/portable plugin), and
+`dist/benchside-claude-plugin-0.4.1.zip` (Claude plugin upload). All use the same
 core and central submission endpoints. The build downloads hash-locked wheels
 for CPython 3.11–3.14 on macOS (Intel/Apple Silicon) and glibc Linux (x86-64/ARM64).
 Installed app packages bootstrap offline; they do not need access to PyPI.
@@ -297,8 +302,8 @@ submissions across channels. Installation counts are not exact people.
 [ARCHITECTURE.md](ARCHITECTURE.md) explains the implementation.
 [Rollout notes](docs/rollout.md) describe the remaining live-app checks and keep
 the original workshop evaluation separate from exploratory rollout results.
-[Future distribution](docs/distribution-roadmap.md) tracks PyPI/uv installation
-and public plugin-directory publishing; these routes are not live yet.
+[Distribution roadmap](docs/distribution-roadmap.md) records the verified PyPI/uv
+route and the remaining public plugin-directory publishing work.
 
 ## License
 

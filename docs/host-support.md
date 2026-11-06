@@ -111,8 +111,8 @@ separates passing checks from failures. The following remain broader rollout gat
    Benchside implementation and the same reviewed collection formats. A new
    MCP server or hosted private-memory service is not required by the existing
    local route and is outside this compatibility pass.
-4. The [0.4.0 release](https://github.com/science-works/benchside/releases/tag/v0.4.0)
-   is published. Verify updates and record preservation in each installed host
+4. The [0.4.1 release](https://github.com/science-works/benchside/releases/tag/v0.4.1)
+   is published on GitHub and PyPI. Verify updates and record preservation in each installed host
    before broadening its support claim; package checks alone do not establish
    that every account or model can complete the workflow. Older release assets
    remain available unchanged.

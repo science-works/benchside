@@ -48,35 +48,45 @@ Use the installed onboarding guide for an update or storage change.
 
 ### Local agent: Codex, Claude Code or another capable agent
 
-1. Read the [latest release](https://github.com/science-works/benchside/releases/latest)
-   and identify its tag. Clone `https://github.com/science-works/benchside` into a
-   durable installation directory and check out that tag. Keep this checkout:
-   the installed skill refers to its Python environment. If updating an existing
-   checkout, inspect its changes first and preserve custom work. Use `main` only
-   when the researcher requests a development version.
-2. In that checkout, use an available package manager to install the runtime.
-   With `uv`, run `uv sync --frozen`. Without `uv`, use Python 3.11–3.14 to create
-   a virtual environment and install the checkout into it with `pip install .`.
-   Do not install Benchside globally into the operating system's Python.
-3. Install the shared eight-role skill with **one** matching command:
+1. Install the [published Python package](https://pypi.org/project/benchside/).
+   With `uv`, run `uv tool install benchside`. This creates a persistent isolated
+   runtime; use its installed `bench` command. If the executable is not yet on
+   the agent's PATH, locate it with `uv tool dir --bin` and invoke its full path.
+   Without `uv`, create a persistent Python 3.11–3.14 virtual environment and
+   run that environment's `python -m pip install benchside`. Keep the environment
+   and use its `bench` executable. Do not use the operating system's global Python
+   or a disposable execution directory for this installation.
+2. Install the shared eight-role skill with **one** matching command:
 
-   | Host | Command from the checkout |
+   | Host | Command |
    |---|---|
-   | Codex | `uv run bench setup --agent codex` |
-   | Claude Code | `uv run bench setup --agent claude` |
-   | Another agent | `uv run bench setup --agent generic --skills-dir <actual host skill directory>` |
+   | Codex | `bench setup --agent codex` |
+   | Claude Code | `bench setup --agent claude` |
+   | Another agent | `bench setup --agent generic --skills-dir <actual host skill directory>` |
 
-   With a Python virtual environment instead of `uv`, invoke that environment's
-   `bench` executable with the same arguments. Observe the generic host's skill
+   Observe the generic host's skill
    directory; do not guess it. These commands install for future conversations.
    A project-scoped installation is available through `bench init`; it is not
    an additional required setup step.
-4. Read the installed `benchside/SKILL.md`, then its onboarding and app API
+3. Read the installed `benchside/SKILL.md`, then its onboarding and app API
    references. Follow them to complete setup and begin the research discussion.
-   Use the installed `scripts/benchside_app.py` entry point; source setup records
+   Use the installed `scripts/benchside_app.py` entry point; setup records
    its runtime location so later chats can work outside the checkout.
 
-If cloning or package installation is unavailable, explain the missing
+The package name is `benchside`; the executable is `bench`. A model, provider
+connection and the agent's tools come from the host, not from the Python package.
+Do not use a one-off `uvx` environment for persistent setup.
+
+**Source installation remains available:** identify the tag in the
+[latest release](https://github.com/science-works/benchside/releases/latest),
+clone `https://github.com/science-works/benchside` into a durable directory and
+check out that tag. Run `uv sync --frozen`, then the matching command above with
+`uv run` before `bench`. Without uv, install the checkout into a persistent
+virtual environment with `python -m pip install .`. Keep the checkout/environment;
+the installed skill refers to it. Preserve custom changes when updating, and
+use `main` only when the researcher requests a development version.
+
+If package installation is unavailable, explain the missing
 capability and offer a supported app package. Do not claim that downloading or
 reading a Markdown file installed a working runtime.
 
@@ -199,9 +209,14 @@ Then return to the researcher's real project and start their first task.
 
 ## Updating later
 
-Use a newer versioned release and the app's complete update flow. For a source
-installation, update the checkout/environment and rerun the matching `bench setup`
-command. Keep private storage in place and reopen the existing project. Preserve
+Use a newer versioned release and the app's complete update flow. For a uv tool
+installation, run `uv tool upgrade benchside`; for pip, run the installation
+environment's `python -m pip install --upgrade benchside`. Then rerun the same
+`bench setup` command to refresh the installed skill, including the same skills
+directory for a generic host. For a source installation, update the
+checkout/environment and rerun setup there. Keep private storage in place and
+reopen the existing project. **Every app sharing a notebook saved by 0.4.1 must
+use 0.4.1 or newer**, including apps previously using 0.4.0. Preserve
 custom files; do not unzip a package over a source installation, whose saved
 runtime pointer could keep launching the older version. See the
 [full update guidance](content/app/references/onboarding.md).

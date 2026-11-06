@@ -1,30 +1,33 @@
 # Future distribution
 
-Recorded 6 November 2026. GitHub releases remain the current verified download
-route. Python publishing is being prepared using the
-[publishing procedure](publishing.md); advertise PyPI installation only after
-the public package and clean registry installations have been verified.
+Updated 6 November 2026. [Benchside 0.4.1 is published on PyPI](https://pypi.org/project/benchside/0.4.1/)
+and [GitHub Releases](https://github.com/science-works/benchside/releases/tag/v0.4.1).
+Clean public-registry installations through pip (Python 3.11) and uv tool install
+(Python 3.14) passed generic-agent setup, all eight role references, private
+save/restore, ODT/Markdown exports and sharing-off checks. These tests sent no
+submissions. Both PyPI files have the same SHA-256 checksums as the GitHub assets.
 
-## PyPI and uv
+## PyPI and uv: available
 
-- Confirm the package name and Science Works maintainers; create the publisher
-  account with verified email and two-factor authentication.
-- Complete Python package metadata (licence, source/docs/support links and
-  maintainer attribution), retaining existing author credit.
-- Add a GitHub Actions release workflow and configure PyPI Trusted Publishing
-  for that specific repository/workflow. Keep publishing separate from ordinary
-  pushes and require the release to be approved.
-- Exercise TestPyPI and clean Python 3.11/3.14 installations: bundled role
-  content, generic-agent setup, private save/restore and a mocked submission.
-- Once published, recommend `uv tool install benchside` for local CLI/agent
-  use, `uv tool upgrade benchside` for updates, and
-  `uvx --from benchside bench --help` for a one-off invocation.
-  The package is `benchside`; its executable is `bench`.
-- The same PyPI release also supports `pip install benchside`; no separate uv
-  registry publication is required. `uv build`/`uv publish` can build and upload.
-- Update README/SETUP only when the installation route is actually live. Do not
-  imply this installs a web-app plugin or supplies a model, storage connector
-  or network permission.
+Use `uv tool install benchside`, or `python -m pip install benchside` inside a
+persistent virtual environment, followed by the host's `bench setup` command.
+The package is `benchside`; its executable is `bench`. The same PyPI release
+serves pip and uv. Updates use `uv tool upgrade benchside` or pip's `--upgrade`,
+followed by rerunning setup to refresh the installed skill.
+
+Publishing uses GitHub Trusted Publishing, restricted to the
+`science-works/benchside` repository's `publish-python.yml` workflow and `pypi`
+environment. That environment permits only `main`; the manual workflow requires
+a release tag already merged to main. It runs the regression suite and isolated
+wheel/source installation checks on Python 3.11 and 3.14 before uploading.
+See the [publishing procedure](publishing.md) and
+[first successful run](https://github.com/science-works/benchside/actions/runs/42250979386).
+TestPyPI remains an optional rehearsal route and was not used for this release.
+
+The Python package does not install a web-app plugin or supply a model, storage
+connector or network permission. For a one-off CLI check,
+`uvx --from benchside bench --help` is available; persistent setup should use a
+durable tool installation or virtual environment.
 
 References: [PyPI publishing](https://docs.pypi.org/publishing/publishing-to-pypi/),
 [uv tools](https://docs.astral.sh/uv/guides/tools/),

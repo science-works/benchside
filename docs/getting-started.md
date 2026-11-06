@@ -63,16 +63,18 @@ for the Git/terminal route. A plugin packages skills and their supporting runtim
 
 | Route | Current implementation |
 |---|---|
+| Python package (pip or uv) | The agent runs `uv tool install benchside`, or `python -m pip install benchside` inside a persistent virtual environment, then the matching `bench setup` command below. No checkout is required. |
 | Clone GitHub and ask an agent to set it up | Install source dependencies and run guided setup. The installed skill remembers the runtime so later chats work outside the checkout. No model-specific backend is needed. |
 | Codex or another local agent | `bench setup --agent codex` or `--agent generic --skills-dir <host directory>` installs the shared eight-role skill. The agent runs setup for the researcher. |
 | Terminal / Claude Code | Shared skill through `bench setup --agent claude` or `bench init`; explicit `bench init --legacy-cli` provides legacy role commands and local session hooks. |
-| OpenAI plugin | `benchside-plugin-0.4.0.zip` includes the portable manifest, Codex compatibility manifest, setup entry and bundled skill/runtime. |
-| Claude plugin | `benchside-claude-plugin-0.4.0.zip` includes `.claude-plugin/plugin.json`, the shared skill, role references and runtime. The manifest passes Claude's validator. |
-| Claude standalone skill | `benchside-claude-0.4.0.zip` remains available for custom-skill installation. |
+| OpenAI plugin | `benchside-plugin-0.4.1.zip` includes the portable manifest, Codex compatibility manifest, setup entry and bundled skill/runtime. |
+| Claude plugin | `benchside-claude-plugin-0.4.1.zip` includes `.claude-plugin/plugin.json`, the shared skill, role references and runtime. The manifest passes Claude's validator. |
+| Claude standalone skill | `benchside-claude-0.4.1.zip` remains available for custom-skill installation. |
 
 Download app packages from the [latest GitHub release](https://github.com/science-works/benchside/releases/latest).
-The expanded implementation is merged into `main`; agents should install the
-latest released tag unless you ask for a development version. No public plugin
+The local Python package is also on [PyPI](https://pypi.org/project/benchside/).
+It installs the runtime, not a web-app plugin or a model. For source installs,
+agents should use the latest released tag unless you ask for a development version. No public plugin
 directory listing has been published.
 Package validation does not replace installation, discovery and fresh-chat memory
 checks in the intended app/account.
@@ -130,7 +132,10 @@ A folder synchronized between two computers is not a substitute for coordinated
 cloud writes; filesystem locks work on one machine, not across sync clients.
 
 Decisions come from that chosen private store, never from the metascience receiver.
-For local storage, events are in `<chosen folder>/projects/<project ID>/journal.jsonl`.
+For newly configured local storage, events are in
+`<chosen folder>/agent/projects/<project ID>/journal.jsonl`, with readable
+ODT/Markdown copies under `researcher/projects/`. Existing flat stores remain
+supported; see [the folder guide](readable-records.md).
 For native/connected storage, the private Benchside memory document contains the
 validated records, and each project has a readable journal document. A single
 private memory document can hold several isolated projects.
@@ -139,7 +144,8 @@ Cloud storage must pass a save/readback and restore check in your account.
 Benchside uses guarded updates to avoid replacing a newer notebook. Claude
 0.3.1 transfers notebooks as files and respects Claude Docs' smaller block limit;
 if the exact transfer is unavailable, the agent must report that work was not
-saved. Update all apps sharing a notebook together.
+saved. Update all apps sharing a notebook together: notebooks saved by 0.4.1
+require every app to use 0.4.1 or newer.
 
 ChatGPT Pages, Claude Docs and supported Google Docs connectors have passed
 synthetic checks in the tested accounts. Other accounts and connectors can expose
