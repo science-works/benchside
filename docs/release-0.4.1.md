@@ -1,7 +1,13 @@
 # Benchside 0.4.1
 
 This release improves faithful scientific recording, fixes the reviewed journal
-and sharing issues, and prepares the Python package for pip/uv distribution.
+and sharing issues, and publishes the Python package for pip/uv installation.
+
+Available on [PyPI](https://pypi.org/project/benchside/0.4.1/) and
+[GitHub Releases](https://github.com/science-works/benchside/releases/tag/v0.4.1).
+Local agents can run `uv tool install benchside`, or
+`python -m pip install benchside` inside a persistent virtual environment, then
+the appropriate `bench setup` command in [SETUP.md](../SETUP.md).
 
 ## Update every app sharing a notebook
 
@@ -31,7 +37,8 @@ and update each app; do not recreate or overwrite it to bypass that check.
   manual options. Normal setup leaves unrelated linked settings alone.
 - Python distributions include licence, Science Works maintainer attribution,
   source/support links and standalone setup instructions, retaining Rory's author
-  credit. Clean wheel and source installation checks support first PyPI publishing.
+  credit. GitHub Trusted Publishing releases the Python package after clean wheel
+  and source installation checks.
 
 ## Known limits
 
@@ -46,6 +53,11 @@ tests exercise saved records and fresh-process restoration; they do not establis
 live account-level persistence in every ChatGPT or Claude account. Installed-app
 acceptance for this final build remains a separate check.
 
-See [the review follow-up](review-followup-2026-11-06.md) and
-[Python publishing procedure](publishing.md). PyPI availability should be verified
-before recommending an unqualified `pip install benchside` to researchers.
+On 6 November 2026, fresh public PyPI installations through pip (Python 3.11)
+and uv tool install (Python 3.14) passed the CLI, eight-role setup, private
+save/restore, ODT/Markdown and sharing-off checks. No submissions were sent.
+The public wheel and source archive checksums match the GitHub release assets.
+
+See [the review follow-up](review-followup-2026-11-06.md),
+[Python publishing procedure](publishing.md), and
+[successful publication run](https://github.com/science-works/benchside/actions/runs/42250979386).
