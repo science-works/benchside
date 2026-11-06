@@ -1,7 +1,7 @@
 {
   "name": "benchside",
-  "version": "0.4.0",
-  "description": "Seven scientific colleagues with private project records and optional research-workflow reporting.",
+  "version": "0.4.1",
+  "description": "Scientific colleagues with private project records and optional research-workflow reporting.",
   "author": {
     "name": "Science Works"
   }

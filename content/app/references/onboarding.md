@@ -274,13 +274,20 @@ Let the researcher select multiple broad disciplines if applicable and one caree
 institution or conversation content. Then ask whether to include those choices
 in usage reports or keep them private. This does not turn on usage reporting.
 Use `profile.status` to preserve existing choices; do not ask again on every visit.
-After a skip, save an empty profile with `include_in_usage:false` so the nonzero
-profile revision records that setup already offered the question. A changed
+When an unset profile is skipped, run
+`{"action":"profile.set","demographics":{},"include_in_usage":false}` so the
+nonzero profile revision records that setup already offered the question.
+Use an empty object, not `[]` or an empty discipline list. Do not clear an
+existing profile because the researcher skipped a repeat question. A changed
 profile requires a fresh usage preview. These categories do not gate any role or
 change scientific advice; adapt advice to the actual task and stated preferences.
 
-Finish by naming the chosen storage, project, continuity test status, available
-roles and saved research-participation choices. Name any unverified capability.
+Finish with one brief confirmation of the project, storage/readable-record link,
+saved participation choices and any unverified capability. Then move to the
+research question and a relevant role; do not recite the role menu, internal IDs,
+state names or the same continuity caveat repeatedly. Keep those details for
+troubleshooting when needed. Translate internal critique states into ordinary
+language and map the researcher's answer to the appropriate action yourself.
 Do not suggest that any private journal must be uploaded to Science Works.
 
 ## Readable records in local storage

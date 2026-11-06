@@ -3,7 +3,10 @@
 This is the entry point for an agent asked to install Benchside from the
 [repository](https://github.com/science-works/benchside). Perform the supported
 steps yourself; the researcher should not have to run terminal commands.
-Benchside needs no model API key or Science Works account.
+Benchside itself needs no model API key or Science Works account. The host agent
+supplies the model: its connection may use a provider API, OpenRouter, or a
+locally hosted model, with any credentials managed by that agent. Use the generic
+route below for other agents; reliable tool use and durable storage are required.
 
 The researcher should only need to ask to set up Benchside and provide the
 repository link. Discover the installer, select and download the right package,

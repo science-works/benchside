@@ -104,7 +104,7 @@ integration test. The project source and researcher journals are separate.
   storage; native cloud documents keep their existing human-readable pages and
   use the host's own document-download tools if available.
 - `{"action":"projects"}` lists existing local app project IDs/titles.
-- `{"action":"setup","project_id":"<selected existing ID>","host":"claude","surface":"desktop"}`
+- `{"action":"setup","project_id":"<selected existing ID>","host":"unknown","surface":"unknown"}`
   starts a new session in an existing project, including one created by another app.
   Session app metadata is isolated; creation identity never changes.
   For new projects supply `project_key` instead and a friendly `title` based on
@@ -115,9 +115,12 @@ integration test. The project source and researcher journals are separate.
 - `{"action":"storage.check","token":"<returned token>"}` checks the same store.
   Run this after moving to a fresh conversation and resetting its execution
   environment. The host must retain the storage path without ongoing user setup.
-- `{"action":"setup","host":"claude","surface":"desktop","project_key":"<actual stable project ID or folder>"}` returns `project_id` and `session_id`.
+- `{"action":"setup","host":"unknown","surface":"unknown","project_key":"<actual stable project ID or folder>"}` returns `project_id` and `session_id`.
   `host` is `claude`, `chatgpt`, or `unknown`; use `unknown` for Codex/other apps
   under the current reporting schema rather than inventing a wire value. Surface is `web`, `desktop`, `cli`, or `unknown`.
+  Replace these neutral examples only with the actual known host/surface.
+  A Claude-named skill ZIP loaded in OpenCode is still `host:unknown`; a package
+  filename or model provider does not establish the host application.
   Optionally supply `app_version` only when the host exposes a release version
   (for example `1.2.3`); otherwise leave it `unknown`. Never use a user agent,
   account identifier, model name or guessed version. It is included only in usage
@@ -176,6 +179,38 @@ optional usage only counts these events in `records.record`. Legacy CLI supports
 Update all clients sharing a store before recording questions; older runtimes
 cannot read the new question events.
 
+### Corrections and faithful recall
+
+`record` entries are append-only, with no automatic supersession field. To correct
+one, read the earlier entry and append another of the same kind, using actual
+returned IDs. For example, after finding that the source omitted allocation:
+
+```json
+{
+  "action": "record",
+  "project_id": "<returned project ID>",
+  "session_id": "<returned session ID>",
+  "sitting_id": "<returned sitting ID>",
+  "record": {
+    "kind": "literature",
+    "summary": "Correction: allocation method is unknown",
+    "details": [
+      "Corrects record <earlier record ID>: the description of allocation as nonrandomized was unsupported.",
+      "Replacement: recruitment used convenience samples; allocation is not reported in the supplied excerpt.",
+      "Reason: recruitment and treatment assignment are different; the excerpt cannot establish the allocation method."
+    ],
+    "sources": ["<actual inspected source locator>"]
+  }
+}
+```
+
+Verify the save, retaining the old entry. Check corrections on recall, using
+`history:all` if needed; explain the current interpretation and identify the old
+one as corrected. Never silently rewrite journal files or rely on a chat-only
+apology. For changed decisions or hypotheses, use their documented `supersedes`
+field instead. Quote a recalled decision exactly, with rationale and new advice
+separate. A pending or unknown answer stays an open question, not an `answer`.
+
 Method flaws: `missing_control`, `confound`, `under_powered`, `pseudoreplication`,
 `selection_bias`, `unvalidated_instrument`. For concerns outside these categories,
 use a grounded claim or interpretation target rather than misclassifying it.
@@ -204,7 +239,7 @@ After setup/start, record the observed methods problem using the actual returned
   "record": {
     "kind": "methods",
     "summary": "Low recovery after extraction",
-    "details": ["Expected recovery is 80%; observed 20%.", "A spike-recovery control can localise the loss."],
+    "details": ["Expected recovery is 80%; observed 20%.", "Proposed check: compare matched pre- and post-extraction spikes; localisation remains uncertain until the controls' coverage is established."],
     "sources": []
   }
 }

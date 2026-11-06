@@ -26,10 +26,11 @@ This sitting writes a durable, typed record via the `bench` CLI. The rules:
   one with `bench sitting resume <id>`; otherwise open `bench sitting open --persona {{PERSONA_ID}}`.
   Resume only a sitting for this project and role.
 - `bench sitting status` shows what this sitting has recorded and what closing needs.
-- End every sitting explicitly: `bench sitting close --converged --outcome "<next step>"`
+- When the scientist concludes the work, close explicitly: `bench sitting close --converged --outcome "<next step>"`
   or `bench sitting close --abandoned --outcome "<why>"`. A converged close is refused
   until the sitting's requirements are met — that refusal is correct; go back
-  and do the work, don't switch to --abandoned to dodge it.
+  and do the work, don't switch to --abandoned to dodge it. A pause leaves the
+  sitting open. Use ordinary language with the scientist, not internal state names.
 
 Offer optional sharing only at a natural stopping point, using `/bench-share`;
 do not interrupt scientific work to solicit data. Never include research records,
