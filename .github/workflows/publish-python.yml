@@ -1,0 +1,99 @@
+name: Publish Python package
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Reviewed release tag on main, for example v0.4.1
+        required: true
+        type: string
+      repository:
+        description: Package index
+        required: true
+        default: testpypi
+        type: choice
+        options: [testpypi, pypi]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-publish-${{ inputs.repository }}-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.14"]
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a release tag already merged to main
+        shell: bash
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git show-ref --verify "refs/tags/$RELEASE_TAG"
+          git merge-base --is-ancestor "refs/tags/$RELEASE_TAG^{commit}" origin/main
+          git checkout --detach "refs/tags/$RELEASE_TAG"
+          echo "RELEASE_VERSION=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv sync --frozen
+      - name: Check tag, package and runtime versions agree
+        run: |
+          uv run --frozen python - <<'PY'
+          import os, tomllib
+          from pathlib import Path
+          from benchside import __version__
+          metadata = tomllib.loads(Path("pyproject.toml").read_text())
+          assert metadata["project"]["name"] == "benchside"
+          assert metadata["project"]["version"] == __version__ == os.environ["RELEASE_VERSION"]
+          PY
+      - run: uv run --frozen pytest
+      - run: uv build --no-sources --out-dir python-dist
+      - run: uvx twine check --strict python-dist/*
+      - name: Test clean wheel and source installs outside the checkout
+        shell: bash
+        run: |
+          uv venv --python "$UV_PYTHON" "$RUNNER_TEMP/benchside-wheel"
+          uv pip install --python "$RUNNER_TEMP/benchside-wheel/bin/python" python-dist/*.whl
+          uv run --frozen python scripts/smoke_distribution.py --python "$RUNNER_TEMP/benchside-wheel/bin/python" --version "$RELEASE_VERSION"
+          uv venv --python "$UV_PYTHON" "$RUNNER_TEMP/benchside-sdist"
+          uv pip install --python "$RUNNER_TEMP/benchside-sdist/bin/python" python-dist/*.tar.gz
+          uv run --frozen python scripts/smoke_distribution.py --python "$RUNNER_TEMP/benchside-sdist/bin/python" --version "$RELEASE_VERSION"
+      - uses: actions/upload-artifact@v7.0.2
+        if: matrix.python == '3.11'
+        with:
+          name: python-distributions
+          path: python-dist/*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.repository }}
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: python-distributions
+          path: dist
+      - name: Publish to TestPyPI
+        if: inputs.repository == 'testpypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+      - name: Publish to PyPI
+        if: inputs.repository == 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1

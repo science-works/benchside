@@ -1,7 +1,9 @@
 # Future distribution
 
-Recorded 6 November 2026. These routes are planned, not published or enabled.
-GitHub releases remain the current download route.
+Recorded 6 November 2026. GitHub releases remain the current verified download
+route. Python publishing is being prepared using the
+[publishing procedure](publishing.md); advertise PyPI installation only after
+the public package and clean registry installations have been verified.
 
 ## PyPI and uv
 
