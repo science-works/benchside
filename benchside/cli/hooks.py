@@ -14,6 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from benchside.cli import runtime
+from benchside.infrastructure.files import file_lock
 from benchside.infrastructure.session_context import (
     clear_session,
     register_session,
@@ -28,10 +29,16 @@ def cmd_hook(args) -> int:
             payload = json.loads(sys.stdin.read() or "{}")
         except json.JSONDecodeError:
             payload = {}
-        if args.event == "session-start":
-            _session_start(payload)
-        elif args.event == "session-end":
-            _session_end(payload)
+        if _bench_project_dir(payload) is None:
+            return 0
+        paths = runtime.current_paths()
+        # This short, migration-only lock never waits on a sharing/network
+        # transaction. Resolve storage again inside the handlers after waiting.
+        with file_lock((paths.store_root or paths.home) / ".layout.lock"):
+            if args.event == "session-start":
+                _session_start(payload)
+            elif args.event == "session-end":
+                _session_end(payload)
     except Exception:  # noqa: BLE001 — hooks must never fail the session
         _log_error(traceback.format_exc())
     return 0

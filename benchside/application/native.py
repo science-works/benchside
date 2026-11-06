@@ -29,6 +29,8 @@ from benchside.infrastructure.session_context import validate_session_id
 SCHEMA = "benchside.native.v1"
 CHECKPOINT_SCHEMA = "benchside.native.v2"
 CONTEXT_SCHEMA = "benchside.native.v3"
+RESEARCH_SCHEMA = "benchside.native.v4"
+SCHEMA_ORDER = (SCHEMA, CHECKPOINT_SCHEMA, CONTEXT_SCHEMA, RESEARCH_SCHEMA)
 MAX_DOCUMENT_BYTES = 190_000  # Fits one native Pages edit with room for transport metadata.
 MAX_METASCIENCE_DOCUMENT_BYTES = 48 * 1024
 MAX_STATE_BYTES = 8 * 1024 * 1024
@@ -263,15 +265,42 @@ def _document_limit(request):
     return limit
 
 
+def _has_extended_research(value):
+    """Gate 0.4 values in files, frozen payloads and cached results for older clients."""
+    if isinstance(value, dict):
+        if isinstance(value.get("discipline"), list) or any(
+            value.get(key) == "pi-hypothesis" for key in ("role", "benchside_role", "persona_id")
+        ):
+            return True
+        return any(_has_extended_research(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_has_extended_research(item) for item in value)
+    if isinstance(value, str) and ("discipline" in value or "pi-hypothesis" in value):
+        for line in [value, *value.splitlines()]:
+            try:
+                decoded = json.loads(line)
+            except (ValueError, TypeError):
+                continue
+            if not isinstance(decoded, str) and _has_extended_research(decoded):
+                return True
+    return False
+
+
+def _minimum_schema(body):
+    if _has_extended_research(body):
+        return RESEARCH_SCHEMA
+    if _has_gap_context(body):
+        return CONTEXT_SCHEMA
+    return CHECKPOINT_SCHEMA if "replay" in body else SCHEMA
+
+
 def pack(body, workspace_id, revision, *, limit=MAX_DOCUMENT_BYTES):
     _validate_body(body)
     raw = _json(body).encode("utf-8")
     if len(raw) > MAX_STATE_BYTES:
         _capacity_error()
     snapshot = {
-        "schema": CONTEXT_SCHEMA
-        if _has_gap_context(body)
-        else (CHECKPOINT_SCHEMA if "replay" in body else SCHEMA),
+        "schema": _minimum_schema(body),
         "workspace_id": workspace_id,
         "revision": revision,
         "payload": base64.b64encode(zlib.compress(raw)).decode("ascii"),
@@ -307,7 +336,7 @@ def unpack(document, expected_workspace_id=None):
             "sha256",
         }:
             _fail("Invalid native memory envelope")
-        if snapshot["schema"] not in {SCHEMA, CHECKPOINT_SCHEMA, CONTEXT_SCHEMA}:
+        if snapshot["schema"] not in SCHEMA_ORDER:
             _update_required()
         if (
             not HEX.fullmatch(snapshot["workspace_id"])
@@ -330,11 +359,13 @@ def unpack(document, expected_workspace_id=None):
             _fail("Invalid or oversized compressed native memory")
         body = _loads(raw.decode("utf-8"))
         _validate_body(body)
-        contextual = _has_gap_context(body)
-        if (snapshot["schema"] == CONTEXT_SCHEMA) != contextual:
-            _fail("Native workflow context does not match its snapshot schema")
-        if not contextual and (snapshot["schema"] == CHECKPOINT_SCHEMA) != ("replay" in body):
-            _fail("Native replay generation does not match its snapshot schema")
+        # 0.4.0 already saved extended research values under v1-v3. Validate
+        # them with current models and upgrade on pack; never strand those stores.
+        required = CONTEXT_SCHEMA if _has_gap_context(body) else (
+            CHECKPOINT_SCHEMA if "replay" in body else SCHEMA
+        )
+        if SCHEMA_ORDER.index(snapshot["schema"]) < SCHEMA_ORDER.index(required):
+            _fail("Native memory features require a newer snapshot schema")
         return snapshot, body
     except (ValueError, KeyError, TypeError, AttributeError, zlib.error) as error:
         raise ValidationError(
@@ -447,7 +478,9 @@ def _require_metascience_headroom(body, original=None, *, additional=0):
             "Optional analysis and study history has reached its cloud notebook allowance. "
             "No new analysis or submission was saved. Existing records and receipts remain "
             "intact; research work and consent withdrawal can continue. Preserve this notebook "
-            "and move to larger private storage before extending optional history.",
+            "and choose larger private storage, or discuss an explicitly approved archival/summary "
+            "plan before extending optional history. No automatic compaction is performed; "
+            "a summary alone does not replace the receipts and consent state needed to resume.",
             code="native_capacity",
         )
 

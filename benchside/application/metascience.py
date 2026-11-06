@@ -32,6 +32,7 @@ from benchside.domain.export.model.metascience import (
     StudyCatalog,
     StudyParticipation,
     SurveyPayload,
+    TextAnswer,
     canonical,
     digest,
     parse_activity,
@@ -40,6 +41,26 @@ from benchside.domain.export.model.metascience import (
 from benchside.domain.shared.error import ConsentRequiredError, InfrastructureError, ValidationError
 from benchside.infrastructure.files import atomic_json
 from benchside.infrastructure.http_sink import COLLECTOR, USER_AGENT, HttpExportSink
+from benchside.infrastructure.redaction import TextRedactor
+
+
+def _check_survey_text(payload):
+    """Keep exact researcher wording; refuse flagged answers instead of rewriting."""
+    findings = {
+        f"{key}: {finding.category}"
+        for key, answer in payload.answers.items()
+        if isinstance(answer, TextAnswer)
+        for finding in TextRedactor().scan(answer.text)
+        if finding.tier == "HIGH"
+    }
+    if findings:
+        raise ValidationError(
+            "Edit the flagged survey answers before sending ("
+            + "; ".join(sorted(findings))
+            + "). Nothing was sent. Remove sensitive details; Benchside will not rewrite "
+            "your answers or send them unchanged.",
+            code="survey_answer_sensitive",
+        )
 
 
 class StudyClient:
@@ -371,6 +392,7 @@ class Metascience:
             **({"contributor_id": accepted.contributor_id} if accepted else {}),
         )
         payload.check_study(study)
+        _check_survey_text(payload)
         return self._preview("surveys", key, payload, grants)
 
     def join_study(self, study_key, study_sha256):
@@ -577,6 +599,7 @@ class Metascience:
                 raise ConsentRequiredError("The survey has closed or was dismissed")
             payload = parse_survey(draft.payload)
             payload.check_study(study)
+            _check_survey_text(payload)  # Also guard pending drafts from earlier releases.
             if isinstance(payload, LinkedSurveyPayload):
                 accepted = self.state.participation.get(key)
                 if (

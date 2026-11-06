@@ -1,7 +1,7 @@
 {
   "version": "0.4.1",
   "wheel": "benchside-0.4.1-py3-none-any.whl",
-  "wheel_sha256": "05cfdff4eec269801306f2d16e394eeb6cc5bc98dac565826a03cf7fd0759743",
+  "wheel_sha256": "58d3d0000a44c8ae453e73011273fecb948aa00553e06c19a0134facbf86c374",
   "requirements_sha256": "b9b77abf687b2ff7d0c9d62fef53e453baea83ffbfef157ce4b3cdd9b2dd3aa3",
   "dependency_wheels": {
     "annotated_types-0.8.0-py3-none-any.whl": "f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0",

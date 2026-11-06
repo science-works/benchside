@@ -69,18 +69,9 @@ class JsonlJournal:
         except OSError as err:
             raise StorageUnavailableError(f"Could not append to journal at {path}: {err}") from err
 
-        if self._paths.store_root and project_id.root not in {"consent-ledger", "reporting-ledger"}:
-            from benchside.infrastructure.readable_records import export_project
+        from benchside.infrastructure.readable_refresh import mark_readable
 
-            try:
-                export_project(self._paths, self, project_id.root)
-            except Exception as error:  # noqa: BLE001 - derived views must never obscure a durable save
-                # The scientific event is already durable. Do not make agents retry it.
-                self.readable_records_warning = (
-                    "The scientific record was saved, but its readable ODT/Markdown copy "
-                    "could not be refreshed. Retry records.export; do not repeat the recording action."
-                )
-                logger.warning("Readable record refresh failed (%s)", type(error).__name__)
+        mark_readable(self._paths, self, project_id.root)
 
     def read(self, project_id: ProjectId) -> Iterable[Event]:
         path = self._paths.journal_file(project_id.root)

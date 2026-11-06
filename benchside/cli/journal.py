@@ -36,8 +36,11 @@ def cmd_journal(args) -> int:
                 from benchside.infrastructure.readable_records import export_project
 
                 result = export_project(runtime.current_paths(), uow.get(Journal), project_id.root)
-                ui.success(result["odt"])
-                ui.detail(result["markdown"])
+                for document_format in ("odt", "markdown"):
+                    if document_format in result:
+                        ui.success(result[document_format])
+                for path in result.get("previous_copies_not_refreshed", []):
+                    ui.warn(f"Previous copy not refreshed: {path}")
             case "show":
                 _show(ui, project, uow.get(ConsultationRepository).list_for_project(project_id))
             case "sittings":
@@ -49,7 +52,7 @@ def cmd_journal(args) -> int:
             case "questions":
                 ui.header("Research questions")
                 for question in project.questions:
-                    ui.section(question.id)
+                    ui.section("question", meta=question.id)
                     ui.block(question.question)
                     ui.detail(question.answer or "Unresolved")
             case "critiques":

@@ -20,11 +20,14 @@ state. Do not put it in a shared Space or document. If privacy cannot be verifie
 create it in the host's explicitly private location or explain the missing access.
 Readable project journals are private too; no sharing permissions are changed.
 
-The notebook holds one fenced JSON block. Existing notebooks start with
-`schema: benchside.native.v1`; the first replay checkpoint or saved write of the
-0.1.3 sampling format upgrades the candidate to `benchside.native.v2`. Both formats are readable by the current
-runtime. An older runtime must be updated before opening a v2 notebook; never
-change its schema label or discard the replay checkpoint to bypass that check.
+The notebook holds one fenced JSON block. The runtime selects its schema label:
+v1 for basic state, v2 for replay checkpoints, v3 for workflow context, and
+`benchside.native.v4` for multi-discipline profiles or the `pi-hypothesis` role.
+The current runtime reads all four. Update every app sharing a notebook before
+using newer formats. Older 0.4.0 notebooks that saved these research values under
+v1-v3 remain readable and receive the appropriate label on their next save.
+An older runtime must be updated when it reports `native_update_required`; never
+change the schema label or discard records/checkpoints to bypass that check.
 Its payload is compressed for size, **not encrypted or anonymised**. Treat it as
 private research data. Pass it directly from the native tools to the bundled
 runtime; do not decode it into conversational context. The runtime returns only
@@ -379,6 +382,15 @@ all scientific records, submitted receipts and the replay checkpoint. A response
 with `control_history_compacted:true` indicates that consent-history checkpoint;
 retain the previous notebook version for its historical consent audit. Old
 approvals do not become valid again when a new grant is issued.
+
+Optional analysis and study history has a separate 48 KiB compressed allowance.
+It is retained in full, with no automatic weekly summarisation or compaction.
+On that `native_capacity` error, preserve the notebook and explain that optional
+collection has paused while existing history, research work and consent withdrawal
+remain available. Offer larger private storage or discussion of an explicitly
+approved archive/summary plan. Do not edit the encoded state by hand, discard
+unsent work/receipts, or imply automated archival already exists. A readable
+summary is not a substitute for the validated state required to resume safely.
 
 Analysis withdrawal and source-scope changes also compact prior replay responses
 to remove cached source/session references. Operation IDs and request hashes
