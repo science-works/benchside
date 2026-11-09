@@ -42,17 +42,33 @@ from benchside.domain.shared.error import ConsentRequiredError, InfrastructureEr
 from benchside.infrastructure.files import atomic_json
 from benchside.infrastructure.http_sink import COLLECTOR, USER_AGENT, HttpExportSink
 from benchside.infrastructure.redaction import TextRedactor
+from benchside.infrastructure.survey_links import (
+    confirmed_links,
+    public_link_candidate,
+    survey_urls,
+)
 
 
-def _check_survey_text(payload):
+def _check_survey_text(payload, confirmed_public_urls=None):
     """Keep exact researcher wording; refuse flagged answers instead of rewriting."""
+    texts = [answer.text for answer in payload.answers.values() if isinstance(answer, TextAnswer)]
+    confirmed = confirmed_links(texts, confirmed_public_urls)
     findings = {
         f"{key}: {finding.category}"
         for key, answer in payload.answers.items()
         if isinstance(answer, TextAnswer)
         for finding in TextRedactor().scan(answer.text)
-        if finding.tier == "HIGH"
+        if finding.tier == "HIGH" and finding.category != "url"
     }
+    unconfirmed = set()
+    for key, answer in payload.answers.items():
+        if not isinstance(answer, TextAnswer):
+            continue
+        for url in survey_urls(answer.text):
+            if not public_link_candidate(url):
+                findings.add(f"{key}: private or sensitive link")
+            elif url not in confirmed:
+                unconfirmed.add(key)
     if findings:
         raise ValidationError(
             "Edit the flagged survey answers before sending ("
@@ -61,6 +77,24 @@ def _check_survey_text(payload):
             "your answers or send them unchanged.",
             code="survey_answer_sensitive",
         )
+    if unconfirmed:
+        raise ValidationError(
+            "Confirm with the researcher that each exact link in survey answer(s) "
+            + ", ".join(sorted(unconfirmed))
+            + " is public and contains no private research details or access tokens. "
+            "Pass only those confirmed URLs as confirmed_public_urls, or edit the answer. "
+            "Nothing was sent. Do not infer confirmation from study participation.",
+            code="survey_public_link_confirmation_required",
+        )
+
+
+def _survey_answer_error():
+    return ValidationError(
+        "Check the survey answers: use the offered choices, keep text within the stated "
+        "limit and omit skipped questions. At least one non-blank answer is required. "
+        "Nothing was sent; Benchside setup is unchanged.",
+        code="survey_answer_invalid",
+    )
 
 
 class StudyClient:
@@ -360,7 +394,7 @@ class Metascience:
         self._save(drafts=retained, latest=latest)
         return draft.model_dump()
 
-    def survey(self, study_key, answers):
+    def survey(self, study_key, answers, *, confirmed_public_urls=None):
         grants = self._require("invitations")
         study = self.state.studies.get(study_key)
         if (
@@ -382,17 +416,20 @@ class Metascience:
             raise ConsentRequiredError(
                 "Survey participation changed; explain and accept the study again"
             )
-        payload = payload_type(
-            benchside_version=__version__,
-            response_id=response_id,
-            study_id=study.id,
-            study_version=study.version,
-            study_sha256=digest(study.model_dump()),
-            answers=answers,
-            **({"contributor_id": accepted.contributor_id} if accepted else {}),
-        )
-        payload.check_study(study)
-        _check_survey_text(payload)
+        try:
+            payload = payload_type(
+                benchside_version=__version__,
+                response_id=response_id,
+                study_id=study.id,
+                study_version=study.version,
+                study_sha256=digest(study.model_dump()),
+                answers=answers,
+                **({"contributor_id": accepted.contributor_id} if accepted else {}),
+            )
+            payload.check_study(study)
+        except ValueError as err:
+            raise _survey_answer_error() from err
+        _check_survey_text(payload, confirmed_public_urls)
         return self._preview("surveys", key, payload, grants)
 
     def join_study(self, study_key, study_sha256):
@@ -572,14 +609,14 @@ class Metascience:
         self._save(samples={**self.state.samples, week: Sample.model_validate(data)})
         return self._preview("activity", key, payload, grants)
 
-    def send(self, draft_id, approved_sha256):
+    def send(self, draft_id, approved_sha256, *, confirmed_public_urls=None):
         try:
-            return self._send(draft_id, approved_sha256)
+            return self._send(draft_id, approved_sha256, confirmed_public_urls=confirmed_public_urls)
         except Exception as err:
             record_submission_failure(self.paths, err)
             raise
 
-    def _send(self, draft_id, approved_sha256):
+    def _send(self, draft_id, approved_sha256, *, confirmed_public_urls=None):
         draft = self.state.drafts.get(draft_id)
         if not draft or self.state.latest.get(draft.key) != draft_id:
             raise ConsentRequiredError("Review the current metascience draft first")
@@ -597,9 +634,12 @@ class Metascience:
             study = self.state.studies[key]
             if not study.active(self.today.isoformat()) or key in self.state.completed:
                 raise ConsentRequiredError("The survey has closed or was dismissed")
-            payload = parse_survey(draft.payload)
-            payload.check_study(study)
-            _check_survey_text(payload)  # Also guard pending drafts from earlier releases.
+            try:
+                payload = parse_survey(draft.payload)
+                payload.check_study(study)
+            except ValueError as err:
+                raise _survey_answer_error() from err
+            _check_survey_text(payload, confirmed_public_urls)  # Recheck older pending drafts too.
             if isinstance(payload, LinkedSurveyPayload):
                 accepted = self.state.participation.get(key)
                 if (
@@ -644,7 +684,8 @@ class Metascience:
                     request["study_key"], permanently=request.get("permanently", False)
                 )
             case "metascience.survey":
-                return self.survey(request["study_key"], request["answers"])
+                return self.survey(request["study_key"], request["answers"],
+                                   confirmed_public_urls=request.get("confirmed_public_urls"))
             case "metascience.join_study":
                 return self.join_study(request["study_key"], request["study_sha256"])
             case "metascience.sample":
@@ -664,7 +705,8 @@ class Metascience:
             case "metascience.preview":
                 return self.preview_activity(request["week"], request.get("tokens"))
             case "metascience.send":
-                return self.send(request["draft_id"], request["approved_sha256"])
+                return self.send(request["draft_id"], request["approved_sha256"],
+                                 confirmed_public_urls=request.get("confirmed_public_urls"))
             case "metascience.history":
                 return [r.model_dump() for r in self.state.receipts.values()]
             case _:

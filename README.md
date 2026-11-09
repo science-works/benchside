@@ -119,17 +119,17 @@ All eight roles are included:
 
 See [Getting started](docs/getting-started.md) for setup without terminal commands
 or API keys. Installable Claude and ChatGPT/Codex packages are built from this
-repository. The current package is 0.4.1. There is no public plugin-directory
+repository. The current package is 0.4.2. There is no public plugin-directory
 listing yet. Give a new agent the repository URL and
 [setup instructions](docs/getting-started.md)
 rather than relying on discovery by name alone.
 
-Version 0.4.1 improves scientific recording, journal exports and survey checks,
+Version 0.4.2 adds explicitly confirmed public survey links and clearer answer errors,
 and is available through pip and uv. It includes the broad research supervisor,
 focused hypothesis reviewer and multi-discipline profiles introduced in 0.4.0.
 Decisions and unresolved questions are saved privately as the discussion progresses.
 **Update every app sharing a notebook to 0.4.1 or newer.** See
-[the release notes](docs/release-0.4.1.md) before updating an existing installation.
+[the release notes](docs/release-0.4.2.md) before updating an existing installation.
 
 Native memory uses a private notebook in a capable host, with readable journals
 per project. Guarded saves and readback protect the validated record; the
@@ -287,9 +287,9 @@ uv run --with pip python scripts/build_release.py
 
 Personas are YAML records; edit their sources and run `bench compile`. The app
 package uses the same records, core wheel and pinned dependency lock. Build
-outputs are `dist/benchside-claude-0.4.1.zip` (standalone skill),
-`dist/benchside-plugin-0.4.1.zip` (OpenAI/portable plugin), and
-`dist/benchside-claude-plugin-0.4.1.zip` (Claude plugin upload). All use the same
+outputs are `dist/benchside-claude-0.4.2.zip` (standalone skill),
+`dist/benchside-plugin-0.4.2.zip` (OpenAI/portable plugin), and
+`dist/benchside-claude-plugin-0.4.2.zip` (Claude plugin upload). All use the same
 core and central submission endpoints. The build downloads hash-locked wheels
 for CPython 3.11–3.14 on macOS (Intel/Apple Silicon) and glibc Linux (x86-64/ARM64).
 Installed app packages bootstrap offline; they do not need access to PyPI.

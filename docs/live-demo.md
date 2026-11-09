@@ -1,4 +1,9 @@
-# Live Benchside demonstration
+# Historical live demonstration — 29 October 2026
+
+For a new demonstration, use [the current demo guide](demo-start-here.md).
+The timed watchers and deployment status below describe 29 October only.
+The watchers have ended; daily production reporting is now enabled.
+Claude file-transfer fixes shipped after this record.
 
 The presenter starts a new conversation and responds naturally. This is a
 synthetic research consultation, not a replay of the acceptance-test chat.

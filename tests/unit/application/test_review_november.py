@@ -33,8 +33,9 @@ def test_malformed_contributor_identity_is_preserved_for_repair(paths, invalid):
 def test_blank_survey_answer_is_rejected_before_creating_draft(flow, answer):
     key = join_text_study(flow)
     before = flow.path.read_bytes()
-    with pytest.raises(ValueError):
+    with pytest.raises(BenchsideError) as invalid:
         flow.survey(key, {"comment": {"text": answer}})
+    assert invalid.value.code == "survey_answer_invalid"
     assert flow.path.read_bytes() == before
     assert not flow.sinks["surveys"].sent
 

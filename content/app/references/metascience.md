@@ -21,6 +21,7 @@ explain these independent choices and record each explicit answer:
    agreement. Once the researcher agrees to that study, their answers are sent
    without asking for a second approval. Flagged sensitive text must be edited
    by the researcher before it can be sent; it is never rewritten automatically.
+   Full web links need a separate, exact public-link confirmation as below.
 2. **Private conversation analysis:** examine up to 20 research conversations
    from the previous complete UTC week, selected randomly from relevant accessible
    conversations or explicitly chosen by the researcher. This includes work
@@ -104,12 +105,44 @@ If the runtime returns `survey_answer_sensitive`, show the flagged question IDs
 and categories, and ask the researcher to edit or omit those answers. Do not
 send the existing draft or offer to bypass the check with another approval.
 The conservative check detects email addresses, credential patterns, local paths
-and URLs, not every sensitive detail; remind the researcher to exclude private
+and unconfirmed URLs, not every sensitive detail; remind the researcher to exclude private
 scientific findings and participant/sample identifiers. Keep clean answers
 exactly as written, including whitespace. Pending older drafts are checked too.
 Changed answers need a new draft. Changed terms, destination or consent need a
 new agreement. Legacy v1 drafts without `join_study` still require exact approval.
 Closed/dismissed studies cannot be sent. The server verifies the definition hash.
+
+### Public links in survey answers
+
+If an answer contains a full web link, ask once whether each exact link is public
+and contains no private research details, personal identifiers or access tokens.
+Show the links in plain text without fetching them. A plausible domain, study
+agreement or silence is not confirmation. General public websites are allowed;
+this is not restricted to paper repositories. If the researcher confirms, keep
+their answer unchanged and pass the exact URLs on both preparation and sending:
+
+```json
+{"action":"metascience.survey","study_key":"<id>@<version>","answers":{"resources":{"text":"https://imagej.net/software/fiji/"}},"confirmed_public_urls":["https://imagej.net/software/fiji/"]}
+{"action":"metascience.send","draft_id":"<returned draft id>","approved_sha256":"<returned digest>","confirmed_public_urls":["https://imagej.net/software/fiji/"]}
+```
+
+Use the researcher's one confirmation for that unchanged answer; do not ask again
+between these calls. The list is not stored in the notebook or transmitted to
+Science Works. If resuming without evidence of that confirmation, confirm again.
+Changed links need their own confirmation. `survey_public_link_confirmation_required`
+means nothing was sent; obtain confirmation or let the researcher edit/omit the link.
+Never supply the list merely to get past an error. `survey_public_link_confirmation_invalid`
+means the supplied list does not match unique exact links in these answers.
+
+Confirmation cannot override sensitive text elsewhere or mechanically risky URLs:
+links with queries, fragments, credentials, explicit ports, local/IP addresses or
+recognised sensitive path patterns are still refused. Ask for an edited public
+link or omitted answer; do not silently rewrite it. These checks cannot establish
+that a site or shared-document link is public. No link is visited by the runtime.
+This exception applies only to survey answers, not gap or feedback redaction.
+
+`survey_answer_invalid` means a blank, overlong or invalid answer needs correction,
+not that installation failed. Omit skipped questions; do not submit an empty survey.
 
 ## Selected research activity
 
@@ -219,7 +252,7 @@ summaries, names, links, timestamps or raw transcripts in the adapter request.
 
 | Field | Allowed values and rule |
 |---|---|
-| `benchside_role` | Seven role IDs, `none` for work without a Benchside role, or `unknown`. Never infer use from a scientific topic alone. |
+| `benchside_role` | Eight role IDs, `none` for work without a Benchside role, or `unknown`. Never infer use from a scientific topic alone. |
 | `activity` | `literature`, `study_design`, `data_collection`, `analysis`, `coding`, `interpretation`, `writing`, `review`, `other`, `unknown`. Choose the main visible activity, not the project discipline. |
 | `obstacle` | `access`, `tool_failure`, `missing_context`, `unreliable_answer`, `workflow_friction`, `none_reported`, `other`, `unknown`. Absence of a reported obstacle is not evidence that no obstacle existed. |
 | `verification` | `checked_sources`, `ran_test`, `compared_methods`, `expert_review`, `none_visible`, `other`, `unknown`. A suggestion to run a test does not establish that it ran. |

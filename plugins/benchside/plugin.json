@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "benchside",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Scientific colleagues with private project records and optional research-workflow reporting.",
   "extensions": {
     "com.openai": {
