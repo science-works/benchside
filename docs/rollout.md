@@ -10,8 +10,10 @@ Public 0.4.2 is available on GitHub and PyPI. This patch adds explicit
 public-link confirmation for survey answers, clearer invalid-answer errors and
 matching blank-answer rejection at the deployed receiver. See the
 [0.4.2 notes](release-0.4.2.md) and [9 November verification](acceptance-2026-11-09.md)
-for completed checks and remaining installed-app acceptance. Earlier successful
-tests do not establish that a new package works in every account.
+for completed checks and remaining installed-app acceptance. Claude web passed
+fresh-chat restoration and an approved send that the importer excluded as a test.
+ChatGPT Work saved its notebook and passed independent readback; fresh-chat
+restoration and a send from that host still need verification.
 
 Eight roles are included: the broad PI supervisor, separate hypothesis reviewer
 and six other research roles. Private decisions, questions and records remain

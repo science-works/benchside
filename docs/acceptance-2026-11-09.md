@@ -47,19 +47,59 @@ deployment and reporting checks from the remaining installed-app acceptance.
   outputs remain separate. Registered synthetic markers stay excluded from
   research reporting. No Vercel view or LLM grouping was added in this patch.
 
-## Installed apps — still pending
+## Installed apps
 
 The existing private ChatGPT plugin was updated to 0.4.2 and its stored package
 metadata and bundled wheel hash were verified. Claude accepted a replacement
 plugin upload and its settings show the installed, enabled Benchside 0.4.2.
-Runtime execution in both fresh chats still needs confirmation.
 
-The final live sequence remains: PI discussion without requiring a hypothesis,
-private saved decision and open question, restoration in a fresh chat, then an
-explicitly reviewed synthetic gap submission with a verified receipt. Browser
-control currently cannot reliably enter or send the test prompt. These checks
-must not be counted as passed from package tests or earlier release results.
+**ChatGPT Work, synthetic PI project.** The installed plugin reported runtime
+0.4.2, accepted a study without an initial hypothesis, and asked what the
+researcher wanted the repeated images to reveal about the paired treatments.
+It reported a verified save at revision 1 with participation off. In a separate
+read, the stored personal Page had no direct or inherited shares. The published
+0.4.2 runtime validated that Page's snapshot in a new process and recovered the
+project and its actual open question. The stored settings had all participation
+off, no installation ID and no demographics. This is independent evidence of persistence;
+it does not stand in for a second ChatGPT conversation restoring the Page.
 
-No real researcher notebooks were changed and no new synthetic gap submission
-was sent during this verification so far. Test notebooks and submissions, when
-created, must be clearly synthetic and use a registered reporting exclusion.
+**Claude web, synthetic PI project.** Claude ran 0.4.2, saved a decision and
+an unresolved question in a separate notebook, and returned a readable journal.
+The agent reported checking the hash, using a revision guard, exporting the
+result and confirming Benchside revision 1 by readback (Claude Doc revision 3).
+It kept all five participation choices off and left the hypothesis unset.
+The notebook card in Claude showed **Only you**; Claude Docs did not expose a
+collaborator roster to the agent.
+
+In a fresh Claude chat, the only pointer supplied for recall was the saved
+notebook link. Claude recovered the exact PI decision and open question, the
+revision and the initial sharing settings. The test then opted into the manual
+toil category for that synthetic notebook only. Claude saved a fictional
+DemoScope export problem at revision 2 and a pending preview at revision 3.
+The approved preview contained only the fictional software problem, version,
+frequency, impact and generated IDs. Its primary task began with a registered
+test marker; the normal importer's marker check classified the whole batch as
+synthetic. The digest computed from the displayed payload matched the approval
+digest. No notebook decisions, questions or project names appeared in it.
+
+One reporting detail for follow-up: the preview used `basis: unknown` for this
+explicitly reported problem; the analysis must not count it as a report
+explicitly attributed to the researcher on that field alone.
+
+**Production send and import.** After approval of the exact preview, Claude
+received a matching receipt for one observation at 13:21:23 UTC (digest
+`9cb0f95f…8504282`). Claude saved the receipt at notebook revision 4, switched
+workflow sharing off at revision 5 and confirmed both saves by readback. No
+network settings were changed. The [next incremental import](https://github.com/LauraRyanSW/tools-science-works/actions/runs/42625110688)
+downloaded one new object. Against the baseline above, listed objects increased
+from 18 to 19 and excluded test objects from 17 to 18; accepted research objects
+remained at one. The importer validates downloaded bytes against their storage
+digest. Its audit exposes counts, not individual keys. A separate attempt to
+download that exact object with the local Worker deployment login returned 403:
+that login has no R2 object-read scope. No broader permissions were requested.
+
+**Remaining ChatGPT-specific check.** The web composer showed **Send** disabled
+for a follow-up and for the read-only recall prompt in a new Work chat. Neither
+prompt was submitted at the time of this check. The first save, independent
+readback and local runtime recall passed; fresh-chat recall and an approved send
+from ChatGPT itself remain unverified. No real researcher notebooks were changed.
