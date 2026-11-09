@@ -51,7 +51,8 @@ deployment and reporting checks from the remaining installed-app acceptance.
 
 The existing private ChatGPT plugin was updated to 0.4.2 and its stored package
 metadata and bundled wheel hash were verified. Claude accepted a replacement
-plugin upload; its final installed version and execution still need confirmation.
+plugin upload and its settings show the installed, enabled Benchside 0.4.2.
+Runtime execution in both fresh chats still needs confirmation.
 
 The final live sequence remains: PI discussion without requiring a hypothesis,
 private saved decision and open question, restoration in a fresh chat, then an
