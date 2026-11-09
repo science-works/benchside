@@ -189,8 +189,9 @@ def test_survey_edits_require_new_exact_approval_and_have_no_linkage(flow):
 )
 def test_survey_rejects_free_text_and_unknown_fields(flow, answers):
     survey(flow)
-    with pytest.raises(ValueError):
+    with pytest.raises(BenchsideError) as invalid:
         flow.survey("synthetic-verification@1", answers)
+    assert invalid.value.code == "survey_answer_invalid"
 
 
 @pytest.mark.parametrize("action", ["revoke", "dismiss", "expire"])

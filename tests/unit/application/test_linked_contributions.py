@@ -196,7 +196,8 @@ def test_survey_agreement_cannot_be_reused_for_changed_terms(flow, change):
 def test_unaccepted_free_text_and_unknown_answers_are_rejected(flow):
     flow.consent("invitations", True)
     flow.invitations()
-    with pytest.raises(ValueError):
+    with pytest.raises(BenchsideError) as invalid:
         flow.survey("synthetic-verification@1", {"checked": {"text": "not an option"}})
+    assert invalid.value.code == "survey_answer_invalid"
     with pytest.raises(BenchsideError):
         flow.join_study("synthetic-verification@1", "0" * 64)

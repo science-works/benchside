@@ -4,17 +4,33 @@ This implementation is the week 1–2 build. Share with researchers from week 3
 after the release checks below, and improve onboarding and the roles as feedback
 arrives. The rollout is informal; no fixed cohort or required follow-up session.
 
-## Current verification
+## Current release work — 9 November 2026
 
-**4 November:** the published GitHub release is **0.3.1**. The new **0.3.2 review
-build** adds capability checks and generic-agent onboarding; it is not published
-yet. Use [host support](host-support.md) and the [portable onboarding test
-report](acceptance-portable-onboarding-2026-11-04.md) for current installation
-limits and candidate evidence. Free ChatGPT web has not passed the complete
-workflow; installation alone does not prove runtime, memory or sending access.
+Public 0.4.1 is available on GitHub and PyPI. The 0.4.2 patch adds explicit
+public-link confirmation for survey answers, clearer invalid-answer errors and
+matching blank-answer rejection at the receiver. See [0.4.2 notes](release-0.4.2.md)
+for release status and checks. Installed-app acceptance must use that final build;
+earlier successful tests do not establish that a new package works in every account.
 
-The dated notes below are historical verification records, not current deployment
-or merge status.
+Eight roles are included: the broad PI supervisor, separate hypothesis reviewer
+and six other research roles. Private decisions, questions and records remain
+separate from optional, reviewed metascience contributions. Analysis can select
+up to 20 relevant conversations per completed week, with workflow gaps as its
+main output and activity categories as supporting data.
+
+The five receiving channels and daily private GitHub reporting are deployed.
+Reports retain full submitted gap wording privately and provide separate aggregate
+output. A Vercel display and LLM-based grouping remain future work. Synthetic
+markers are excluded from ordinary research reporting. The October demo watcher
+has ended; use the [current demo guide](demo-start-here.md).
+
+Use [host support](host-support.md) for account-specific limitations. Free ChatGPT
+web has not passed the complete workflow; installation alone does not prove
+runtime, durable storage or sending access. Invite colleagues to an informal trial
+on a verified route, with no mandatory cohort or follow-up schedule.
+
+All sections below are **historical** records of the original rollout and its
+then-current blockers, not present deployment or merge status.
 
 ## Earlier verification
 

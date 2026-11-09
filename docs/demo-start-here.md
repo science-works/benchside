@@ -1,118 +1,86 @@
-# Benchside colleague demo — 29 October 2026
+# A live Benchside walkthrough
 
-## Use ChatGPT web without uploading
+Use a fresh chat with the latest Benchside package selected. An already installed
+account needs no upload during the demonstration. Check the running version with
+the agent first; reading the GitHub page is not an installation. For a new user,
+give their agent https://github.com/science-works/benchside and follow
+[Getting started](getting-started.md). Accounts differ in installation, execution,
+durable storage and network access; [host support](host-support.md) records what
+has been tested. A local agent with a durable folder is another supported route.
 
-In Will's ChatGPT account, Benchside is already installed. Use the updated 0.3.1
-plugin in a fresh conversation, select **Work**, and select **Benchside** from the
-plugin picker. The agent runs setup and prepares the submission; the presenter
-only talks to it, chooses private storage and reviews what will be shared.
-There is no ZIP upload or receipt-copying step in this installed-account demo.
+## Prepare
 
-Private plugin: https://chatgpt.com/plugins/Plugin_a5f12a7a3860819195a9308479e22ad2
+Use invented research and a separate demo notebook/folder. Verify a save and a
+fresh-chat restore in that account. The host must be able to send an approved
+request to `https://ingest.benchside.science.works`; permission to run Benchside
+and permission to access the network are separate. Keep failed sends pending.
+No Cloudflare or reporting credentials belong in the user's plugin.
 
-This account-private plugin is not a public installation link for colleagues.
-For a colleague using Codex or Claude Code, ask the agent to set up
-https://github.com/science-works/benchside and follow its README. That route needs
-filesystem and execution tools; reading the repository in an ordinary browser
-chat does not install it. A new Claude account currently installs the supplied
-`benchside-claude-plugin-0.3.1.zip` through Customize → Plugins. Public plugin
-distribution remains separate work.
+The normal GitHub import runs daily. It is **not** a real-time watcher and excludes
+registered synthetic submissions. The 29 October demo watchers have ended.
+For an immediate operator check, run the normal **Benchside reporting** workflow
+manually after sending, then check its synthetic exclusions. Showing the full
+synthetic problem in a separate demo report requires an explicitly started demo
+reporting run. Do not remove the test marker or include it in research statistics
+to make a demo appear. Colleagues need private repository access to view reports.
 
-## Before presenting
+## First prompt
 
-Check that the selected plugin reports 0.3.1 and that its execution environment
-can reach the Science Works endpoint. Do not send the marked demo problem during
-a readiness check: the waiting GitHub run ends after its first matching batch.
-A local demo folder outside Git in Codex or Claude Code is an alternative if the
-web account lacks suitable execution or durable storage tools.
+> Please use Benchside's research supervisor (/pi) for a fictional imaging study.
+> None of this is real research. Set up a new separate private project called
+> “Paired imaging — live demo”, explain the available storage and optional sharing
+> choices briefly, and let me choose. I have six donors, with control and treatment
+> samples from each. Each condition has two wells and each well has three images,
+> giving 72 rows. I planned to treat those as 72 independent measurements. Does
+> that make sense? Ask one useful follow-up and take this step by step; don't
+> complete the demonstration for me.
 
-Use only invented research and a separate demo store. The 0.3.1 Claude package
-includes an exact file-transfer route tested with a 52 KB cloud notebook.
-It also enforces Claude Docs' smaller block limit. Use it only after updating
-the installed package, and verify a save and a fresh-chat restore beforehand.
-A local folder in Codex or Claude Code remains an available route using the
-existing runtime. If a save fails, call it unsaved; do not treat chat history as
-proof of persistence.
+Discuss the pairing and nested measurements. The supervisor should support this
+without inventing a hypothesis or requiring one before giving useful advice.
 
-The host needs permission to reach `https://ingest.benchside.science.works` for
-an approved send. If network access is disabled, leave the preview pending;
-never claim that it reached Cloudflare or weaken host settings automatically.
-This is separate from installing the plugin. No storage/admin credentials go
-into a colleague's plugin.
+## Save and restore
 
-Status checked after Claude's 17:10 tests, 29 October: Claude reports successful
-file-based cloud memory transfer and a live approved feedback submission with
-network egress enabled, "Package managers only", and only
-`ingest.benchside.science.works` added to the domain allowlist. Both browser and
-Claude Code feedback receipts were independently found in R2 and excluded from
-research reporting. These tests did not consume the demo marker. Other accounts
-need their own capability check. The updated installed plugin still needs a
-save/restore check after the reviewed rebuild. Do not change another user's
-network settings silently.
+> Record our decision to check donor, condition and channel mapping before
+> analysis. Keep open whether to aggregate wells/images or model them.
 
-Open the waiting GitHub run in the presenter's account:
-https://github.com/LauraRyanSW/tools-science-works/actions/runs/40906605042
-It waits until **19:00 UK time today**, ends after the first matching submission,
-and shows the result after refreshing the page. Colleagues need repository
-access to open the private report themselves, but the presenter can show it.
+Wait for a verified save. In a fresh chat, select that same demo notebook/project
+and ask what was decided and what remains open, without repeating the answer.
 
-## Paste this first
+## Introduce a workflow problem
 
-I'd like to use Benchside for a fictional imaging study. None of this is real
-research. Help me set up a new separate private demo project, briefly explain
-the available storage and optional sharing choices, and let me choose.
+> Another fictional issue: DemoScope version 1.4 sometimes drops channel labels
+> when I export images. I spend about 20 minutes restoring them manually each
+> week. I'd like exports to preserve those labels. Please record this workflow
+> problem. When we review it for sharing, start its primary task description with
+> this exact registered test marker:
+> SYNTHETIC-DEMO-d653ecd34c032c939fd2e8c8:
+> Only this invented problem should go into the submission.
 
-I have six donors, with control and treatment samples from each. Each condition
-has two wells and each well has three images, giving 72 rows. I was planning to
-treat those as 72 independent measurements. Does that make sense? Ask one useful
-follow-up and take this a step at a time, rather than completing the demo for me.
+Opt into problem sharing after its explanation, leaving other channels off for
+this short demo. Review the exact proposed payload and destination. Keep the
+marker, public tool version, workaround and impact; omit donor counts, research
+questions, hypotheses and sample details. Approve only after reading the preview.
+The agent sends it and shows the receipt; no manual receipt transfer is part of
+ordinary collection. A generated receipt or a confident chat answer is not proof
+of delivery: the operator checks the matching stored bytes/digest.
 
-## Introduce this problem later
+## Where data appears
 
-Another fictional issue: DemoScope version 1.4 sometimes drops channel labels
-when I export images. I spend about 20 minutes restoring them manually each week.
-I'd like the export to preserve those labels. Please record the workflow problem.
-When we review it for sharing, start its task description with this exact test
-marker: SYNTHETIC-DEMO-d653ecd34c032c939fd2e8c8:
-Only this invented problem should go into the demo submission.
+Research discussion → private records → reviewed workflow problem → HTTPS
+receiver → private Cloudflare storage → daily GitHub import.
 
-## Natural next steps
+In **LauraRyanSW/tools-science-works → Actions**, the reporting run produces
+`benchside-private-analysis` (full submitted problems and optional context),
+`benchside-public-summary` (aggregate counts), and an encrypted checkpoint for
+incremental imports. These are downloadable run artifacts, not raw-data commits.
+Registered synthetic submissions are excluded from these research outputs.
+The aggregate output may be proposed through a separate review PR; private research
+text and raw submissions do not become public repository files.
 
-- Discuss pairing/nesting and agree on a sensible next step.
-- Say “Record our decision to check donor, condition and channel mapping before
-  analysis; keep open whether to aggregate wells/images or model them.” Wait for
-  a verified save, if the chosen storage supports one.
-- Opt into problem sharing after its explanation. Leave other channels off for
-  this short demo. Ask to see the proposed problem report.
-- Check the marker, version, workaround and impact. The report should omit donor
-  counts, scientific questions and sample details. Approve only after reading it.
-- When the receipt arrives, refresh the waiting GitHub run. It should show the
-  new problem within roughly 15–30 seconds, subject to network/runner availability.
-  There is no receipt-copying step. If no matching report appears, check that the
-  exact marker starts the primary gap text and that the send actually succeeded.
+The reporting code computes counts; it does not use an LLM to group similar
+problems. It retains each problem's full submitted wording privately. LLM analysis
+and the Vercel display remain later work. Describe them as future steps, not part
+of the live demonstration.
 
-## What the audience is seeing
-
-Research discussion → private records → reviewed workflow problem → receiving
-API → private Cloudflare bucket → automatic GitHub summary and downloadable report.
-The Vercel view is later work. The reporting workflow computes summary counts
-and retains each complete submitted problem separately, without summarising its
-wording or combining matching descriptions. Related problems are not yet grouped
-by an LLM. Optional context is retained privately; public-ready reporting remains
-aggregate only. The extended watcher uses the individual-observation format and
-retains the full wording and context of the demo problem.
-
-[Successful automatic rehearsal](https://github.com/LauraRyanSW/tools-science-works/actions/runs/40877962796)
-provides a fallback example, clearly labelled as an earlier synthetic test.
-
-## Where the result appears
-
-Open **LauraRyanSW/tools-science-works → Actions → Benchside synthetic demo →
-the waiting run → Summary**. The readable job summary shows each complete
-synthetic problem. Under **Artifacts**, `benchside-synthetic-demo` contains
-`synthetic-demo.json` and `synthetic-demo.md`. These are run outputs, not commits.
-
-The watcher recognises only the exact marker at the start of every primary
-problem description. Ordinary submissions stay out; a mixed marked/unmarked batch
-stops for review. Normal research reporting always excludes registered demo
-markers, including submissions arriving after the demo window.
+For earlier evidence, see [the historical October demo](live-demo.md). Its timed
+runs and artifacts are historical and may no longer be downloadable.

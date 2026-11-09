@@ -1,6 +1,6 @@
 [project]
 name = "benchside"
-version = "0.4.1"
+version = "0.4.2"
 description = "Research colleagues with private project memory and optional workflow reporting."
 readme = "docs/package-description.md"
 license = "Apache-2.0"
