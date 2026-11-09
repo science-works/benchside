@@ -6,11 +6,12 @@ arrives. The rollout is informal; no fixed cohort or required follow-up session.
 
 ## Current release work — 9 November 2026
 
-Public 0.4.1 is available on GitHub and PyPI. The 0.4.2 patch adds explicit
+Public 0.4.2 is available on GitHub and PyPI. This patch adds explicit
 public-link confirmation for survey answers, clearer invalid-answer errors and
-matching blank-answer rejection at the receiver. See [0.4.2 notes](release-0.4.2.md)
-for release status and checks. Installed-app acceptance must use that final build;
-earlier successful tests do not establish that a new package works in every account.
+matching blank-answer rejection at the deployed receiver. See the
+[0.4.2 notes](release-0.4.2.md) and [9 November verification](acceptance-2026-11-09.md)
+for completed checks and remaining installed-app acceptance. Earlier successful
+tests do not establish that a new package works in every account.
 
 Eight roles are included: the broad PI supervisor, separate hypothesis reviewer
 and six other research roles. Private decisions, questions and records remain
