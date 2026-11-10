@@ -10,6 +10,8 @@
 
 Bring a half-formed question, a puzzling result or a paper you want to discuss. Benchside gives your assistant eight scientific roles and keeps a record of what **you** decided, what evidence you used and what’s still open. In a new chat, you can pick up the same project.
 
+Benchside is built by **Science Works, a nonprofit research and policy studio** studying how researchers use AI and what tools would make their work easier.
+
 ## Try it
 
 Paste this into your agent:
@@ -43,15 +45,29 @@ Ask in your own words. You don’t need to know a command or have a hypothesis t
 | Does this paper’s evidence support its conclusion? | Journal-club discussant |
 | What would a reviewer ask me to revise? | Scientific peer reviewer |
 
-## What stays private?
+## Where does my notebook live?
 
-Your project journal lives in the notebook or folder you choose, outside Git. Local projects have a [readable record](docs/readable-records.md) in ODT, Markdown or both. **Science Works does not receive your notebook.**
+You choose during setup. **Science Works does not receive your notebook.** Your decisions, findings and open questions stay in the project record you control.
 
-Sharing is off by default. If you want to help Science Works study what slows researchers down, you can review and send a workflow problem, such as a tool dropping labels on export, without sharing your scientific findings. Contributions use a random contributor ID. Feedback, usage counts, surveys and analysis of selected conversations are separate choices. [How participation works →](docs/getting-started.md#optional-sharing)
+- **On your computer:** choose a folder and read the journal as an ODT document, Markdown or both.
+- **In your AI app:** use a private Claude Doc or ChatGPT Page if your account can save and reopen it.
+- **In a connected service:** use a document store such as Google Docs if your agent has a connector that can safely update it. Benchside checks this before relying on it.
+
+To continue in another app, point it at the same folder or notebook. Both apps need access; their accounts don’t sync automatically. Saving locally doesn’t change how your AI provider processes the chat. [More about your records →](docs/readable-records.md)
+
+## Help other researchers
+
+A useful community contribution can be as simple as: *“Our image exporter drops channel labels. We save a separate label table and reattach it after export.”* That tells us what broke and what helped, without revealing what the images show.
+
+**Sharing is optional and off by default.** If you choose to contribute a workflow problem, you see the exact report and can edit it, skip it or send it to Science Works. Reports use a random contributor ID so we can connect contributions from the same notebook or folder. Your raw chats and scientific findings aren’t part of the report.
+
+With permission, we use these reports to study recurring problems in scientific workflows and decide what software to build. You can separately opt into usage counts, feedback, surveys or analysis of selected conversations to help us understand **how researchers use language models**. You can change your choices later. [How participation works →](docs/getting-started.md#optional-sharing)
+
+Our [community goal](docs/community.md) is for the next researcher who hits the same problem to find a workaround someone else has tried. You can contribute a workaround today; a searchable collection is planned. Sending a research report doesn’t publish it.
 
 ## Get involved
 
-Have an idea for a scientific role? [Propose it or open a PR](CONTRIBUTING.md). Our [community plans](docs/community.md) include helping researchers find tools and workarounds others have tried. If you use Benchside in published work, please cite [the release you used](https://github.com/science-works/benchside/releases).
+Have an idea for a scientific role? [Propose it or open a PR](CONTRIBUTING.md). If you use Benchside in published work, please cite [the release you used](https://github.com/science-works/benchside/releases).
 
 [Live demo guide](docs/demo-start-here.md) · [How Benchside works](ARCHITECTURE.md) · [Developer guide](docs/getting-started.md#developer-packaging) · [Apache 2.0 licence](LICENSE)
 
