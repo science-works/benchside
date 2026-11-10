@@ -200,6 +200,13 @@ project should receive those hooks. Automatic legacy init still requires a
 regular `.claude/settings.json` file; manually adding hooks does not complete
 Benchside's remaining setup steps.
 
+For the terminal workflow, `bench sitting --help` lists ways to open, resume and
+close a discussion. Use `bench recall` to revisit a project and `bench journal
+--help` for journal views. `bench share --help` covers consent, preview, send and
+receipt history; the [sharing guide](../content/claude/bench-share/SKILL.md)
+has examples. A local CLI journal and an app notebook are separate stores;
+installing the shared skill does not migrate records between them.
+
 ## Optional sharing
 
 During first setup, Benchside asks whether you would like to contribute to
@@ -258,6 +265,9 @@ For maintainers, build the distribution from the current source:
 ```bash
 uv sync --frozen
 uv run bench compile
+uv run pytest
+uv run ruff check benchside scripts content/app/scripts
+uv run bench compile --check
 uv build --wheel
 uv run --with pip python scripts/build_release.py
 ```
@@ -274,6 +284,13 @@ a new endpoint. The OpenAI manifest declares the packaged onboarding skill using
 [OpenAI's supported setup entry](https://developers.openai.com/plugins/build/plugins).
 
 ## One central receiving service
+
+The public [Benchside repository](https://github.com/science-works/benchside)
+contains everything needed to install the roles and keep a private journal.
+For Science Works maintainers, two separate repositories cover what happens
+after a researcher approves a contribution: [benchside-ingest](https://github.com/science-works/benchside-ingest)
+validates and stores submissions, and [tools-science-works](https://github.com/LauraRyanSW/tools-science-works)
+runs the reporting import. Researchers do not need access to either repo.
 
 Every production installation—Git, terminal, Claude or OpenAI—uses the same
 Science Works HTTPS API at `https://ingest.benchside.science.works`. An HTTPS API

@@ -1,9 +1,29 @@
 # Why Benchside, and where it could go
 
-Benchside helps researchers think through scientific problems and keep a private
-record they can return to. It also lets willing researchers share reviewed,
-generalised workflow problems so Science Works can understand what support is
-missing. Sharing is optional; private research support works without it.
+Science Works is a nonprofit research and policy studio. We build Benchside for
+two related reasons: to give researchers a private place to think through their
+work, and to learn, from people who choose to contribute, where scientific
+workflows break down and how language models are being used in research.
+
+## What a contribution can do today
+
+A researcher can describe a problem with a public tool or dataset and include
+the version, how often it happens, what it costs them and a workaround they’ve
+tried. Even “I haven’t found a workaround” helps us see where software is
+missing. We use these reports to guide metascience research and the tools we
+build. The researcher reviews the exact wording before it goes to Science Works.
+
+For example, the useful detail might be that an image exporter loses channel
+labels and a separate label table preserves them. The images, their biological
+meaning and the lab’s decision about its next experiment belong in the private
+notebook. They don’t belong in that report.
+
+People can also opt into feedback, usage counts, surveys or private analysis of
+selected research conversations. Raw conversation logs are not submitted.
+Survey participants agree before answering; their answers do not need a second
+approval. New contributions can be linked by a random ID for the chosen store.
+See [participation choices](getting-started.md#optional-sharing). All scientific
+roles remain available when sharing is off.
 
 ## Contribute a research role today
 
