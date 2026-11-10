@@ -41,4 +41,5 @@ links, other sensitive text, consent withdrawal, duplicate receipts and invalid
 answers. Receiver tests exercise HTTP rejection and absence of stored objects.
 All package formats must pass extracted-runtime save/restore checks before release.
 Live installed-app acceptance and production receipt checks are separate from
-those automated tests; see the dated acceptance report when complete.
+those automated tests; see the [dated verification report](acceptance-2026-11-09.md)
+for completed checks and remaining work.
