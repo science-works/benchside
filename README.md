@@ -55,15 +55,15 @@ You choose during setup. **Science Works does not receive your notebook.** Your 
 
 To continue in another app, point it at the same folder or notebook. Both apps need access; their accounts don’t sync automatically. Saving locally doesn’t change how your AI provider processes the chat. [More about your records →](docs/readable-records.md)
 
-## Help other researchers
+## Share workarounds and support metascience
 
-A useful community contribution can be as simple as: *“Our image exporter drops channel labels. We save a separate label table and reattach it after export.”* That tells us what broke and what helped, without revealing what the images show.
+Researchers in different labs often lose time solving the same problem. We want a workaround that helps one lab to be easy for the next lab to find. When people keep getting stuck, and there’s no good workaround, that helps Science Works decide what software should be built. Building this shared, searchable collection of problems and workarounds is part of our [community plans](docs/community.md). We’d love you to help shape it!
 
-**Sharing is optional and off by default.** If you choose to contribute a workflow problem, you see the exact report and can edit it, skip it or send it to Science Works. Reports use a random contributor ID so we can connect contributions from the same notebook or folder. Your raw chats and scientific findings aren’t part of the report.
+**Sharing is optional and off by default.** If you choose to contribute a workflow problem, you see the exact report and can edit it, skip it or send it to Science Works. Reports use a random contributor ID so we can connect contributions from the same notebook or folder. Your raw chats and scientific findings are never part of the report, and you review everything in it before sending.
 
-With permission, we use these reports to study recurring problems in scientific workflows and decide what software to build. You can separately opt into usage counts, feedback, surveys or analysis of selected conversations to help us understand **how researchers use language models**. You can change your choices later. [How participation works →](docs/getting-started.md#optional-sharing)
+For example: *“My spreadsheet kept turning sample IDs into dates. Importing that column as text fixed it.”* Someone else can use that tip without seeing any proprietary data.
 
-Our [community goal](docs/community.md) is for the next researcher who hits the same problem to find a workaround someone else has tried. You can contribute a workaround today; a searchable collection is planned. Sending a research report doesn’t publish it.
+With permission, we study these reports to understand where scientific workflows break down. You can separately opt into usage counts, feedback, surveys or analysis of selected conversations to help us understand **where language models help researchers and where they fall short**. You can change your choices later. [How participation works →](docs/getting-started.md#optional-sharing)
 
 ## Get involved
 
