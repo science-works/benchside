@@ -13,6 +13,9 @@
     "developerName": "Science Works",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "Set up Benchside for my research project."
+    "defaultPrompt": "Set up Benchside for my research project.",
+    "brandColor": "#0E7C86",
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png"
   }
 }

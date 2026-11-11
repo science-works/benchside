@@ -4,5 +4,6 @@
   "description": "Scientific colleagues with private project records and optional research-workflow reporting.",
   "author": {
     "name": "Science Works"
-  }
+  },
+  "icon": "./assets/logo.png"
 }
