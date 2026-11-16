@@ -8,8 +8,10 @@ or repeated upload/download is involved. Never send the notebook to the collecto
 ## Layout and discovery
 
 In ChatGPT, use a private **Benchside** Space, a **Benchside private memory** Page,
-and one readable journal Page per research project. In Claude, use the equivalent
-private native Docs and an index document when folders are unavailable. Discover
+and one readable journal Page per research project. In Claude, use a private
+file artifact when its exact file tools are available, or native Docs when their
+file bridge passes the checks below. Both keep records in the Claude account.
+Use an index document when folders are unavailable. Discover
 existing documents using the host's native list/search tools before creating any.
 If several notebooks or projects match, let the researcher choose; never select
 by a title alone. A renamed document retains its identity.
@@ -68,6 +70,13 @@ assuming them.
   with `edit_page` / `replace_block_markdown`, passing `expected_hash` from the
   read. Omit `base_sequence` if the read did not return `through_sequence`.
   Use ordinary Markdown, not Agent Instructions. Inspect every operation receipt.
+- **Claude private file artifacts:** the 16 November investigation verified
+  exact file reads, file-backed writes and rejection of stale writes for ordinary
+  artifacts (`made_from_type:false`). This is a different tool route from Docs,
+  using the same Benchside snapshot and runtime. See
+  [Claude file memory](claude-file-memory.md) for the tool contract, privacy,
+  project locators and conflict handling. Inspect capabilities in this account
+  first. Never convert or replace an existing Docs notebook automatically.
 - **Claude Docs:** create, readback, guarded update and fresh-chat discovery were
   verified on 23 October 2026; exact file transfer on 29 October. Inspect the
   actual tool schemas and guide in the current account before using them.
@@ -112,9 +121,9 @@ assuming them.
     preserve the versions for explicit recovery. Each save attaches its export
     and upload files to the doc; this is expected. Never write through an
     unguarded artifact update.
-  - Without these file tools the only route is retyping the payload inline. That
-    is experimental: explain it before offering Claude Docs, and stop rather than
-    retry after a checksum failure.
+  - Without the Docs file bridge, offer a verified private file artifact or other
+    chosen store. Retyping an encoded payload inline is experimental, not a
+    dependable fallback; stop rather than retry after a checksum failure.
   The installed review plugin also passed methods-role recording, fresh-chat
   discovery/resumption and project isolation in this account on 23 October.
   If another account lacks these operations, explain the missing capability

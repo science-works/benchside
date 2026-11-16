@@ -126,7 +126,7 @@ refused the shared-notebook save, interpreting it as changing the earlier projec
 the agent supplied an unchanged-recall comparison and completed the guarded save.
 This is a host approval friction point, not a relaxed save or consent guard.
 
-### Claude: research/report behaviour passed; fresh-chat memory blocked
+### Claude Docs: research/report behaviour passed; fresh-chat memory blocked
 
 The first attempted upload left the old public 0.4.2 package installed. After the
 user uploaded the distinctly named review ZIP, the plugin displayed
@@ -199,9 +199,8 @@ calling this Claude Docs route dependable.
 Remaining limits and follow-up:
 
 - Claude Docs fresh-chat restore remains blocked in this account's current tool
-  surface. Same-chat writes and previews do not remove that limitation. A revised
-  package should retain the new capability check and must pass fresh-chat restore
-  on its selected store before being recommended for persistent research records.
+  surface. The later investigation below verifies a separate private file-artifact
+  route; it does not repair Docs transfers or migrate existing notebooks.
 - ChatGPT's intermediate progress blocks sometimes displayed “This response
   couldn't load”; both final replies and independent stored-state checks succeeded.
 - OpenCode surfaced a stale `0.3.1` label in the parent test project's AGENTS.md.
@@ -215,6 +214,78 @@ Remaining limits and follow-up:
 After the documentation fix, 636 client tests passed under the sandbox. The sole
 remaining test needed to bind a localhost proxy; it passed when rerun with that
 permission (637 total). The three generated-role instruction checks also passed.
+
+## Claude memory investigation and file-artifact repair
+
+The historical 4 November restore chat contains an execution command that reads
+the downloaded Markdown export from `scratchpad/artifact-files/<slug>/<asset>.md`
+and extracts the state block. That verifies the earlier implementation really
+did receive a file. The current Docs tools return inline content; neither their
+blob export nor `read_asset` materialised a file in the current session. The
+ordinary artifact `read_file(paths)` tool refuses typed Docs. This is a host
+integration difference, not evidence that the saved notebook was corrupted.
+
+A separate **owner-only ordinary file artifact** now provides the missing exact
+transfer. `read_file` with plural `paths` returns resources the host saves as
+local files; `publish_files` uploads candidate files with a `base_version` guard.
+Both use Benchside's existing snapshot/runtime. The repair adds account-capability
+discovery and a Claude-specific reference; it does not change snapshot schemas,
+runtime persistence, permissions, consent, or the Science Works collector.
+
+The first test saved a decision and open question at native revision 1. Actual
+fetched bytes matched the candidate, and `native.confirm` returned `saved:true`.
+A deliberately outdated write returned HTTP 409 / `conflict:true` / “Nothing was
+published”; reread showed the same valid revision and file hash. A separate chat,
+given only the artifact URL and transfer instructions, fetched the file anew and
+restored both records through `native.inspect` and `recall` without being supplied
+their contents. It found owner-only access and did not write anything.
+
+The larger live exercise then created a second synthetic project using its
+server-returned journal-file URI. A 15-step native batch grew the snapshot to
+64,452 bytes with 12 code-generated notes containing Unicode and a random marker.
+Every fetched file matched its candidate; revisions 2 and 3 passed
+`native.confirm`. The final state file is 64,736 bytes (about 63 KiB), with
+snapshot digest `01a8d288a000a0d0f39a218302d42fee856d1e420c68be0d4f4da7ca60affb37`.
+Project A's recall remained JSON-identical; project B's 12 notes matched the
+original hashes and contained none of A's record IDs. Both readable journal files
+were refreshed and fetched with matching byte hashes. A later state write used
+the version returned by the journal update and passed without conflict. The
+five guarded publishes took approximately 2 minutes 52 seconds including reads
+and runtime checks; runtime calls took 0.46–0.62 seconds. These are one account's
+test timings, not a latency guarantee.
+
+A second fresh chat then restored the final 64,736-byte notebook and fetched both
+journals. It independently recovered A's one decision/one question and B's two
+decisions/one question/12 notes, the exact random marker and Unicode text. File
+hashes, native revision 3 and its snapshot digest matched the writer's results;
+artifact version `1794846531-d135` was unchanged before/after. All five participation
+options remained off. No cloud writes or submissions occurred in that chat.
+The model's first Unicode diagnostic printed an unnecessarily large set of
+synthetic tokens to its tool output; it corrected the diagnostic to counts and
+short tokens. This was test-only data and does not invalidate byte verification,
+but a future test should compute such assertions in code without verbose output.
+
+The private review.3 archive contains the new guidance and wheel SHA-256
+`251b2e64d769fcadc4e07ab5976331053738e64d67ce0ed032a74fdce4bb1a95`.
+All 97 focused native/recording tests, lint and generated-role checks passed;
+the rebuilt Claude archive passed the offline cold-install smoke check, including
+all eight roles and fresh-process native restoration. The live exercises above
+used installed review.2 plus explicit integration guidance. The automated upload
+of review.3 was blocked by the Chrome extension's file-access setting, so these
+are not yet proof of automatic route selection from the final installed package.
+
+Private evidence:
+[investigation and write tests](https://claude.ai/chat/1349ff0a-73a6-4f31-9774-00e861b6ea6c),
+[independent small-notebook restore](https://claude.ai/chat/16199034-ccc3-4434-969b-e8ca52520824),
+[independent large-notebook restore](https://claude.ai/chat/bafdfd5a-1a7d-438b-9a34-a23f455a7c60),
+[synthetic file notebook](https://claude.ai/artifact/F1uk2QfaLtopcAaQCW3w3o).
+The original synthetic Docs state remains unchanged. Its investigation created
+an export attachment, but did not overwrite its notebook block.
+
+Existing Docs users must keep their original notebook until an exact export and
+explicitly chosen migration can be verified. Creating a fresh file artifact is
+not recovery of old records. All files in the new artifact are private, including
+the state file; hiding it from an index would not make sharing the artifact safe.
 
 ## Compatibility and rollout after review
 
