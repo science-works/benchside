@@ -105,6 +105,12 @@ Capture useful context already given in the conversation. At a natural pause,
 ask at most one short follow-up if it would materially clarify the problem, such
 as what workaround they use. Do not ask a checklist, repeatedly fill missing
 fields, or interrupt the research to complete a report. Missing context is fine.
+Examples in these guides illustrate the schema; they are not evidence about the
+researcher. Do not fill optional impact/frequency fields from an example or a
+likely consequence: a cancelled booking does not establish wasted materials,
+repeated preparation or a measured delay. Omit such details unless reported or
+observed. For `gap`/`notebook.gap`, put `basis` beside `gap` in the request, not
+inside the gap object; preserve known provenance when correcting a validation error.
 Context-bearing legacy gap types use `benchside.gaps.v3`; submissions containing
 `workflow_problem` use v4. The adapter chooses automatically. Older submissions
 keep their supported format.

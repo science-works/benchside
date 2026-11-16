@@ -76,9 +76,75 @@ temporary project, in read-only plan mode:
   as `researcher_tried`, retaining uncertainty about whether it helped.
 
 These are sampled model behaviours, not guarantees for every model or host.
-The changed installed ChatGPT and Claude builds have not been retested live.
 Automatic redaction cannot identify every confidential fact; model review and
 the researcher's exact-payload review remain necessary.
+
+## Installed-app acceptance checks
+
+The user's private ChatGPT plugin and an isolated OpenCode skill installation
+were updated for testing. Review wrappers use `0.4.3-review.2`; the bundled runtime
+still reports the unreleased source version `0.4.2`. The final review wheel SHA-256
+is `fefea55bdae159b9da5de59d40e1f3f0217bf9162c70969239a06c6bd95446e7`.
+This is not a public release or a production receiver deployment.
+
+ChatGPT Work (GPT-6.1 Sol, the existing paid account) saved a synthetic decision,
+its exact rationale and an unresolved question without starting a role. The
+private Pages notebook was independently read and unpacked, with owner-only
+access and no collaborators. A fresh chat, given only the notebook link, restored
+the exact records, all-off sharing preferences and absence of an open consultation.
+It then opened the supervisor role without requiring a hypothesis and prepared
+a general equipment/coordination report with two labels, a verbatim safe excerpt,
+`basis:researcher_reported` and `workaround_status:researcher_tried`. The uncertain
+benefit remained explicit. The stored v4 preview matched the displayed content;
+it was not approved or sent. Deferring in the same chat left the draft pending
+without another sharing prompt or an invented decision.
+
+OpenCode executed the bundled skill against a separate synthetic local store,
+saved the same decision/question outside a role and produced ODT plus Markdown
+reading copies. The free DeepSeek V4.1 Flash model reached its quota before the
+fresh-session check, so that check used the user's already-connected OpenRouter
+DeepSeek V4.1 Flash provider. Fresh recall recovered the exact records and sharing
+state. This is local agent execution with a hosted model, not local model inference.
+
+The first OpenCode supervisor/report run exposed an instruction weakness:
+it put `basis` inside `gap`, removed that provenance after validation failed,
+and copied an example's unreported impact (repeated preparation). Nothing was
+sent. The guide now gives a complete request with top-level `basis`, explains
+how to correct its placement without dropping provenance, removes that example
+impact and explicitly forbids importing example facts or likely consequences.
+A new session and project using the rebuilt package passed: correct provenance
+on the first gap call, multiple labels, no invented impact/hypothesis/benefit,
+an unapproved preview with a matching digest, and valid ODT/Markdown copies.
+The final installed wheel hash and stored draft were independently checked.
+
+ChatGPT also passed a fresh test of the rebuilt package: the manifest hash matched,
+a second project saved and restored at native revision 5, and its stored preview
+kept the correct provenance and uncertain workaround benefit without adding impact
+claims. The earlier project's complete journal was independently compared with
+revision 3 and was byte-identical. The app's automatic approval check initially
+refused the shared-notebook save, interpreting it as changing the earlier project;
+the agent supplied an unchanged-recall comparison and completed the guarded save.
+This is a host approval friction point, not a relaxed save or consent guard.
+
+Remaining limits and follow-up:
+
+- Claude's existing plugin is still the earlier installed build. Automated upload
+  failed because browser file access was unavailable; the native picker also
+  failed. The review ZIP is ready, but live Claude save/restore and report checks
+  require the user's manual upload. Earlier Claude tests do not verify this build.
+- ChatGPT's intermediate progress blocks sometimes displayed “This response
+  couldn't load”; both final replies and independent stored-state checks succeeded.
+- OpenCode surfaced a stale `0.3.1` label in the parent test project's AGENTS.md.
+  The actual manifest and recomputed wheel hash correctly identified the build;
+  the parent test setup was not modified.
+- These are focused installed-app checks, not a new live evaluation of every role,
+  all account tiers or model providers. The eight-role checks remain automated.
+- No v4 payload was sent to production. Receipt/storage/import remain covered by
+  the receiver/reporting emulator tests until those companion PRs are deployed.
+
+After the documentation fix, 636 client tests passed under the sandbox. The sole
+remaining test needed to bind a localhost proxy; it passed when rerun with that
+permission (637 total). The three generated-role instruction checks also passed.
 
 ## Compatibility and rollout after review
 

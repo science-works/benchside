@@ -144,18 +144,43 @@ integration test. The project source and researcher journals are separate.
 
 ## General workflow problems
 
-New observations use this format (in `gap`, `notebook.gap` or `metascience.gap`):
+New observations use `kind:"workflow_problem"`. This complete request shows the
+field placement for recording outside a role; substitute the actual project and
+session IDs. The example assumes the researcher explicitly said the quoted
+sentence and described trying the workaround. Never copy example facts into a
+real report.
 
 ```json
-{"kind":"workflow_problem","description":"Shared instrument bookings are repeatedly cancelled.","labels":["equipment_access","coordination"],"deidentified_excerpt":"The booking for [redacted] was cancelled twice.","context":{"frequency":"Twice this month","impact":"Preparation had to be repeated","workaround":"Check availability before preparation"},"workaround_status":"researcher_tried"}
+{
+  "action": "notebook.gap",
+  "project_id": "<returned project ID>",
+  "session_id": "<returned session ID>",
+  "basis": "researcher_reported",
+  "gap": {
+    "kind": "workflow_problem",
+    "description": "An instrument booking was cancelled after materials were prepared.",
+    "labels": ["equipment_access", "coordination"],
+    "deidentified_excerpt": "The booking was cancelled after I prepared materials.",
+    "context": {
+      "workaround": "Tried confirming availability the day before; benefit unknown."
+    },
+    "workaround_status": "researcher_tried"
+  }
+}
 ```
 
-Only `kind` and `description` are required. `labels` may be empty or include
+Within `gap`, only `kind` and `description` are required. `labels` may be empty or include
 `other` or new descriptive text; they never control acceptance or permission.
 `deidentified_excerpt` and `workaround_status` are optional. Follow
 [sharing](sharing.md) for provenance, excerpt redaction and exact review.
 `gap` and `notebook.gap` optionally take `basis` (`researcher_reported`,
-`model_inferred`, `unknown`) beside the gap. No raw logs are sent.
+`model_inferred`, `unknown`) at the request's top level, **beside** `gap`, never
+inside it. For an active role use `action:"gap"` and add its `sitting_id`;
+`metascience.gap` uses its documented week/token envelope with `basis` beside
+`gap`. If validation rejects misplaced `basis`, move it to the correct level;
+do not discard known provenance or change it to `unknown` to get past an error.
+Omit unreported context. Cancellation after preparation does not establish that
+materials were wasted or preparation repeated. No raw logs are sent.
 Legacy gap objects below remain supported for saved integrations.
 
 ## Recording
