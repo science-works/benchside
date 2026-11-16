@@ -249,7 +249,9 @@ snapshot digest `01a8d288a000a0d0f39a218302d42fee856d1e420c68be0d4f4da7ca60affb3
 Project A's recall remained JSON-identical; project B's 12 notes matched the
 original hashes and contained none of A's record IDs. Both readable journal files
 were refreshed and fetched with matching byte hashes. A later state write used
-the version returned by the journal update and passed without conflict. The
+the version returned by the journal update and passed without conflict. **This
+was a single-writer test, not evidence that mixing a new metadata version with
+cached notebook bytes is safe. The review follow-up below corrects that hazard.** The
 five guarded publishes took approximately 2 minutes 52 seconds including reads
 and runtime checks; runtime calls took 0.46–0.62 seconds. These are one account's
 test timings, not a latency guarantee.
@@ -287,6 +289,99 @@ explicitly chosen migration can be verified. Creating a fresh file artifact is
 not recovery of old records. All files in the new artifact are private, including
 the state file; hiding it from an index would not make sharing the artifact safe.
 
+## Claude review follow-up at `bc6901b`
+
+The independent 16 November review raised eleven findings. Its synthetic
+`repro_version.py` was rerun: the old instruction sequence accepted a stale
+notebook and `native.confirm` passed even though B1 had disappeared. The important
+distinction is that a matching checksum verifies what was saved, not whether an
+intervening writer's records were preserved.
+
+| Finding | Change and verification |
+| --- | --- |
+| 1. Journal refresh can lose another writer's state | Keep exact state bytes and the artifact guard paired. Journal/index writes use that paired guard; conflict or ambiguous outcome requires a fresh state read and reconciliation. Three real-runtime/fake-CAS regressions cover another writer before readback, before journal refresh, and before the next state write. All retain A1, B1 and A2. |
+| 2. Partial sharing reoffers a left-out problem | Remember offered observation IDs per project. A shrinking pending set produces no new offer; a newly recorded problem does. Explicit review of earlier items remains available. |
+| 3. One scrub-invalid problem blocks every preview | Validate scrubbed observations separately; withhold an invalid one with its ID and an editing instruction. Tests cover collapsed URL labels and a description that grows beyond its limit after email scrubbing, alongside a valid report. No raw/private record is rewritten. |
+| 4. Aggregate report exposes custom label text | Count suggested labels and one `custom_label` bucket per observation. Private input retains the exact custom labels; aggregate JSON and Markdown do not print them. |
+| 5. Fresh-chat discovery lacks a concrete mechanism | Document owner-scoped artifact list/search, the default title, metadata/privacy checks, actual state-file discovery and project-index validation. A fresh live chat found the synthetic file notebook without a URL; see evidence below. |
+| 6. Existing Docs users have no stated interim route | Explicitly pause recording for the affected existing project and label new checkpoints unsaved. Preserve its authoritative Doc; a separately chosen new project may use a new store. Exact export/migration is still required to move an existing project. No server-side migration capability has been verified. |
+| 7. Offer and preview cover different projects | Return the exact newly offered IDs and require `sharing.preview` with `only` set to that selection. A two-project regression confirms the preview contains only the offered project's selected problem. |
+| 8. Unlabelled count includes legacy gaps | Restrict `workflow_unlabelled` to `workflow_problem`. A mixed legacy/v4 report checks this. |
+| 9. README recommends the blocked Docs route | Point new Claude users to a verified private file artifact and preserve existing Docs. |
+| 10. Source manifest has an intermediate build hash | Restore the published manifest from `main`. Review archives have their own freshly computed wheel hashes below; the source manifest is not a claim that a review wheel is a public release. |
+| 11. Notebook decision duplicates a domain rule | Use `Project.record_decision(Decision(...))`, including the empty initial project. Regressions preserve project boundaries and reject empty/unknown supersession without writing. |
+
+The confirmed code failures were reproduced before their fixes. **649 client
+tests pass**, including the synthetic localhost-proxy test. Lint, generated-role
+checks and whitespace checks pass. New compatibility tests open a legacy v5
+fingerprint-based offer without changing it on read, then migrate it on check-in
+without changing scientific records. Forged v4/v5 envelopes containing the new
+offer state are refused. The previous review.3 wheel also refuses a real new v6
+snapshot with `native_update_required`.
+
+The old whole-set fingerprint cannot reconstruct which items were left out after
+a partial submission. Its one-time migration therefore marks the currently
+pending, consent-covered items as already offered. This may suppress one reminder
+for material added before migration; it does not send, delete, hide from explicit
+review, or change consent for any observation.
+
+Private review.4 builds contain wheel SHA-256
+`f83d28da9b4e0e4bd21aabd4647173b91a93b673e79021e646522f9354c4636b`.
+The wheel's 179 source/content files and all three ZIPs' generated instructions
+were compared byte-for-byte with the branch. Bundled dependency hashes were
+checked. Claude, portable/OpenAI, and ChatGPT-update ZIPs each passed the offline
+cold-install smoke test: all eight roles saved/restored across fresh processes,
+local ODT/Markdown views, native snapshots, batch replay and corrupted-dependency
+refusal. All collection endpoints were disabled. The Python version remains
+0.4.2 until a reviewed release: identify these
+private builds by wrapper version **0.4.3-review.4** and wheel hash, not the Python
+version alone.
+
+### Live discovery and remaining coverage
+
+A fresh [Claude test chat](https://claude.ai/chat/b9c11511-0547-47df-a8b3-5e5689890b54)
+was given no artifact URL or slug and instructed not to read older chats. An
+owner-scoped Benchside search found 17 synthetic candidates, including one ordinary
+file artifact. Claude checked owner-only access and actual files, fetched the
+64,736-byte state file, matched its server SHA-256, ran `native.inspect`, and
+listed both registered projects without selecting one. The 16 Docs candidates
+were not treated as interchangeable notebooks. No existing cloud state was changed.
+
+The same chat then ran a **live interleaving** against a new owner-only
+[synthetic artifact](https://claude.ai/artifact/PaZXhhZd1cnWXZNRqZLw4X), using two
+separate cached state/version pairs and native session IDs. A saved A1; B saved
+B1. A's old journal guard was rejected with HTTP 409, identifying a changed
+`memory/state.md`. A reread and regenerated the journal. B's old state guard was
+then rejected because that journal update had advanced the whole-artifact version.
+B reread/reran B2 with the same operation ID. Finally A's stale A2 state write
+was rejected; A reread and rebuilt A2 on the state containing B2. All four
+decisions survived, and an A2 replay returned `replayed:true, changed:false`
+without a duplicate. Confirmed state revision 5 used 2,592 file bytes, file SHA-256
+`e7672bf8ceedf7a77c18480038761ed8313ffa8d9fa47d7c3702b62150eb8f50`, snapshot digest
+`7335d16e87927ebea0f93c6e9ceb6ff5fe2f1e24566d19194bc5ed9f57a05ee8`. The final
+journal refresh advanced artifact version to `1794851710-34f1` without changing
+state. All participation choices stayed off, no submission drafts existed, and
+the earlier synthetic file notebook stayed unchanged.
+
+The live error text for a cross-file conflict suggested resending with the `live`
+version. That generic suggestion is unsafe when paired with cached notebook
+content. The corrected guide explicitly forbids taking a newer version from a
+conflict response or metadata without rereading state. The test followed that
+rule instead of the server suggestion. This is a host-guidance fix: Benchside's
+Python runtime has no artifact credentials and cannot enforce the host's chosen
+version. It was tested with deliberate interleavings in one chat, not simultaneous
+independent chats; index updates were not exercised live.
+
+These tests verify discovery and the corrected write sequence with explicit
+test guidance and installed review.2. They are not automatic discovery/route
+selection from an installed review.4
+package. The current Docs exact-transfer limitation is still unresolved. ChatGPT
+and OpenCode were not rerun live for this follow-up; their earlier review.2 tests
+remain historical evidence. No receiver/reporting repository or production
+endpoint was changed or exercised in this follow-up. The wire format is unchanged
+from the existing v4 PR contract. Solution discovery remains in its separate
+worktree.
+
 ## Compatibility and rollout after review
 
 1. Review the companion receiver and reporting changes with this client change.
@@ -296,8 +391,9 @@ the state file; hiding it from an index would not make sharing the artifact safe
 3. Rebuild and release the client/plugins only after those dependencies are ready,
    then perform a synthetic installed-app save/restore and approved submission test.
 
-New features use `benchside.gaps.v4` and, when saved in a native notebook,
-`benchside.native.v5`. Every app sharing such a notebook must update together;
+New reports use `benchside.gaps.v4`. Native notebook actions/broad problems require
+`benchside.native.v5`; the corrected per-observation reminder state requires
+`benchside.native.v6`. Every app sharing such a notebook must update together;
 older apps refuse the newer schema instead of silently losing records. Existing
 notebooks without these features retain their previous format. The source version
 is deliberately not bumped or published as part of this review-only change.

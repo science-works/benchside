@@ -1,6 +1,5 @@
 """One review flow over three independently consented, separately stored channels."""
 
-import hashlib
 import json
 import os
 import uuid
@@ -270,18 +269,31 @@ class SharingFlow:
         grant = self.consent.active_grant()
         if grant is None or self._policy_grant("gaps") != grant.id:
             return {"offer": False}
-        pending = sorted(str(o.id) for o in self.export.observations.list_unshared()
-                         if o.project_id.root == project_id and grant.covers(o.gap))
+        unshared = [o for o in self.export.observations.list_unshared()
+                    if o.project_id.root == project_id]
+        pending = {str(o.id) for o in unshared if grant.covers(o.gap)}
         if not pending:
             return {"offer": False}
-        fingerprint = hashlib.sha256(json.dumps(pending).encode()).hexdigest()
         config = json.loads(project_path.read_text())
         previous = config.get("sharing_offer", {})
-        if previous.get("fingerprint") == fingerprint or previous.get("session_id") == session_id:
+        if previous and "observation_ids" not in previous:
+            # Old review builds retained only a whole-set digest. It cannot tell
+            # which remaining items were declined after a partial submission.
+            # Establish a conservative baseline once; explicit review still works.
+            config["sharing_offer"] = {
+                "observation_ids": sorted(pending), "session_id": previous["session_id"]
+            }
+            atomic_json(project_path, config)
             return {"offer": False}
-        config["sharing_offer"] = {"fingerprint": fingerprint, "session_id": session_id}
+        offered = set(previous.get("observation_ids", [])) & {str(o.id) for o in unshared}
+        new = sorted(pending - offered)
+        if not new or previous.get("session_id") == session_id:
+            return {"offer": False}
+        config["sharing_offer"] = {
+            "observation_ids": sorted(offered | pending), "session_id": session_id
+        }
         atomic_json(project_path, config)
-        return {"offer": True, "channel": "gaps", "pending": len(pending)}
+        return {"offer": True, "channel": "gaps", "pending": len(new), "observation_ids": new}
 
     def prepare(self, channel, *, only=None, edits=None, feedback_id=None, comment=None, week=None):
         grant = self.consent.active_grant() if channel == "gaps" else None
@@ -294,7 +306,9 @@ class SharingFlow:
         if channel == "gaps":
             previews = self.export.previews(only=only, edits=edits)
             if not any(preview.observation_ids for preview in previews):
-                raise ValidationError("No selected, unshared workflow observations to preview")
+                reasons = [reason for preview in previews for reason in preview.redaction_findings]
+                raise ValidationError("No selected, unshared workflow observations to preview"
+                                      + ("; " + "; ".join(reasons) if reasons else ""))
         else:
             if channel not in {"feedback", "usage"}:
                 raise ValidationError("Unknown sharing channel")

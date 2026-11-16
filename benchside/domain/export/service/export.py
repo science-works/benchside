@@ -55,7 +55,8 @@ class ExportService(Service):
         edits = edits or {}
         if set(edits) - {o.id for o in covered}:
             raise ValidationError("Edits must refer to selected observations")
-        withheld = tuple(o.id for o in unshared if o not in covered)
+        withheld = [o.id for o in unshared if o not in covered]
+        redaction_errors = []
         batches, batch = [], []
         for observation in covered:
             gap = edits.get(observation.id, observation.gap.model_dump(mode="json"))
@@ -65,7 +66,17 @@ class ExportService(Service):
             item = {"id": observation.id, "gap": gap}
             if self.contributor_id:
                 item.update(origin=observation.origin, basis=observation.basis)
-            candidate = self.redactor.apply(self._payload(batch + [item]))
+            scrubbed = self.redactor.apply(self._payload([item]))
+            try:
+                item = validate_payload(scrubbed)["observations"][0]
+            except ValidationError:
+                withheld.append(observation.id)
+                redaction_errors.append(
+                    f"Observation {observation.id} withheld: automatic redaction made its "
+                    "text invalid; edit this observation and preview again"
+                )
+                continue
+            candidate = self._payload(batch + [item])
             if batch and (
                 len(batch) == MAX_OBSERVATIONS or len(candidate.encode("utf-8")) > MAX_BYTES
             ):
@@ -75,18 +86,18 @@ class ExportService(Service):
         batches.append(batch)
         result = []
         for items in batches:
-            payload = self.redactor.apply(self._payload(items))
+            payload = self._payload(items)
             if items:
                 validate_payload(payload)
             result.append(
                 ExportPreview(
                     payload=payload,
                     observation_ids=tuple(o["id"] for o in items),
-                    withheld=withheld,
+                    withheld=tuple(withheld),
                     grant_id=grant.id if grant else None,
                     payload_sha256=self._digest(payload),
                     destination=self.sink.destination,
-                    redaction_findings=tuple(
+                    redaction_findings=tuple(redaction_errors) + tuple(
                         f"{f.tier}:{f.category} in {f.field}" for f in self.redactor.scan(payload)
                     ),
                 )

@@ -25,6 +25,29 @@ tool names alone do not prove that files reach the execution environment.
   project was restored. Migration requires an exact export of the existing
   snapshot, validation and verified restoration at the chosen destination;
   model reconstruction from notes is not migration. Keep the source intact.
+  Interim behaviour: say recording for that existing project is paused; continue
+  discussion with new checkpoints explicitly unsaved. Only a separately chosen
+  **new project** may start in a new store. Do not split an existing project's
+  history by silently recreating it there. A user-downloaded Markdown export can
+  be a one-time recovery input if requested and validated; do not promise an
+  untested server-side copy or export-to-file capability.
+
+### Discovery in a new chat
+
+For new installations, title the ordinary artifact **Benchside private memory**.
+This title is a search aid, not identity or access control. On a fresh chat with
+no notebook link, use the discovered artifact list/search operation scoped to the
+current owner's artifacts, searching for `Benchside`. Include older/custom-titled
+Benchside candidates; do not assume a cached path or ordinary chat memory exists.
+Read candidate metadata, then `list_files` for `memory/state.md`, and validate
+candidate snapshots with `native.inspect` to find registered project titles.
+Check privacy before fetching private state. If several notebooks match, show
+their titles/links and ask the researcher which to use. Retain the selected stable
+slug and exact project registration after selection; never silently choose by
+the standard title. If list/search is unavailable or no candidate matches, ask
+for the existing notebook link rather than create a duplicate. An ordinary
+artifact's own title, owner metadata and saved project index are the durable
+discovery mechanism; no undocumented host "setup context" is required.
 
 ## Layout and creation
 
@@ -55,9 +78,10 @@ document ID for a file that has not been created/read. On return, reuse the exac
 saved registration and project ID, including any earlier valid locator convention;
 never rename registrations to match a new example.
 
-Save the artifact URL/slug and state path in the host's private discoverable
-setup context/index. The notebook already indexes project file locators; do not
-copy the encoded snapshot into the index or rely on temporary paths for discovery.
+Give the researcher the artifact link after verified creation. The owner-scoped
+artifact listing above discovers it on return; its snapshot indexes project file
+locators. Do not copy the encoded snapshot into a second index or rely on temporary
+paths for discovery.
 
 ## Read, operate, save, confirm
 
@@ -92,11 +116,16 @@ copy the encoded snapshot into the index or rely on temporary paths for discover
    snapshot SHA-256 are different checks; do not interchange them. A local
    candidate matching an upload digest is not fetched readback.
 5. After confirmation, refresh only the selected project's generated journal
-   from `project_journal.markdown`, using a file patch with the current artifact
-   version. A failed view refresh does not undo a confirmed notebook save.
-   Every file change, including a journal/index update, advances the **whole
-   artifact's version**. Retain its returned version, or reread before the next
-   write; do not reuse the version from before the journal update.
+   from `project_journal.markdown`. Its patch must use **the version paired with
+   the exact confirmed state readback**, not a newer version from metadata or a
+   conflict response. A failed view refresh does not undo a confirmed notebook
+   save. Every file change advances the **whole artifact's version**. Carry the
+   returned version forward with the cached state only after your journal/index
+   patch succeeds against that paired version and leaves `memory/state.md`
+   unchanged. Never refresh the version alone: that would allow an old cached
+   notebook to overwrite another chat's newer state. If any patch conflicts,
+   reread the state file and its version together, reconcile, and regenerate the
+   journal before retrying. After an ambiguous patch response, reread both too.
 
 For `changed:false`, do not publish the notebook. Prefer one `native.batch` and
 one save for justified actions in the same turn; refresh the journal once.
@@ -109,6 +138,11 @@ with the same operation ID. **Do not attach the new version to an old candidate.
 Follow the native guide's bounded retries, generation rules and ambiguous-save
 reconciliation. A newer valid notebook must never be rolled back to satisfy a
 confirmation against an older candidate.
+
+Treat `(exact state file, artifact version)` as an inseparable pair. Example:
+if A confirms V2 and B saves V3, A's journal patch must still use V2 and fail.
+It must not fetch V3, patch its old journal to V4, and combine cached V2 state
+with the V4 guard. A matching post-save checksum cannot detect that lost update.
 
 Test a synthetic decision and open question, exact readback and fresh-chat
 restoration before claiming continuity. A readable journal is a derived view,

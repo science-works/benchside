@@ -31,7 +31,8 @@ CHECKPOINT_SCHEMA = "benchside.native.v2"
 CONTEXT_SCHEMA = "benchside.native.v3"
 RESEARCH_SCHEMA = "benchside.native.v4"
 WORKFLOW_SCHEMA = "benchside.native.v5"
-SCHEMA_ORDER = (SCHEMA, CHECKPOINT_SCHEMA, CONTEXT_SCHEMA, RESEARCH_SCHEMA, WORKFLOW_SCHEMA)
+OFFER_SCHEMA = "benchside.native.v6"
+SCHEMA_ORDER = (SCHEMA, CHECKPOINT_SCHEMA, CONTEXT_SCHEMA, RESEARCH_SCHEMA, WORKFLOW_SCHEMA, OFFER_SCHEMA)
 MAX_DOCUMENT_BYTES = 190_000  # Fits one native Pages edit with room for transport metadata.
 MAX_METASCIENCE_DOCUMENT_BYTES = 48 * 1024
 MAX_STATE_BYTES = 8 * 1024 * 1024
@@ -161,12 +162,20 @@ def _check_files(files):
                 _fail("Invalid native project configuration")
             if "sharing_offer" in data:
                 offer = data["sharing_offer"]
-                if (not isinstance(offer, dict) or set(offer) != {"fingerprint", "session_id"}
-                    or not isinstance(offer["fingerprint"], str)
-                    or not re.fullmatch(r"[a-f0-9]{64}", offer["fingerprint"])
-                    or not isinstance(offer["session_id"], str)
+                if (not isinstance(offer, dict)
+                    or set(offer) not in ({"fingerprint", "session_id"}, {"observation_ids", "session_id"})
+                    or not isinstance(offer.get("session_id"), str)
                     or not HEX.fullmatch(offer["session_id"])):
                     _fail("Invalid native sharing offer")
+                if "fingerprint" in offer:
+                    if not isinstance(offer["fingerprint"], str) or not re.fullmatch(r"[a-f0-9]{64}", offer["fingerprint"]):
+                        _fail("Invalid native sharing offer")
+                else:
+                    ids = offer["observation_ids"]
+                    if (not isinstance(ids, list)
+                        or any(not isinstance(i, str) or not i or len(i) > 128 for i in ids)
+                        or len(ids) != len(set(ids))):
+                        _fail("Invalid native sharing offer identifiers")
             if "title" in data and (
                 not isinstance(data["title"], str)
                 or not 1 <= len(data["title"]) <= 160
@@ -316,7 +325,26 @@ def _has_workflow_features(value):
     return False
 
 
+def _has_item_offers(value):
+    if isinstance(value, dict):
+        offer = value.get("sharing_offer")
+        return (isinstance(offer, dict) and "observation_ids" in offer) or any(
+            _has_item_offers(v) for v in value.values()
+        )
+    if isinstance(value, list):
+        return any(_has_item_offers(v) for v in value)
+    if isinstance(value, str) and "sharing_offer" in value:
+        try:
+            decoded = json.loads(value)
+        except (ValueError, TypeError):
+            return False
+        return not isinstance(decoded, str) and _has_item_offers(decoded)
+    return False
+
+
 def _minimum_schema(body):
+    if _has_item_offers(body):
+        return OFFER_SCHEMA
     if _has_workflow_features(body):
         return WORKFLOW_SCHEMA
     if _has_extended_research(body):
@@ -393,7 +421,7 @@ def unpack(document, expected_workspace_id=None):
         _validate_body(body)
         # 0.4.0 already saved extended research values under v1-v3. Validate
         # them with current models and upgrade on pack; never strand those stores.
-        required = WORKFLOW_SCHEMA if _has_workflow_features(body) else CONTEXT_SCHEMA if _has_gap_context(body) else (
+        required = OFFER_SCHEMA if _has_item_offers(body) else WORKFLOW_SCHEMA if _has_workflow_features(body) else CONTEXT_SCHEMA if _has_gap_context(body) else (
             CHECKPOINT_SCHEMA if "replay" in body else SCHEMA
         )
         if SCHEMA_ORDER.index(snapshot["schema"]) < SCHEMA_ORDER.index(required):

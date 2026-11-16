@@ -12,7 +12,8 @@ from benchside.domain.consultation.event.decision_recorded import DecisionRecord
 from benchside.domain.consultation.event.gap_observed import GapObserved
 from benchside.domain.consultation.event.question import QuestionAnswered, QuestionRecorded
 from benchside.domain.consultation.event.research_recorded import ResearchRecorded
-from benchside.domain.consultation.model.value import ResearchQuestion, ResearchRecord
+from benchside.domain.consultation.model.project import Project
+from benchside.domain.consultation.model.value import Decision, ResearchQuestion, ResearchRecord
 from benchside.domain.shared.error import ValidationError
 from benchside.domain.shared.event import new_event_id
 from benchside.domain.shared.model.gap import Gap
@@ -30,10 +31,6 @@ def record_checkpoint(app, project_id, action, request):
                 if not isinstance(request.get(key), str) or not request[key].strip():
                     raise ValidationError(f"A notebook decision needs {key}")
             supersedes = request.get("supersedes")
-            if supersedes and (
-                project is None or not any(d.id == supersedes for d in project.decisions)
-            ):
-                raise ValidationError("Superseded decision not found in this Benchside project")
             identifier = f"d-{identifier}"
             event = DecisionRecorded(
                 **common,
@@ -42,6 +39,12 @@ def record_checkpoint(app, project_id, action, request):
                 rationale=request["rationale"],
                 supersedes=supersedes,
             )
+            # Setup registers a project before its first scientific journal event.
+            project = project or Project(id=project_id, title=project_id.root)
+            project.record_decision(Decision(
+                id=identifier, decision=event.decision, rationale=event.rationale,
+                decided_at=event.recorded_at, supersedes=supersedes,
+            ))
         case "notebook.record":
             identifier = f"r-{identifier}"
             record = ResearchRecord(id=identifier, **request["record"])

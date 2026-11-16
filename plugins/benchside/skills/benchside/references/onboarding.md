@@ -158,8 +158,13 @@ do not create an empty app project and call it restored. Shared setup preserves
 existing journals and custom role skills. Recognized generated legacy skills
 become explicit-invocation-only, so automatic role selection uses this shared flow.
 
-Keep the returned session ID for this conversation. Record the selected notebook
-locator in the host's durable setup context, not just in the execution sandbox.
+Keep the returned session ID for this conversation. Make the notebook discoverable
+through the chosen store's actual durable listing/index, not a temporary sandbox
+path. For Claude file artifacts, use the owner-scoped title/metadata search and
+saved project index in [claude-file-memory.md](claude-file-memory.md). For other
+stores, verify their document/folder listing or a user-approved persistent setup
+index; do not assume an unspecified host memory mechanism. Give the researcher
+the notebook link, and ask for that link on return if discovery is unavailable.
 Run the appropriate save/readback probe and test discovery in a fresh conversation.
 A same-process test is useful but does not establish fresh-chat continuity. Report
 what was verified and what still needs the researcher to reopen a chat.

@@ -25,8 +25,9 @@ Readable project journals are private too; no sharing permissions are changed.
 The notebook holds one fenced JSON block. The runtime selects its schema label:
 v1 for basic state, v2 for replay checkpoints, v3 for workflow context,
 `benchside.native.v4` for multi-discipline profiles or the `pi-hypothesis` role,
-and `benchside.native.v5` for general workflow reports and sharing check-ins.
-The current runtime reads all five. Update every app sharing a notebook before
+`benchside.native.v5` for general workflow reports and earlier sharing check-ins,
+and `benchside.native.v6` for per-observation sharing-offer memory.
+The current runtime reads all six. Update every app sharing a notebook before
 using newer formats. Older 0.4.0 notebooks that saved these research values under
 v1-v3 remain readable and receive the appropriate label on their next save.
 An older runtime must be updated when it reports `native_update_required`; never
@@ -257,7 +258,11 @@ the readable journal between these steps. Never defer records across user turns
 or invent answers to complete a batch. Read-only batches require no save.
 For ordinary private recording, reuse the complete readback and its current guard
 from the last confirmed save in this conversation instead of immediately reading
-the same block again. Reread on a new conversation, execution reset or conflict,
+the same block again. These are an inseparable pair: never combine a cached
+notebook with a newer metadata-only guard. For Claude file artifacts, journal/index
+patches must start from that paired version; only their successful, state-preserving
+patch chain may advance the cached guard. A conflict on any file requires rereading
+the notebook and its version together before further writes. Reread on a new conversation, execution reset or conflict,
 and immediately before any submission to recheck current consent. A stale guard
 must still fail. Refresh the derived journal once after a group of scientific
 records changes, not for consent-only changes or every read-only recall.
@@ -360,8 +365,11 @@ rejected while retained; an expired ID fails closed instead of repeating it.
 4. Read back the state block. Call `native.confirm` with the candidate's
    workspace ID, revision and digest. Only `saved:true` confirms the save.
 5. After confirmation, update the selected readable project journal with
-   `project_journal.markdown`, preserving unrelated user notes and using its own
-   current guard. Keep the generated view in a dedicated section. If this view
+   `project_journal.markdown`, preserving unrelated user notes. For a separate
+   journal document, use its own current guard. For a Claude file artifact,
+   all files share one version: use the guard paired with confirmed notebook
+   bytes, following [the file-artifact protocol](claude-file-memory.md), never
+   a newer metadata-only version. Keep the generated view in a dedicated section. If this view
    update fails, the notebook is still saved; refresh through `recall` next time.
 6. Explain an inner action failure accurately. A candidate can contain failure
    counters even when the action failed; saving those does not make it succeed.
@@ -457,3 +465,8 @@ Broad workflow reports, all-workflow consent and notebook-only checkpoints requi
 features; older packages must refuse the newer notebook rather than lose fields.
 Native `batch` supports notebook actions. `sharing.check_in` is a separate normal
 `native.run` action: save and confirm its changed candidate before showing an offer.
+Per-observation offer memory uses v6 so earlier review builds cannot overwrite
+the new reminder state. Update every app sharing that notebook. Older v5 offers
+remain readable; their first check-in conservatively remembers currently pending
+items without repeating an uncertain old offer. Explicit requested review remains
+available, and subsequent new observations can trigger an offer.

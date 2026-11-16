@@ -117,13 +117,17 @@ keep their supported format.
 
 - `sharing.status` returns current choices, including gap permission `scope`.
 - `sharing.check_in` takes the selected `project_id` and `session_id`. At a natural
-  pause it returns `offer:true`, `channel:"gaps"` and a count only when consent
+  pause it returns `offer:true`, `channel:"gaps"`, `observation_ids` and a count only when consent
   covers new pending problems. It remembers the offer, even if declined, and
   offers at most once per session; another chat alone does not reset it. It never
   sends data or creates a draft. Only call when ready to show the offer, not as a
   background poll. “You mentioned a recurring booking problem and a workaround.
   Would you like Benchside to prepare a short report for you to review before
   sharing it with Science Works?” Use inference wording when not researcher-reported.
+  If accepted, pass those exact `observation_ids` as `only` to `sharing.preview`.
+  Do not omit `only`: an unrestricted preview can include other projects. The
+  count and selection cover newly offered problems in this project, not items
+  left out of an earlier offer. Broader review requires the researcher's request.
   Requested review is always available via `sharing.preview`, even after deferral.
 - `sharing.consent` takes `channel` (`gaps`, `feedback`, `usage`) and boolean
   `enabled`. New gap consent takes `scope:"all_workflow"`, without `kinds`. Legacy
@@ -138,6 +142,10 @@ keep their supported format.
   `destination`, `payload_sha256` and draft `id`. Display the complete content of
   each draft in readable form, including every text field and usage count, plus the
   recipient. Explain that redaction cannot catch all identifying research details.
+  If automatic scrubbing makes one observation invalid, its ID is listed in
+  `withheld` with a reason in `redaction_findings`; other valid items remain
+  reviewable. Explain omissions, and offer to edit that specific item separately.
+  Never silently drop the warning, undo redaction or claim all problems were sent.
   If the researcher edits anything, prepare and show a new draft.
 - After explicit approval, call `sharing.send` with that `draft_id` and its
   `approved_sha256`. Do not replace the payload, infer approval, or send subsequent

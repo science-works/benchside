@@ -50,7 +50,7 @@ Ask in your own words. You don’t need to know a command or have a hypothesis t
 You choose during setup. **Science Works does not receive your notebook.** Your decisions, findings and open questions stay in the project record you control.
 
 - **On your computer:** choose a folder and read the journal as an ODT document, Markdown or both.
-- **In your AI app:** use a private Claude Doc or ChatGPT Page if your account can save and reopen it.
+- **In your AI app:** use a private Claude file artifact or ChatGPT Page after Benchside verifies saving and reopening. Existing Claude Docs stay intact; see [Claude memory](content/app/references/claude-file-memory.md) if your account cannot restore one.
 - **In a connected service:** use a document store such as Google Docs if your agent has a connector that can safely update it. Benchside checks this before relying on it.
 
 To continue in another app, point it at the same folder or notebook. Both apps need access; their accounts don’t sync automatically. Saving locally doesn’t change how your AI provider processes the chat. [More about your records →](docs/readable-records.md)

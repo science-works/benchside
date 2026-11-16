@@ -8,7 +8,8 @@ from benchside.application.app import App
 from benchside.application.sharing import SharingFlow
 from benchside.domain.export.model.wire import validate_payload
 from benchside.domain.shared.error import BenchsideError
-from benchside.reporting import summarise
+from benchside.domain.shared.model.gap import WORKFLOW_LABELS
+from benchside.reporting import markdown, summarise
 from tests.unit.application.test_native import Notebook
 from tests.unit.application.test_sharing import Collector
 
@@ -132,7 +133,9 @@ def test_uncategorised_other_and_unfamiliar_labels_survive_review_and_reporting(
     path.write_text(draft.preview.payload)
     report = summarise([path])
     assert report["workflow_observations"] == 1
-    assert report["workflow_labels"] == {label: 1 for label in labels}
+    assert report["workflow_labels"] == {
+        label if label in WORKFLOW_LABELS else "custom_label": 1 for label in labels
+    }
     assert report["workflow_unlabelled"] == (not labels)
 
 
@@ -199,20 +202,89 @@ def test_sharing_check_in_only_offers_new_consented_material_once_per_chat(paths
     app.run(
         {"action": "sharing.consent", "channel": "gaps", "enabled": True, "scope": "all_workflow"}
     )
-    assert app.run(call) == {"offer": True, "channel": "gaps", "pending": 1}
+    offer = app.run(call)
+    assert offer["offer"] and offer["pending"] == len(offer["observation_ids"]) == 1
     assert not app.run(call)["offer"]
     fresh = setup(app)
     # A declined/deferred offer isn't repeated just because the chat changed.
     assert not app.run({"action": "sharing.check_in", **fresh})["offer"]
-    app.run(
-        {
-            "action": "notebook.gap",
-            **fresh,
-            "gap": problem(description="Reagent deliveries are unpredictable."),
-        }
-    )
-    assert app.run({"action": "sharing.check_in", **fresh})["pending"] == 2
+    app.run({"action": "notebook.gap", **fresh,
+             "gap": problem(description="Reagent deliveries are unpredictable.")})
+    assert app.run({"action": "sharing.check_in", **fresh})["pending"] == 1
     assert not app.run({"action": "sharing.check_in", **fresh})["offer"]
+
+
+def test_check_in_does_not_reoffer_left_out_problem_after_partial_send(paths):
+    app = App(paths)
+    ctx = setup(app)
+    ids = [app.run({"action": "notebook.gap", **ctx, "gap": problem()})["recorded"]
+           for _ in range(2)]
+    flow = SharingFlow(paths, sinks={"gaps": Collector("gaps")})
+    flow.set_consent("gaps", True, scope="all_workflow")
+    assert flow.check_in(**ctx)["offer"]
+    draft = flow.prepare("gaps", only=[ids[0]])[0]
+    flow.send(draft.id, draft.preview.payload_sha256)
+    fresh = setup(app)
+    assert flow.check_in(**fresh) == {"offer": False}
+    new_id = app.run({"action": "notebook.gap", **fresh, "gap": problem()})["recorded"]
+    offer = flow.check_in(**fresh)
+    assert offer["observation_ids"] == [new_id]
+    assert offer["pending"] == 1
+    # Leaving an item out never prevents an explicitly requested review later.
+    assert flow.prepare("gaps", only=[ids[1]])[0].preview.observation_ids == (ids[1],)
+
+
+def test_check_in_selection_does_not_open_other_project_problems(paths):
+    app = App(paths)
+    first, second = setup(app), setup(app, "other")
+    ids = [app.run({"action": "notebook.gap", **ctx, "gap": problem()})["recorded"]
+           for ctx in (first, second)]
+    flow = SharingFlow(paths, sinks={"gaps": Collector("gaps")})
+    flow.set_consent("gaps", True, scope="all_workflow")
+    offer = flow.check_in(**first)
+    assert offer["observation_ids"] == ids[:1]
+    drafts = flow.prepare("gaps", only=offer["observation_ids"])
+    assert [i for d in drafts for i in d.preview.observation_ids] == ids[:1]
+
+
+@pytest.mark.parametrize("awkward", [
+    {"labels": ["portal https://one.example", "portal https://two.example"]},
+    {"description": "x" * 1985 + " a@b.co"},
+])
+def test_scrubbing_one_invalid_problem_keeps_others_reviewable(paths, awkward):
+    app = App(paths)
+    ctx = setup(app)
+    bad = app.run({"action": "notebook.gap", **ctx, "gap": problem(**awkward)})["recorded"]
+    good = app.run({"action": "notebook.gap", **ctx, "gap": problem()})["recorded"]
+    flow = SharingFlow(paths, sinks={"gaps": Collector("gaps")})
+    flow.set_consent("gaps", True, scope="all_workflow")
+    draft = flow.prepare("gaps")[0]
+    assert draft.preview.observation_ids == (good,)
+    assert bad in draft.preview.withheld
+    assert any(bad in reason and "redaction" in reason for reason in draft.preview.redaction_findings)
+    assert not flow.sinks["gaps"].sent
+    with pytest.raises(BenchsideError, match=bad):
+        flow.prepare("gaps", only=[bad])
+    fixed = flow.prepare("gaps", only=[bad], edits={bad: problem()})[0]
+    assert fixed.preview.observation_ids == (bad,)
+    # A preview correction does not replace the private original observation.
+    original = next(o for o in flow.export.observations.list_all() if o.id == bad)
+    assert original.gap.model_dump(mode="json") == {"labels": [], **problem(**awkward)}
+
+
+def test_aggregate_labels_hide_free_text_and_ignore_legacy_for_unlabelled(tmp_path):
+    path = tmp_path / "synthetic.json"
+    path.write_text(json.dumps({"schema": "benchside.gaps.v4", "observations": [
+        {"id": "custom", "gap": problem(labels=["coordination", "Private Group Zebra", "Private Device Elm"])},
+        {"id": "unlabelled", "gap": problem()},
+        {"id": "legacy", "gap": {"kind": "missing_index", "question": "Synthetic legacy problem"}},
+    ]}))
+    report = summarise([path])
+    assert report["workflow_labels"] == {"coordination": 1, "custom_label": 1}
+    assert report["workflow_unlabelled"] == 1
+    for output in (json.dumps(report), markdown(report)):
+        assert "Private Group Zebra" not in output
+        assert "Private Device Elm" not in output
 
 
 @pytest.mark.parametrize(
@@ -273,7 +345,8 @@ def test_every_role_sees_shared_notebook_and_can_capture_broad_problem(paths, ro
     assert saved["recall"]["recent_decisions"][0]["decision"] == original
 
 
-def test_native_check_in_survives_restore_and_schema_downgrade_is_refused():
+@pytest.mark.parametrize("older_schema", ["benchside.native.v4", "benchside.native.v5"])
+def test_native_check_in_survives_restore_and_schema_downgrade_is_refused(older_schema):
     from benchside.application.native import _digest, unpack
 
     notebook = Notebook()
@@ -284,14 +357,71 @@ def test_native_check_in_survives_restore_and_schema_downgrade_is_refused():
     )["ok"]
     offered = notebook.run({"action": "sharing.check_in", **ctx})
     assert offered["ok"] and offered["result"]["offer"]
+    assert offered["snapshot"]["schema"] == "benchside.native.v6"
     fresh = notebook.setup()
     assert not notebook.run(
         {"action": "sharing.check_in", **{k: fresh[k] for k in ("project_id", "session_id")}}
     )["result"]["offer"]
-    tampered = dict(offered["snapshot"], schema="benchside.native.v4")
+    tampered = dict(offered["snapshot"], schema=older_schema)
     tampered["sha256"] = _digest({k: v for k, v in tampered.items() if k != "sha256"})
     with pytest.raises(BenchsideError, match="newer snapshot schema"):
         unpack(tampered)
+
+
+def test_native_legacy_offer_opens_and_migrates_without_losing_decisions():
+    from benchside.application.native import markdown, pack, unpack
+
+    notebook = Notebook()
+    ctx = {k: v for k, v in notebook.setup().items() if k in {"project_id", "session_id"}}
+    notebook.run({"action": "notebook.decide", **ctx,
+                  "decision": "Retain the synthetic decision", "rationale": "Test history"})
+    oid = notebook.run({"action": "notebook.gap", **ctx, "gap": problem()})["result"]["recorded"]
+    notebook.run({"action": "sharing.consent", "channel": "gaps",
+                  "enabled": True, "scope": "all_workflow"})
+    snapshot, body = unpack(notebook.document)
+    path = f"app-projects/{ctx['project_id']}.json"
+    config = json.loads(body["files"][path])
+    config["sharing_offer"] = {"fingerprint": "a" * 64, "session_id": ctx["session_id"]}
+    body["files"][path] = json.dumps(config)
+    legacy = pack(body, notebook.workspace_id, snapshot["revision"])
+    assert legacy["schema"] == "benchside.native.v5"
+    notebook.document = markdown(legacy)
+    before = notebook.run({"action": "recall", **ctx})
+    assert before["snapshot"]["schema"] == "benchside.native.v5"
+    result = notebook.run({"action": "sharing.check_in", **ctx})
+    assert result["ok"] and not result["result"]["offer"]
+    assert result["snapshot"]["schema"] == "benchside.native.v6"
+    after = notebook.run({"action": "recall", **ctx})
+    assert after["result"] == before["result"]
+    _, migrated = unpack(notebook.document)
+    assert json.loads(migrated["files"][path])["sharing_offer"]["observation_ids"] == [oid]
+
+
+def test_legacy_offer_migrates_without_reprompting_or_losing_scientific_records(paths):
+    app = App(paths)
+    ctx = setup(app)
+    oid = app.run({"action": "notebook.gap", **ctx, "gap": problem()})["recorded"]
+    flow = SharingFlow(paths)
+    flow.set_consent("gaps", True, scope="all_workflow")
+    config_path = paths.home / "app-projects" / f"{ctx['project_id']}.json"
+    config = json.loads(config_path.read_text())
+    config["sharing_offer"] = {"fingerprint": "a" * 64, "session_id": ctx["session_id"]}
+    config_path.write_text(json.dumps(config))
+    fresh = setup(app)
+    assert not flow.check_in(**fresh)["offer"]
+    assert json.loads(config_path.read_text())["sharing_offer"]["observation_ids"] == [oid]
+    new = app.run({"action": "notebook.gap", **fresh, "gap": problem()})["recorded"]
+    assert flow.check_in(**fresh)["observation_ids"] == [new]
+
+
+def test_notebook_decision_rejects_empty_supersession_without_writing(paths):
+    app = App(paths)
+    ctx = setup(app)
+    before = app.run({"action": "recall", **ctx})
+    with pytest.raises(BenchsideError, match="unknown decision"):
+        app.run({"action": "notebook.decide", **ctx, "decision": "Synthetic call",
+                 "rationale": "Synthetic reason", "supersedes": ""})
+    assert app.run({"action": "recall", **ctx}) == before
 
 
 def test_notebook_evidence_needs_source_and_failed_save_preserves_other_records(paths):
