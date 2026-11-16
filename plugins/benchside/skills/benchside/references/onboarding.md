@@ -18,6 +18,11 @@ Run the execution check and inspect storage tools without writing first. Offer
 candidate stores as available but not yet verified. Only after the researcher
 chooses a store may setup create its labelled synthetic test project and perform
 the write/readback probe. Keep existing records and participation choices intact.
+For cloud notebooks, first identify an actual read-to-file or programmatic
+transfer into the runtime as well as the upload path. Some Claude sessions can
+upload files but return saved Docs only as inline text. That is not a dependable
+restore route. Do not create a notebook first and discover this during readback;
+see [native memory](native-memory.md) for the observed tool differences.
 
 Use the following checks separately. Report what actually passed, what failed
 and what has not been tested; do not infer capabilities from a plan name.

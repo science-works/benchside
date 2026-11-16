@@ -81,8 +81,8 @@ the researcher's exact-payload review remain necessary.
 
 ## Installed-app acceptance checks
 
-The user's private ChatGPT plugin and an isolated OpenCode skill installation
-were updated for testing. Review wrappers use `0.4.3-review.2`; the bundled runtime
+The user's private ChatGPT and Claude plugins and an isolated OpenCode skill
+installation were updated for testing. Review wrappers use `0.4.3-review.2`; the bundled runtime
 still reports the unreleased source version `0.4.2`. The final review wheel SHA-256
 is `fefea55bdae159b9da5de59d40e1f3f0217bf9162c70969239a06c6bd95446e7`.
 This is not a public release or a production receiver deployment.
@@ -126,12 +126,82 @@ refused the shared-notebook save, interpreting it as changing the earlier projec
 the agent supplied an unchanged-recall comparison and completed the guarded save.
 This is a host approval friction point, not a relaxed save or consent guard.
 
+### Claude: research/report behaviour passed; fresh-chat memory blocked
+
+The first attempted upload left the old public 0.4.2 package installed. After the
+user uploaded the distinctly named review ZIP, the plugin displayed
+`0.4.3-review.2` and its recomputed wheel hash matched the review hash above.
+The following checks used that build with Opus 5.5 Extra in the existing paid
+Claude account, not the earlier installation.
+
+In a separate synthetic, owner-only Claude Docs notebook, the agent saved the
+decision “Check microscope availability before preparing materials.”, rationale
+“Two bookings were cancelled after preparation.” and open question “Who can
+confirm instrument availability the day before?”. This used notebook actions
+outside a role, with every sharing option off. Initial setup took approximately
+seven minutes, including tool inspection and the transfer investigation.
+
+The write route uploaded runtime-produced files, checked upload hashes and used
+revision/hash-guarded replacements. However, the current
+`mcp__claude-artifacts__read_asset` returned inline text, not the file expected by
+the earlier guide. The agent reconstructed expected exports from its existing
+runtime files and compared their digests with the server export digests before
+calling `native.confirm`. Those matches support byte-equivalent writes but are
+**not an actual readback into the runtime or proof of fresh-chat restoration**.
+
+A fresh chat received only the notebook link. It found the private document,
+revision and state block but could not retrieve the content through an exact
+file bridge. It stopped without guessing saved records, changing the document,
+or retrying a manual copy. Further inspection of the actual tools found no
+programmatic result-to-code bridge or supported asset download-to-file operation
+for these Docs. The tool that can save ordinary artifact files refused Docs
+created from a type. Upload support alone is therefore insufficient in this
+session. This is an outstanding host/storage compatibility issue, not a complete
+Claude acceptance pass.
+
+Separately, the original chat continued from its existing runtime files only
+after a current server export digest matched them. The research supervisor:
+
+- Started without a hypothesis, preserving the earlier decision/open question.
+- Recorded a general microscope-booking problem with `equipment_access` and
+  `coordination` labels and `basis:researcher_reported`.
+- Replaced the synthetic person and confidential-project names with `[redacted]`
+  in the excerpt, omitting them from the general description.
+- Marked a newly tried workaround as `researcher_tried`, with benefit explicitly
+  unknown, while preserving the earlier private planned-step note.
+- Enabled only explicitly chosen `all_workflow` sharing in this synthetic store,
+  and prepared only the latest account as an unapproved v4 draft. Other channels
+  stayed off. The preview contained no invented impact or successful outcome.
+- Asked one relevant cause question ending “or something else?”. After deferral,
+  it did not repeat the sharing offer, approve the draft or send anything.
+
+The final notebook was at internal revision 4 / Claude Doc revision 6, with the
+same digest-only qualification. The supervisor sitting remained open because a
+converged close requires a decision from that sitting; the agent neither invented
+one nor labelled a pause as abandonment. This is consistent with current rules,
+but the distinction between pausing and concluding remains a usability consideration.
+
+Private evidence is in the
+[Claude acceptance chat](https://claude.ai/chat/5ff3b82e-c26d-4869-af2d-8886fdc36834)
+and its synthetic notebook. The tests did not change existing research projects,
+account permissions or network settings.
+
+The follow-up source guidance now checks the exact read bridge before notebook
+creation, describes the observed Claude tool difference, and explicitly refuses
+to treat a reconstructed candidate as fetched readback. It also documents native
+schema v5. These instruction-only changes were generated into the source plugin
+and passed the three role-instruction checks and whitespace checks. They are
+**later than the installed review.2 package** and have not been retested as an
+installed build; they do not supply the missing host capability. A supported
+exact transfer or an independently verified alternative store is needed before
+calling this Claude Docs route dependable.
+
 Remaining limits and follow-up:
 
-- Claude's existing plugin is still the earlier installed build. Automated upload
-  failed because browser file access was unavailable; the native picker also
-  failed. The review ZIP is ready, but live Claude save/restore and report checks
-  require the user's manual upload. Earlier Claude tests do not verify this build.
+- Claude Docs fresh-chat restore remains blocked in this account's current tool
+  surface. Same-chat writes and previews do not remove that limitation. A revised
+  package should retain the new capability check and must pass fresh-chat restore
+  on its selected store before being recommended for persistent research records.
 - ChatGPT's intermediate progress blocks sometimes displayed “This response
   couldn't load”; both final replies and independent stored-state checks succeeded.
 - OpenCode surfaced a stale `0.3.1` label in the parent test project's AGENTS.md.

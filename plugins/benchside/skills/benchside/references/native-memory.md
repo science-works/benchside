@@ -21,9 +21,10 @@ create it in the host's explicitly private location or explain the missing acces
 Readable project journals are private too; no sharing permissions are changed.
 
 The notebook holds one fenced JSON block. The runtime selects its schema label:
-v1 for basic state, v2 for replay checkpoints, v3 for workflow context, and
-`benchside.native.v4` for multi-discipline profiles or the `pi-hypothesis` role.
-The current runtime reads all four. Update every app sharing a notebook before
+v1 for basic state, v2 for replay checkpoints, v3 for workflow context,
+`benchside.native.v4` for multi-discipline profiles or the `pi-hypothesis` role,
+and `benchside.native.v5` for general workflow reports and sharing check-ins.
+The current runtime reads all five. Update every app sharing a notebook before
 using newer formats. Older 0.4.0 notebooks that saved these research values under
 v1-v3 remain readable and receive the appropriate label on their next save.
 An older runtime must be updated when it reports `native_update_required`; never
@@ -48,7 +49,12 @@ For dependable storage, both directions must transfer exact data without the
 model retyping an encoded payload. A returned file, or host-supported
 programmatic tool composition, can provide this bridge; a literal path passed
 to a text-only tool cannot. A successful small-notebook test does not establish
-that a larger notebook will transfer reliably.
+that a larger notebook will transfer reliably. Establish the read-to-file or
+programmatic bridge before creating a notebook, even if uploads already work.
+Matching a server export digest against a locally reconstructed candidate can
+attest that those bytes were stored, but does not retrieve them for a fresh chat.
+It is not the documented readback: do not pass a reconstructed candidate to
+`native.confirm` as though it were fetched content, or claim restoration from it.
 
 The Claude 0.2.0 test on 29 October failed to restore an existing notebook after
 the model corrupted a long inline payload while copying it. The runtime rejected
@@ -65,6 +71,13 @@ assuming them.
 - **Claude Docs:** create, readback, guarded update and fresh-chat discovery were
   verified on 23 October 2026; exact file transfer on 29 October. Inspect the
   actual tool schemas and guide in the current account before using them.
+  The 16 November installed-app check exposed a different tool surface:
+  `mcp__claude-artifacts__read_asset` returned text inline, not a local file, and
+  `read_file` refused Docs created from a type. Uploads still worked, but fresh-chat
+  restore was blocked. Do not assume those tools provide the older `Artifact`
+  read-to-file operation below. Check the actual output, not just its name or an
+  asset ID. If no exact bridge is available, pause recording and offer another
+  verified store; keep the existing notebook intact.
   - Discovery: `Artifact` listing with type `Docs` (or scope `mine`) shows titles
     and short links, not IDs. `mcp__Claude_Docs__read` on a link returns its stable
     ID as `frame.slug`; match it to the saved notebook ID. A title only identifies
