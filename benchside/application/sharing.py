@@ -1,5 +1,6 @@
 """One review flow over three independently consented, separately stored channels."""
 
+import hashlib
 import json
 import os
 import uuid
@@ -198,7 +199,7 @@ class SharingFlow:
         grant = self.consent.active_grant()
         installation = self.paths.home / "reporting" / "installation.json"
         return {
-            "gaps": {"enabled": bool(grant), "kinds": sorted(grant.gap_kinds) if grant else []},
+            "gaps": {"enabled": bool(grant), "kinds": sorted(grant.gap_kinds) if grant else [], "scope": grant.scope if grant else None},
             "feedback": {"enabled": bool(self.reporting.active_grant("feedback"))},
             "usage": {"enabled": bool(self.reporting.active_grant("usage"))},
             "linking": "random_contributor_id",
@@ -216,7 +217,7 @@ class SharingFlow:
             else None,
         }
 
-    def set_consent(self, channel, enabled, *, kinds=None):
+    def set_consent(self, channel, enabled, *, kinds=None, scope="kinds"):
         if channel == "gaps":
             active = self.consent.active_grant()
             if not enabled:
@@ -224,17 +225,19 @@ class SharingFlow:
                     self.consent.revoke()
                 self._accept_policy(channel, None)
                 return
+            if scope not in {"kinds", "all_workflow"} or (scope == "all_workflow" and kinds):
+                raise ValidationError("Choose all_workflow scope or legacy kinds, not both")
             selected = frozenset(kinds or ())
-            if active and active.gap_kinds == selected and self._policy_grant(channel) == active.id:
+            if active and active.scope == scope and active.gap_kinds == selected and self._policy_grant(channel) == active.id:
                 return
             # Validate before revoking an existing grant.
             from benchside.domain.shared.model.gap import GAP_KINDS
 
-            if not selected or not selected <= GAP_KINDS:
+            if scope == "kinds" and (not selected or not selected <= GAP_KINDS):
                 raise ValidationError("Choose one or more valid workflow observation kinds")
             if active:
                 self.consent.revoke()
-            self.consent.grant(grant_id=f"g-{uuid.uuid4().hex}", gap_kinds=selected)
+            self.consent.grant(grant_id=f"g-{uuid.uuid4().hex}", gap_kinds=selected, scope=scope)
             self._accept_policy(channel, self.consent.active_grant().id)
         elif channel in {"feedback", "usage"}:
             if enabled and self.reporting.active_grant(channel) and not self._policy_grant(channel):
@@ -246,6 +249,39 @@ class SharingFlow:
 
     def feedback(self, **values):
         return self.reporting.record_feedback(Feedback(id=uuid.uuid4().hex, **values))
+
+    def check_in(self, project_id, session_id):
+        """Offer review at a host-chosen pause; never send or create consent.
+
+        Remember an offer, including one the researcher declines, so reopening a
+        chat doesn't repeat it. Only new pending material can produce a new offer.
+        """
+        from benchside.domain.shared.model.ids import user_project_id
+        from benchside.infrastructure.session_context import validate_session_id
+
+        project_id = user_project_id(project_id).root
+        validate_session_id(session_id)
+        project_path = self.paths.home / "app-projects" / f"{project_id}.json"
+        session_path = self.paths.home / "app-sessions" / f"{session_id}.json"
+        if not project_path.is_file() or not session_path.is_file():
+            raise ValidationError("Select a Benchside project and session before checking in")
+        if json.loads(session_path.read_text())["project_id"] != project_id:
+            raise ValidationError("This session belongs to another project")
+        grant = self.consent.active_grant()
+        if grant is None or self._policy_grant("gaps") != grant.id:
+            return {"offer": False}
+        pending = sorted(str(o.id) for o in self.export.observations.list_unshared()
+                         if o.project_id.root == project_id and grant.covers(o.gap))
+        if not pending:
+            return {"offer": False}
+        fingerprint = hashlib.sha256(json.dumps(pending).encode()).hexdigest()
+        config = json.loads(project_path.read_text())
+        previous = config.get("sharing_offer", {})
+        if previous.get("fingerprint") == fingerprint or previous.get("session_id") == session_id:
+            return {"offer": False}
+        config["sharing_offer"] = {"fingerprint": fingerprint, "session_id": session_id}
+        atomic_json(project_path, config)
+        return {"offer": True, "channel": "gaps", "pending": len(pending)}
 
     def prepare(self, channel, *, only=None, edits=None, feedback_id=None, comment=None, week=None):
         grant = self.consent.active_grant() if channel == "gaps" else None

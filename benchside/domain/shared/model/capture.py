@@ -11,7 +11,7 @@ from typing import Literal
 from benchside.domain.shared.model.value import ValueObject
 
 RecordKind = Literal[
-    "study-design", "methods", "results", "reproducibility", "literature", "review"
+    "study-design", "methods", "results", "reproducibility", "literature", "review", "note", "evidence"
 ]
 
 

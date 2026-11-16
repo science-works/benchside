@@ -252,6 +252,13 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--cost", required=True)
     g = gap_sub.add_parser("missing_index")
     g.add_argument("--question", required=True)
+    g = gap_sub.add_parser("workflow_problem")
+    g.add_argument("--description", required=True)
+    g.add_argument("--label", action="append", default=[])
+    g.add_argument("--deidentified-excerpt")
+    g.add_argument("--workaround")
+    g.add_argument("--workaround-status", choices=["model_suggested", "researcher_tried", "researcher_reported_helpful"])
+    g.add_argument("--basis", choices=["researcher_reported", "model_inferred", "unknown"], default="unknown")
     p.set_defaults(run=cmd_gap)
 
     # --- journal views ---
@@ -565,13 +572,21 @@ def cmd_gap(args) -> int:
     from benchside.domain.consultation.service.consultation import ConsultationService
     from benchside.domain.shared.model.gap import (
         DeadEnd,
+        GapContext,
         ManualToil,
         MissingIndex,
         MissingTool,
         UnfindableData,
+        WorkflowProblem,
     )
 
     gap = {
+        "workflow_problem": lambda: WorkflowProblem(
+            description=args.description, labels=args.label,
+            deidentified_excerpt=args.deidentified_excerpt,
+            context=GapContext(workaround=args.workaround) if args.workaround else None,
+            workaround_status=args.workaround_status,
+        ),
         "missing_tool": lambda: MissingTool(
             task=args.task, reached_for=args.reached_for, why_failed=args.why_failed
         ),
@@ -589,7 +604,8 @@ def cmd_gap(args) -> int:
     container, uow = _uow()
     with container, uow:
         uow.get(ConsultationService).capture_gap(
-            consultation_id=pointer["sitting_id"], observation_id=observation_id, gap=gap
+            consultation_id=pointer["sitting_id"], observation_id=observation_id, gap=gap,
+            basis=getattr(args, "basis", "unknown")
         )
     args.ui.success(f"gap recorded locally: {observation_id} ({args.kind})")
     args.ui.detail("stays on this machine; shared only via bench share grant")

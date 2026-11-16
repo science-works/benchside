@@ -5,5 +5,5 @@ from benchside.domain.shared.model.ids import ConsultationId, ProjectId
 
 class ResearchRecorded(Event):
     project_id: ProjectId
-    consultation_id: ConsultationId
+    consultation_id: ConsultationId | None
     record: ResearchRecord

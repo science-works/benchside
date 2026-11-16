@@ -59,7 +59,7 @@ To continue in another app, point it at the same folder or notebook. Both apps n
 
 Researchers in different labs often lose time solving the same problem. We want a workaround that helps one lab to be easy for the next lab to find. When people keep getting stuck, and there’s no good workaround, that helps Science Works decide what software should be built. Building this shared, searchable collection of problems and workarounds is part of our [community plans](docs/community.md). We’d love you to help shape it!
 
-**Sharing is optional and off by default.** If you choose to contribute a workflow problem, you see the exact report and can edit it, skip it or send it to Science Works. Reports use a random contributor ID so we can connect contributions from the same notebook or folder. Your raw chats and scientific findings are never part of the report, and you review everything in it before sending.
+**Sharing is optional and off by default.** If you choose to contribute a workflow problem, you see the exact report and can edit it, skip it or send it to Science Works. Reports use a random contributor ID so we can connect contributions from the same notebook or folder. Your full chats and scientific findings are never part of the report. An optional short workflow excerpt can preserve your wording with confidential and research-specific details replaced by `[redacted]`; you review everything in the report before sending.
 
 For example: *“My spreadsheet kept turning sample IDs into dates. Importing that column as text fixed it.”* Someone else can use that tip without seeing any proprietary data.
 
@@ -76,7 +76,7 @@ Have an idea for a scientific role? [Propose it or open a PR](CONTRIBUTING.md). 
 
 ### Agent setup essentials
 
-Follow [SETUP.md](SETUP.md). If you can only read this page:
+Follow [SETUP.md](SETUP.md), including the [short introduction](content/app/references/introduction.md) before first setup. If you can only read this page:
 
 - Reuse a working installation. On a local agent, install the [Python package](https://pypi.org/project/benchside/) with `uv tool install benchside` or pip in a persistent virtual environment. Run `bench setup --agent claude` for Claude Code, `bench setup --agent codex` for Codex, or `bench setup --agent generic --skills-dir <actual host skill directory>` for another agent.
 - In ChatGPT, discover **Plugin Creator** and use the unchanged `benchside-plugin-<version>.zip` from the [latest release](https://github.com/science-works/benchside/releases/latest). For Claude’s plugin installer, use `benchside-claude-plugin-<version>.zip`. If only manual upload is available, guide that step. No MCP server is needed.

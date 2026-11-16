@@ -1,0 +1,26 @@
+{
+  "schema": "benchside.gaps.v4",
+  "contributor_id": "1da224ee13b64160bfac16bfceb5cbdc",
+  "observations": [
+    {
+      "id": "o-e4d5a54256b84c8a81f36767eb665826",
+      "gap": {
+        "context": {
+          "impact": "Repeated preparation.",
+          "workaround": "Check availability before preparation."
+        },
+        "kind": "workflow_problem",
+        "description": "SYNTHETIC: shared equipment bookings are cancelled.",
+        "labels": [
+          "equipment_access",
+          "other",
+          "new analytical label"
+        ],
+        "deidentified_excerpt": "The booking for [redacted] was cancelled twice.",
+        "workaround_status": "researcher_tried"
+      },
+      "origin": "benchside",
+      "basis": "researcher_reported"
+    }
+  ]
+}

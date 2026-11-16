@@ -30,16 +30,16 @@ class ConsentService(Service):
     def has_active_grant(self) -> bool:
         return self.active_grant() is not None
 
-    def grant(self, *, grant_id: GrantId, gap_kinds: frozenset[str]) -> Grant:
+    def grant(self, *, grant_id: GrantId, gap_kinds: frozenset[str], scope: str = "kinds") -> Grant:
         unknown = gap_kinds - GAP_KINDS
         if unknown:
             raise ValueError(f"Unknown gap kinds: {sorted(unknown)}")
         ledger = self.repository.load()
-        grant = Grant(id=grant_id, gap_kinds=gap_kinds, granted_at=datetime.now(UTC))
+        grant = Grant(id=grant_id, gap_kinds=gap_kinds, scope=scope, granted_at=datetime.now(UTC))
         ledger.grant(grant)
         self.journal.append(
             CONSENT_LEDGER_PROJECT,
-            ConsentGranted(id=new_event_id(), grant_id=grant_id, gap_kinds=gap_kinds),
+            ConsentGranted(id=new_event_id(), grant_id=grant_id, gap_kinds=gap_kinds, scope=scope),
         )
         return grant
 

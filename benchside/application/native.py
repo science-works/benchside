@@ -30,7 +30,8 @@ SCHEMA = "benchside.native.v1"
 CHECKPOINT_SCHEMA = "benchside.native.v2"
 CONTEXT_SCHEMA = "benchside.native.v3"
 RESEARCH_SCHEMA = "benchside.native.v4"
-SCHEMA_ORDER = (SCHEMA, CHECKPOINT_SCHEMA, CONTEXT_SCHEMA, RESEARCH_SCHEMA)
+WORKFLOW_SCHEMA = "benchside.native.v5"
+SCHEMA_ORDER = (SCHEMA, CHECKPOINT_SCHEMA, CONTEXT_SCHEMA, RESEARCH_SCHEMA, WORKFLOW_SCHEMA)
 MAX_DOCUMENT_BYTES = 190_000  # Fits one native Pages edit with room for transport metadata.
 MAX_METASCIENCE_DOCUMENT_BYTES = 48 * 1024
 MAX_STATE_BYTES = 8 * 1024 * 1024
@@ -147,7 +148,7 @@ def _check_files(files):
                 if set(data) != {"id"} or not HEX.fullmatch(data["id"]):
                     _fail("Invalid native installation identity")
             elif (
-                (set(data) - ({"title"} if name.startswith("app-projects/") else set()))
+                (set(data) - ({"title", "sharing_offer"} if name.startswith("app-projects/") else set()))
                 != (
                     {"host", "app_version", "surface", "project_id"}
                     if name.startswith("app-sessions/")
@@ -158,6 +159,14 @@ def _check_files(files):
                 or not isinstance(data["app_version"], str)
             ):
                 _fail("Invalid native project configuration")
+            if "sharing_offer" in data:
+                offer = data["sharing_offer"]
+                if (not isinstance(offer, dict) or set(offer) != {"fingerprint", "session_id"}
+                    or not isinstance(offer["fingerprint"], str)
+                    or not re.fullmatch(r"[a-f0-9]{64}", offer["fingerprint"])
+                    or not isinstance(offer["session_id"], str)
+                    or not HEX.fullmatch(offer["session_id"])):
+                    _fail("Invalid native sharing offer")
             if "title" in data and (
                 not isinstance(data["title"], str)
                 or not 1 <= len(data["title"]) <= 160
@@ -286,7 +295,30 @@ def _has_extended_research(value):
     return False
 
 
+def _has_workflow_features(value):
+    if isinstance(value, dict):
+        if (value.get("schema") == "benchside.gaps.v4" or value.get("kind") == "workflow_problem"
+            or value.get("scope") == "all_workflow" or "sharing_offer" in value
+            or ("consultation_id" in value and "gap" in value and value.get("basis", "unknown") != "unknown")
+            or ("consultation_id" in value and value["consultation_id"] is None)):
+            return True
+        return any(_has_workflow_features(v) for v in value.values())
+    if isinstance(value, list):
+        return any(_has_workflow_features(v) for v in value)
+    if isinstance(value, str) and any(s in value for s in ("workflow_problem", "all_workflow", "consultation_id", "benchside.gaps.v4", "sharing_offer")):
+        for line in [value, *value.splitlines()]:
+            try:
+                parsed = json.loads(line)
+            except (ValueError, TypeError):
+                continue
+            if not isinstance(parsed, str) and _has_workflow_features(parsed):
+                return True
+    return False
+
+
 def _minimum_schema(body):
+    if _has_workflow_features(body):
+        return WORKFLOW_SCHEMA
     if _has_extended_research(body):
         return RESEARCH_SCHEMA
     if _has_gap_context(body):
@@ -361,7 +393,7 @@ def unpack(document, expected_workspace_id=None):
         _validate_body(body)
         # 0.4.0 already saved extended research values under v1-v3. Validate
         # them with current models and upgrade on pack; never strand those stores.
-        required = CONTEXT_SCHEMA if _has_gap_context(body) else (
+        required = WORKFLOW_SCHEMA if _has_workflow_features(body) else CONTEXT_SCHEMA if _has_gap_context(body) else (
             CHECKPOINT_SCHEMA if "replay" in body else SCHEMA
         )
         if SCHEMA_ORDER.index(snapshot["schema"]) < SCHEMA_ORDER.index(required):
@@ -756,6 +788,7 @@ def journal_view(app, project_id, projects, revision, history="recent"):
 
 
 BATCH_ACTIONS = {
+    "notebook.decide", "notebook.record", "notebook.question", "notebook.answer", "notebook.gap",
     "setup",
     "roles",
     "projects",

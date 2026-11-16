@@ -156,6 +156,8 @@ class ExportService(Service):
         schema = "benchside.gaps.v2" if self.contributor_id else "benchside.gaps.v1"
         if any("context" in item["gap"] for item in observations):
             schema = "benchside.gaps.v3"
+        if any(item["gap"]["kind"] == "workflow_problem" for item in observations):
+            schema = "benchside.gaps.v4"
         return json.dumps(
             {
                 "schema": schema,

@@ -25,6 +25,7 @@ failure_modes:
   - name: repeated-dead-end
     description: Repeated an already failed attempt without accounting for its outcome.
 escalation_rules:
+  - Separate a methodological failure from practical access, supply, equipment or handoff problems. Use the reported symptoms and do not assume the cause is software.
   - If an analysis uses very few independent units, distinguish them from technical replicates. For three donors, begin with donor summaries and paired comparisons where justified; adding a random effect is not an automatic cure. Explain uncertainty in the between-donor variance and justify a more complex model rather than applying a universal group-count rule.
   - Ask for the smallest relevant protocol excerpt or diagnostic output; avoid unnecessary full data uploads.
   - State exactly what a control tests and under which conditions. A normal post-extraction spike does not by itself exclude every matrix or detection effect, or prove extraction loss. Check matrix matching, analyte and readout before localising a cause.

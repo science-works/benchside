@@ -427,3 +427,11 @@ Discover the same notebook and journal, restore with `native.run`, and verify th
 actual structured recall and open sitting. Create project B and check isolation.
 Also test a conflicting write, failed readback, revoked sharing consent and an
 exact-payload submission retry. Repeat for every advertised host/account type.
+
+## Workflow/notebook compatibility
+
+Broad workflow reports, all-workflow consent and notebook-only checkpoints require
+`benchside.native.v5`. Update every app sharing the notebook before using these
+features; older packages must refuse the newer notebook rather than lose fields.
+Native `batch` supports notebook actions. `sharing.check_in` is a separate normal
+`native.run` action: save and confirm its changed candidate before showing an offer.

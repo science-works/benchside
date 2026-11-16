@@ -209,9 +209,11 @@ class App:
                     if type(request.get("enabled")) is not bool:
                         raise ValidationError("Consent enabled must be true or false")
                     flow.set_consent(
-                        request["channel"], request["enabled"], kinds=request.get("kinds")
+                        request["channel"], request["enabled"], kinds=request.get("kinds"), scope=request.get("scope", "kinds")
                     )
                     return flow.status()
+                case "sharing.check_in":
+                    return flow.check_in(request["project_id"], request["session_id"])
                 case "sharing.feedback":
                     return flow.feedback(**request["feedback"]).model_dump(mode="json")
                 case "sharing.preview":
@@ -340,6 +342,11 @@ class App:
                 surface=config["surface"],
             ),
         ):
+            if action.startswith("notebook."):
+                from benchside.application.notebook import record_checkpoint
+
+                identifier = record_checkpoint(self, project_id, action, request)
+                return {"recorded": identifier, "recall": recalled()}
             if action == "start":
                 persona = self.personas.get(PersonaId(request["role"]))
                 if persona is None:
@@ -442,6 +449,7 @@ class App:
                         **common,
                         observation_id=identifier,
                         gap=TypeAdapter(Gap).validate_python(request["gap"]),
+                        basis=request.get("basis", "unknown"),
                     )
                 case "close":
                     if type(request.get("converged")) is not bool:

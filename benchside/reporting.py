@@ -29,7 +29,7 @@ def summarise(files):
             text = Path(path).read_text(encoding="utf-8")
             data = json.loads(text)
             schema = data.get("schema")
-            if schema in {"benchside.gaps.v1", "benchside.gaps.v2", "benchside.gaps.v3"}:
+            if schema in {"benchside.gaps.v1", "benchside.gaps.v2", "benchside.gaps.v3", "benchside.gaps.v4"}:
                 for item in validate_payload(text)["observations"]:
                     previous = gaps.get(item["id"])
                     if previous is not None and previous != item:
@@ -192,6 +192,8 @@ def summarise(files):
         "workflow_origins": dict(
             sorted(Counter(o.get("origin", "legacy_unknown") for o in gaps.values()).items())
         ),
+        "workflow_labels": dict(sorted(Counter(label for o in gaps.values() for label in o["gap"].get("labels", [])).items())),
+        "workflow_unlabelled": sum(not o["gap"].get("labels") for o in gaps.values()),
         "workflow_kinds": dict(sorted(Counter(o["gap"]["kind"] for o in gaps.values()).items())),
         "contributing_stores": len(contributor_channels),
         "contributing_stores_by_channel": {key: len(value) for key, value in contributors.items()},
@@ -267,6 +269,7 @@ def markdown(report):
     for label, key in [
         ("Weekly activity", "weekly"),
         ("Workflow problems", "workflow_kinds"),
+        ("Initial descriptive labels (overlapping)", "workflow_labels"),
         ("Contributing stores by workflow kind", "contributing_stores_by_workflow_kind"),
         ("Workflow observation sources", "workflow_origins"),
         ("Optional disciplines (installations; multiple choices allowed)", "installations_by_discipline"),

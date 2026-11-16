@@ -4,6 +4,9 @@ Use this flow on first use and when the researcher asks to change storage. Do no
 infer a storage preference from the model or app name. Setup has two independent
 choices: where private research records live, and optional contributions to Science Works.
 
+Use [the short introduction](introduction.md) if it has not already been shown;
+then continue the setup the researcher agreed to.
+
 ## Inspect capabilities, then verify the researcher's choices
 
 Inspect the current host's actual tools and installed connectors. Check code
@@ -189,14 +192,16 @@ with enabling categories; ask only if the response is contradictory:
 
 | Choice | What participation means |
 |---|---|
-| Workflow observations | Review descriptions of missing tools/data, repeated manual work, dead ends and missing indexes before sharing them. |
+| Workflow observations | Review problems of any type: equipment, materials, coordination, methods, software or data. Labels are optional. |
 | Usability feedback | Optionally give a rating and comment after using Benchside; do not ask for an experience rating during setup. |
 | Usage counts | Share reviewed counts of consultations, roles, app/version information and failures. A random installation ID helps estimate repeat use; no research text is included. |
 | Optional surveys | Receive occasional study invitations, at most one per seven days; each survey explains its purpose, data use and retention before participation. |
 | Selected-conversation analysis | Privately analyse up to 20 relevant conversations from the previous complete week, randomly selected or researcher-chosen. Find workflow problems for reviewed gap sharing; activity categories provide optional supporting context. |
 
 Explain that model-derived problem reports exclude private findings, hypotheses,
-measurements, sample identifiers, detailed protocols and source passages. Public
+measurements, sample identifiers, detailed protocols and unredacted source passages.
+An optional short workflow excerpt replaces confidential and research-specific
+details with `[redacted]`; omit it if still revealing. Public
 software/dataset names and versions can remain when they explain a workflow
 problem. Raw transcripts never go to Science Works. Researcher-written survey
 answers are sent as written under the agreement for that study; do not copy or
@@ -218,6 +223,9 @@ Anthropic's cloud (claude.ai or Claude Desktop chat), tell them once how to allo
 that domain (steps in [sharing](sharing.md)); until then, reviewed items stay
 saved and unsent. This never blocks setup. In Claude Code the commands run on
 their own computer, so say nothing. Elsewhere, mention it only if a send is blocked.
+For workflow observations use `sharing.consent` with `scope:"all_workflow"`,
+without category restrictions. Existing category-restricted grants stay restricted
+until the researcher explicitly renews this broader choice.
 Record only explicit choices with the existing consent actions and persist them
 before enabling the corresponding work. Do not grant every category from a vague
 "yes". Declining or deferring leaves unchosen options off and never blocks setup
@@ -260,7 +268,7 @@ question if the conversation has not already answered it:
 
 > What are you working on, and what would you like help with first?
 
-Use that answer to suggest a role; all eight remain available. Do not require a
+Use that answer to suggest a useful role or notebook-only help; all eight roles remain available. Do not require a
 fixed role, institution, email address or demographic profile. Ask for source
 documents or more scientific detail when the actual task needs them.
 
@@ -284,7 +292,7 @@ change scientific advice; adapt advice to the actual task and stated preferences
 
 Finish with one brief confirmation of the project, storage/readable-record link,
 saved participation choices and any unverified capability. Then move to the
-research question and a relevant role; do not recite the role menu, internal IDs,
+research question and a useful role or small notebook action; do not recite the role menu, internal IDs,
 state names or the same continuity caveat repeatedly. Keep those details for
 troubleshooting when needed. Translate internal critique states into ordinary
 language and map the researcher's answer to the appropriate action yourself.

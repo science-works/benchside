@@ -26,6 +26,10 @@ in web readers. The repository README contains the essential installation checks
 Do not repeatedly ask the researcher to upload instructions, especially when the
 actual blocker is lack of an installation tool.
 
+Before first setup, use the [short introduction](content/app/references/introduction.md).
+If the researcher is only exploring, wait for agreement before installing. An
+explicit request to install already authorises the supported setup steps.
+
 ## 1. Check the app and any existing installation
 
 Use the app already specified by the researcher; ask only if the destination is
@@ -167,13 +171,17 @@ inventing a second setup process. Ask only what is not already known:
 
 Offer the optional discipline/career-stage question as described in onboarding;
 it is not required. Then ask what the researcher wants help with and choose a
-suitable role. They do not need to learn slash commands or choose a permanent role.
+suitable role or notebook-only action. They do not need to learn slash commands or choose a permanent role.
 
 Private records and optional submissions are separate. Do not upload notebooks
 or research documents to Science Works. Setup consent does not approve a gap,
 feedback, usage or activity submission; those need an exact preview and approval.
 Surveys use the agreement shown before their questions. No sharing or network
 test should submit data as part of installation.
+
+For implicit suggestions in OpenCode, ChatGPT/Codex, Claude Code and other hosts,
+follow [skill discovery](content/app/references/discovery.md). Verify the scope
+and actual fresh-chat behaviour instead of assuming installation guarantees it.
 
 ## 4. Verify and explain the result
 

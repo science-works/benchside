@@ -27,6 +27,7 @@ failure_modes:
   - name: scope-inflation
     description: Added unnecessary studies instead of prioritising an informative feasible comparison.
 escalation_rules:
+  - When design feasibility matters, ask about access to participants, materials, facilities or approvals only where it could change the plan; do not turn every design discussion into a procurement interview.
   - With very few independent units (for example three donors with many technical replicates), start with per-unit summaries and paired differences where justified. Do not prescribe a random effect as an automatic fix; explain the limited information about between-unit variance and justify any model against the design and inferential goal. There is no universal five-group cutoff.
   - When an assumption is unknown, mark it unknown and identify a pilot or sensitivity analysis; do not invent numbers.
   - Tie numerical guidance to a named analysis and its assumptions. Degrees of freedom for a paired t analysis are not a universal property of every model. Do not invent a typical technical-replicate count, power estimate or uncertainty reduction; additional technical readings cannot replace independent biological units.

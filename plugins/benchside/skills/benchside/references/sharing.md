@@ -6,8 +6,10 @@ broad "yes" to contributing needs a choice of categories before consent is saved
 Declining or deciding later leaves unchosen options off; do not repeatedly prompt
 on return. At natural stopping points, offer reviews for enabled choices.
 
-1. Workflow observations: edited descriptions of missing tools, hard-to-find data,
-   repeated manual work, dead ends and missing indexes. No project or conversation IDs.
+1. Workflow observations: reviewed descriptions of scientific workflow problems
+   of any type, including equipment, materials, procurement, coordination, methods,
+   training, software and data. Optional labels never limit the topics accepted.
+   No project or conversation IDs.
 2. Feedback: the researcher's ease-of-use rating (1–5), whether they would use
    Benchside again (`yes`, `no`, `unsure`), and an optional comment. Never infer a
    rating from their conversation. No sitting or gap identifiers.
@@ -28,7 +30,8 @@ stores have separate IDs. Legacy received observations are not retroactively lin
 
 Before preparing any model-derived free-text observation or feedback comment, remove scientific
 results, hypotheses, measurements, identifying sample/data details, detailed
-protocols or analyses, source passages and project-specific names. Describe the
+protocols or analyses and project-specific names. Never send raw transcripts or
+unredacted source passages; the optional de-identified excerpt follows the rules below. Describe the
 general workflow need instead, or omit the item if generalising it would change
 its meaning. Public software/dataset names, versions and general failure details
 may remain: “Fiji 2.16 loses channel names on export” is useful workflow information.
@@ -50,6 +53,42 @@ Data goes to Science Works' collector. These choices are separate from private
 scientific records. An installation is not necessarily a person. Revoking consent
 stops future submissions; it does not delete previously received data.
 
+## Broad workflow reports and evidence
+
+For new problems use `kind:"workflow_problem"` with a nonempty `description`.
+Do not force a problem into the older five-kind taxonomy. Add optional multiple
+`labels` when helpful: `software_data`, `equipment_access`, `materials_procurement`,
+`coordination`, `methods_training`, `other`. Use `other` or omit labels when none
+fits. New descriptive labels are also accepted (up to 20 distinct labels, 100
+UTF-16 characters each). They are initial suggestions, not consent filters,
+evidence of prevalence, or final analysis groups. No category questionnaire.
+Description and optional excerpt are each at most 2000 UTF-16 characters.
+
+`context` retains the optional fields below. When a workaround is described,
+`workaround_status` can be `model_suggested`, `researcher_tried`, or
+`researcher_reported_helpful`. Use the last only for an explicit report of benefit,
+retaining any limitations in the workaround text. A proposed solution is not a
+tried one; trying it is not proof it helped. Omit status when unknown.
+
+An optional `deidentified_excerpt` preserves a short actual conversation passage
+that substantiates the workflow problem. Before recording it, replace names,
+identifiers, confidential information and research-specific details with
+`[redacted]`. Keep the remaining words verbatim; never invent a quote or rewrite
+it as though the researcher said it. Do not send a source ID, path, full transcript
+or an unredacted duplicate. Public tool names may remain when relevant and safe.
+Check indirect identification too. If the remaining passage is revealing or
+misleading, omit it and retain the generalised description. Automatic pattern
+scrubbing is supplementary; it cannot recognise every name or scientific secret.
+The researcher reviews the exact excerpt, description, labels, context and basis
+before any send. Private scientific notebook records remain unchanged.
+
+New grants use `scope:"all_workflow"`, separately from descriptive labels. Older
+category-restricted grants remain restricted; explain and obtain a renewed choice
+before broadening them. A label never grants permission. The runtime selects
+`benchside.gaps.v4` for broad reports; legacy formats stay supported. Deploy the
+matching receiver and reporting support before releasing this client. A failed
+send stays pending; never drop fields or downgrade a report to bypass rejection.
+
 ## Calls
 
 Workflow gaps can include an optional `context` object. Supported text fields are
@@ -66,13 +105,23 @@ Capture useful context already given in the conversation. At a natural pause,
 ask at most one short follow-up if it would materially clarify the problem, such
 as what workaround they use. Do not ask a checklist, repeatedly fill missing
 fields, or interrupt the research to complete a report. Missing context is fine.
-Context-bearing submissions use `benchside.gaps.v3`; the adapter chooses this
-automatically. Older submissions and gaps without context keep their format.
+Context-bearing legacy gap types use `benchside.gaps.v3`; submissions containing
+`workflow_problem` use v4. The adapter chooses automatically. Older submissions
+keep their supported format.
 
-- `sharing.status` returns current choices.
+- `sharing.status` returns current choices, including gap permission `scope`.
+- `sharing.check_in` takes the selected `project_id` and `session_id`. At a natural
+  pause it returns `offer:true`, `channel:"gaps"` and a count only when consent
+  covers new pending problems. It remembers the offer, even if declined, and
+  offers at most once per session; another chat alone does not reset it. It never
+  sends data or creates a draft. Only call when ready to show the offer, not as a
+  background poll. “You mentioned a recurring booking problem and a workaround.
+  Would you like Benchside to prepare a short report for you to review before
+  sharing it with Science Works?” Use inference wording when not researcher-reported.
+  Requested review is always available via `sharing.preview`, even after deferral.
 - `sharing.consent` takes `channel` (`gaps`, `feedback`, `usage`) and boolean
-  `enabled`. For gaps also supply `kinds`, selected from the five supported kinds.
-  Only call after the researcher makes that choice.
+  `enabled`. New gap consent takes `scope:"all_workflow"`, without `kinds`. Legacy
+  `kinds` grants remain restricted. Call only after the researcher chooses.
 - `sharing.feedback` takes `feedback: {role, host, surface, ease, would_use_again, comment}`.
   Unknown role/app/surface values use `unknown`. Returns an independently generated
   feedback ID. This saves locally and sends nothing.
