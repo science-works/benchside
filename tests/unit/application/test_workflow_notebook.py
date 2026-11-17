@@ -265,7 +265,8 @@ def test_scrubbing_one_invalid_problem_keeps_others_reviewable(paths, awkward):
     assert not flow.sinks["gaps"].sent
     with pytest.raises(BenchsideError, match=bad):
         flow.prepare("gaps", only=[bad])
-    fixed = flow.prepare("gaps", only=[bad], edits={bad: problem()})[0]
+    fixed = flow.prepare("gaps", only=[bad], edits={bad: problem()},
+                         replace_draft_ids=[draft.id])[0]
     assert fixed.preview.observation_ids == (bad,)
     # A preview correction does not replace the private original observation.
     original = next(o for o in flow.export.observations.list_all() if o.id == bad)

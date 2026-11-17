@@ -25,6 +25,7 @@ from benchside.domain.export.service.consent import ConsentService
 from benchside.domain.export.service.export import ExportService
 from benchside.domain.export.service.reporting import ReportingService, week_start
 from benchside.domain.shared.error import (
+    BenchsideError,
     ConsentRequiredError,
     NotFoundError,
     ValidationError,
@@ -98,6 +99,12 @@ class SharingFlow:
 
     @property
     def export(self):
+        service = self._export_service()
+        service.contributor_id = contributor_id(self.paths) if self._policy_grant("gaps") else None
+        return service
+
+    def _export_service(self):
+        """Validation/reads must not create a contributor identity."""
         service = ExportService(
             observations=CombinedObservationReader(self.journal, self.paths),
             consent=self.consent,
@@ -106,7 +113,6 @@ class SharingFlow:
             ledger=self.ledger,
             journal=self.journal,
         )
-        service.contributor_id = contributor_id(self.paths) if self._policy_grant("gaps") else None
         return service
 
     def _get_sink(self, channel):
@@ -295,7 +301,8 @@ class SharingFlow:
         atomic_json(project_path, config)
         return {"offer": True, "channel": "gaps", "pending": len(new), "observation_ids": new}
 
-    def prepare(self, channel, *, only=None, edits=None, feedback_id=None, comment=None, week=None):
+    def prepare(self, channel, *, only=None, edits=None, feedback_id=None, comment=None,
+                week=None, replace_draft_ids=None):
         grant = self.consent.active_grant() if channel == "gaps" else None
         active = grant.id if grant else self.reporting.active_grant(channel)
         if active and self._policy_grant(channel) != active:
@@ -371,12 +378,25 @@ class SharingFlow:
                     preview=preview,
                     demographics_revision=profile_revision,
                 )
-            atomic_json(self._draft_path(draft.id), draft.model_dump(mode="json"))
             drafts.append(draft)
+        retained = {draft.id for draft in drafts}
+        if channel == "gaps":
+            pending = {item["id"] for item in self.drafts(channel="gaps")}
+            replacing = pending - retained
+            if replacing and set(replace_draft_ids or ()) != replacing:
+                raise ValidationError(
+                    "A pending workflow report would be replaced. Read sharing.drafts; "
+                    "ask whether to keep, send, combine or replace it, then pass the exact "
+                    "replace_draft_ids only for an agreed replacement.",
+                    code="pending_draft_exists",
+                )
+            if replace_draft_ids and set(replace_draft_ids) != replacing:
+                raise ValidationError("Pending reports changed; read sharing.drafts again")
+        for draft in drafts:
+            atomic_json(self._draft_path(draft.id), draft.model_dump(mode="json"))
         # One review flow per channel. Save the whole replacement batch first;
         # keep other channels, original observations/feedback and receipt ledgers.
         # Identical previews reuse their ID so failed-send retries keep exact bytes.
-        retained = {draft.id for draft in drafts}
         for old in existing:
             if old.channel == channel and old.id not in retained:
                 self._draft_path(old.id).unlink()
@@ -425,34 +445,56 @@ class SharingFlow:
             )
         return SubmissionDraft.model_validate_json(path.read_text())
 
-    def send(self, identifier, approved_sha256):
-        try:
-            draft = self.load(identifier)
-            if draft.channel == "gaps":
-                active = self.consent.active_grant()
-                grant = active.id if active else None
-            else:
-                grant = self.reporting.active_grant(draft.channel)
-            if not grant or grant != draft.preview.grant_id:
-                raise ConsentRequiredError("Sharing consent changed; review the submission again")
-            sink = self._get_sink(draft.channel)
-            digest = ExportService._digest(draft.preview.payload)
-            if (
-                digest != draft.preview.payload_sha256
-                or digest != approved_sha256
-                or draft.preview.destination != sink.destination
-            ):
-                raise ValidationError(
-                    "Approve the exact payload and destination in the current preview",
-                    code="submission_invalid",
-                )
-            if draft.channel == "gaps":
-                return self.export.export(
-                    preview=draft.preview,
-                    approved_sha256=approved_sha256,
-                )
+    def drafts(self, *, channel=None):
+        """List exact pending reports and current eligibility, without writes or sends."""
+        if channel is not None and channel not in {"gaps", "feedback", "usage"}:
+            raise ValidationError("Unknown sharing channel")
+        received = {(r["channel"], r["payload_sha256"], r["destination"])
+                    for r in self.history()}
+        result = []
+        for path in sorted((self.paths.home / "sharing/drafts").glob("*.json")):
+            draft = SubmissionDraft.model_validate_json(path.read_text())
+            if channel is not None and draft.channel != channel:
+                continue
+            if (draft.channel, draft.preview.payload_sha256, draft.preview.destination) in received:
+                continue
+            problems = []
+            try:
+                self._check_draft(draft, draft.preview.payload_sha256)
+            except BenchsideError as error:
+                problems.append({"code": error.code, "message": error.message})
+            except (ValueError, TypeError, KeyError):
+                problems.append({"code": "submission_invalid",
+                                 "message": "Stored report is invalid; preserve it and review before sending"})
+            result.append({**draft.model_dump(mode="json"), "sendable": not problems,
+                           "problems": problems})
+        return result
+
+    def _check_draft(self, draft, approved_sha256):
+        """Shared readiness/send checks. This method never records or transmits."""
+        if draft.channel == "gaps":
+            active = self.consent.active_grant()
+            grant = active.id if active else None
+        else:
+            grant = self.reporting.active_grant(draft.channel)
+        if not grant or grant != draft.preview.grant_id:
+            raise ConsentRequiredError("Sharing consent changed; review the submission again")
+        if self._policy_grant(draft.channel) != grant:
+            raise ConsentRequiredError("Sharing policy changed; renew this choice and review again")
+        sink = self._get_sink(draft.channel)
+        digest = ExportService._digest(draft.preview.payload)
+        if (digest != draft.preview.payload_sha256 or digest != approved_sha256
+            or draft.preview.destination != sink.destination):
+            raise ValidationError(
+                "Approve the exact payload and destination in the current preview",
+                code="submission_invalid",
+            )
+        if draft.channel == "gaps":
+            self._export_service().check_preview(
+                preview=draft.preview, approved_sha256=approved_sha256,
+            )
+        else:
             if draft.channel == "usage":
-                # Never send an old week revision after a newer local snapshot.
                 from benchside.domain.export.model.reporting import UsagePayload
 
                 data = UsagePayload.model_validate_json(draft.preview.payload).model_dump()
@@ -461,11 +503,23 @@ class SharingFlow:
                         "Demographic preferences changed; review a new usage preview"
                     )
                 current = self.paths.home / "reporting" / f"usage-{data['week']}.json"
-                if (
-                    current.exists()
-                    and json.loads(current.read_text())["revision"] > data["revision"]
-                ):
+                if current.exists() and json.loads(current.read_text())["revision"] > data["revision"]:
                     raise ValidationError("A newer usage snapshot exists; review that version")
+            self.reporting.check_preview(
+                channel=draft.channel, preview=draft.preview, approved_sha256=approved_sha256,
+                sink=sink, redactor=self.redactor,
+            )
+        return sink
+
+    def send(self, identifier, approved_sha256):
+        try:
+            draft = self.load(identifier)
+            sink = self._check_draft(draft, approved_sha256)
+            if draft.channel == "gaps":
+                return self.export.export(
+                    preview=draft.preview,
+                    approved_sha256=approved_sha256,
+                )
             return self.reporting.send(
                 channel=draft.channel,
                 preview=draft.preview,

@@ -40,6 +40,7 @@ READ_ACTIONS = {
     "participation.status",
     "sharing.status",
     "sharing.history",
+    "sharing.drafts",
     "storage.check",
     "metascience.status",
     "metascience.history",
@@ -205,6 +206,8 @@ class App:
             match action:
                 case "sharing.status":
                     return flow.status()
+                case "sharing.drafts":
+                    return flow.drafts(channel=request.get("channel"))
                 case "sharing.consent":
                     if type(request.get("enabled")) is not bool:
                         raise ValidationError("Consent enabled must be true or false")
@@ -226,6 +229,7 @@ class App:
                             feedback_id=request.get("feedback_id"),
                             comment=request.get("comment"),
                             week=request.get("week"),
+                            replace_draft_ids=request.get("replace_draft_ids"),
                         )
                     ]
                 case "sharing.send":

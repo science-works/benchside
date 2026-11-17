@@ -3,7 +3,8 @@
 Use this account-native route when Claude exposes exact artifact file downloads
 and version-guarded file uploads. It uses the same `native.*` runtime and single
 snapshot as [native memory](native-memory.md); it is not a new backend or a public
-website. Claude Docs is a different artifact type and may lack this file bridge.
+website. Use this for new Claude app notebooks; Claude Code normally uses a
+chosen durable local folder. Claude Docs is no longer a supported notebook store.
 The 16 November 2026 synthetic test passed file readback, a deliberately stale
 write and restoration in a separate chat. Check the actual account's tools;
 tool names alone do not prove that files reach the execution environment.
@@ -20,17 +21,35 @@ tool names alone do not prove that files reach the execution environment.
   `folder_audience`; do not choose by title alone or create inside a shared folder.
   A normal file artifact has no true `made_from_type` value. If a selected Doc
   rejects `read_file`, do not keep retrying it as a file artifact.
-- An existing Doc remains the authoritative notebook until an explicitly agreed
-  migration completes. Do not create an empty file artifact and claim the old
-  project was restored. Migration requires an exact export of the existing
-  snapshot, validation and verified restoration at the chosen destination;
-  model reconstruction from notes is not migration. Keep the source intact.
-  Interim behaviour: say recording for that existing project is paused; continue
-  discussion with new checkpoints explicitly unsaved. Only a separately chosen
-  **new project** may start in a new store. Do not split an existing project's
-  history by silently recreating it there. A user-downloaded Markdown export can
-  be a one-time recovery input if requested and validated; do not promise an
-  untested server-side copy or export-to-file capability.
+- If a selected existing notebook cannot be read exactly, pause recording for
+  that project and keep discussion/checkpoints explicitly unsaved. Only a
+  separately chosen **new project** may start in a new store. A new empty
+  notebook is never a restoration.
+
+## Older Claude Docs and duplicate copies
+
+Do not create or write Benchside notebooks in Claude Docs. Earlier development
+notebooks remain intact and read-only. There is no supported automatic migration
+in this beta, and no need to migrate synthetic test notebooks during setup.
+
+If the researcher explicitly needs an older notebook recovered, they can supply
+an exact Markdown export (Export → Markdown, then attach), or a capable local
+agent may obtain an exact export file. Do not promise that every host exposes
+that export route; it still needs account-level verification. Validate the file
+with `native.inspect`, deriving the workspace ID from its envelope and comparing
+its ID/revision with the source if accessible. Never retype the payload. Reading
+an export successfully is not proof of a completed migration. Stop after the
+read-only inspection and explain that resuming it in a different store requires
+an explicitly arranged, verified move; do not create an active second copy.
+
+Candidates with the same `workspace_id` are copies of one notebook, even if their
+names differ. A title or highest revision cannot establish which has all the
+work. Never write to a copy marked “Moved to <link>”; follow its destination and
+verify it. If two unretired copies exist, show both links and pause recording
+until they are reconciled. A future agreed move must preserve the source, verify
+exact destination readback and, with the researcher's approval, mark the source
+“Moved to <link> on <date>; do not record here” outside the encoded state. Never
+modify the state block or rename project registrations to manufacture a move.
 
 ### Discovery in a new chat
 
@@ -39,8 +58,11 @@ This title is a search aid, not identity or access control. On a fresh chat with
 no notebook link, use the discovered artifact list/search operation scoped to the
 current owner's artifacts, searching for `Benchside`. Include older/custom-titled
 Benchside candidates; do not assume a cached path or ordinary chat memory exists.
-Read candidate metadata, then `list_files` for `memory/state.md`, and validate
-candidate snapshots with `native.inspect` to find registered project titles.
+Read candidate metadata first. List older Docs separately as “may hold earlier
+Benchside projects; cannot be opened through this route” before registering a
+new project. For ordinary file artifacts, use `list_files` for `memory/state.md`
+and validate snapshots with `native.inspect` to find registered project titles.
+Check for duplicate workspace IDs as described above.
 Check privacy before fetching private state. If several notebooks match, show
 their titles/links and ask the researcher which to use. Retain the selected stable
 slug and exact project registration after selection; never silently choose by
@@ -94,7 +116,7 @@ paths for discovery.
 2. Read the file with code, check its byte hash against the returned file hash,
    and run `native.inspect` / `native.run` / `native.batch` as documented. Derive
    `workspace_id` from the fetched envelope without decoding the private payload
-   into chat. Omit the Docs-only 65536 limit: ordinary files use the runtime's
+   into chat. Omit `document_limit_bytes`: ordinary files use the runtime's
    default 190000-byte bound. Respect the runtime's capacity response.
 3. Save candidate `result.markdown` from the response file to a new local file.
    When `changed:true`, call the observed `publish_files` tool with:

@@ -63,7 +63,10 @@ both folders and use the error to recover; never start over with an empty store.
 
 ## Cloud notebooks
 
-Claude Docs/ChatGPT native notebooks keep their existing saved-state format and
-human-readable project pages. The local folder upgrade does not apply there.
+ChatGPT Pages and private Claude file artifacts keep a validated saved-state
+document and readable project journals. The local folder upgrade does not apply
+there. Older Claude Docs stay intact and read-only; see
+[Claude memory](../content/app/references/claude-file-memory.md) for the current
+storage route and older-notebook limitations.
 Use the host's document-export functionality for a downloadable document when
 available; installing Benchside cannot add a missing host download capability.

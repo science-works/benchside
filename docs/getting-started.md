@@ -141,21 +141,22 @@ validated records, and each project has a readable journal document. A single
 private memory document can hold several isolated projects.
 
 Cloud storage must pass a save/readback and restore check in your account.
-Benchside uses guarded updates to avoid replacing a newer notebook. Claude
-0.3.1 transfers notebooks as files and respects Claude Docs' smaller block limit;
-if the exact transfer is unavailable, the agent must report that work was not
-saved. Update all apps sharing a notebook together: notebooks saved by 0.4.1
-require every app to use 0.4.1 or newer.
+Benchside uses guarded updates to avoid replacing a newer notebook. In the Claude
+app, new notebooks use private file artifacts with exact file transfers; Claude
+Code normally uses a durable local folder. **Claude Docs is no longer a supported
+Benchside notebook store.** Older Docs remain intact and read-only; an inaccessible
+notebook must never be silently replaced with an empty one. See
+[Claude memory and older notebooks](../content/app/references/claude-file-memory.md).
 
-ChatGPT Pages, Claude Docs and supported Google Docs connectors have passed
-synthetic checks in the tested accounts. Other accounts and connectors can expose
-different tools. A connector that only searches or reads cannot keep a journal;
-setup should offer another location. No Google connector or storage credentials
-are bundled. Claude's native Docs tools do not expose sharing permissions, so
-verify privacy in the document UI. Details are in the
-[acceptance history](acceptance-2026-10-28.md),
-[Claude transfer findings](claude-memory-and-sending-findings-2026-10-29.md), and
-[demo guide](demo-start-here.md).
+ChatGPT Pages and private Claude file artifacts passed the
+[installed-app checks](acceptance-review4-apps-2026-11-17.md). Earlier Google Docs
+connector checks are recorded in the [acceptance history](acceptance-2026-10-28.md);
+they do not establish that every account's connector works today. A connector
+that only searches or reads cannot keep a journal. Setup checks the actual tools
+and privacy before offering a store; no Google connector or storage credentials
+are bundled. Update all apps sharing a notebook together: newer notebook features
+can require a newer runtime, and older apps refuse incompatible state rather than
+discard records.
 
 Memory depends on the agent's tools, not its model. The runtime needs Python 3.11+
 and a POSIX execution environment, plus access to the chosen storage. Ordinary

@@ -221,7 +221,7 @@ class ReportingService(Service):
             ],
         )
 
-    def send(
+    def check_preview(
         self,
         *,
         channel: Channel,
@@ -255,7 +255,7 @@ class ReportingService(Service):
                 and event.payload_sha256 == digest
                 and event.destination == sink.destination
             ):
-                return event
+                return parsed, event
             if (
                 isinstance(event, ReportSubmitted)
                 and channel == "feedback"
@@ -265,15 +265,25 @@ class ReportingService(Service):
                 raise ValidationError(
                     "That feedback has already been shared; record new feedback for a new submission"
                 )
+        return parsed, None
+
+    def send(self, *, channel, preview, approved_sha256, sink, redactor):
+        parsed, previous = self.check_preview(
+            channel=channel, preview=preview, approved_sha256=approved_sha256,
+            sink=sink, redactor=redactor,
+        )
+        if previous is not None:
+            return previous
+        identifier = parsed.feedback.id if channel == "feedback" else parsed.report_id
         receipt = sink.send(preview.payload)
         if receipt is None:
             raise ValidationError("Reporting requires a verified collector receipt")
         event = ReportSubmitted(
             id=new_event_id(),
             channel=channel,
-            grant_id=grant,
+            grant_id=preview.grant_id,
             submission_id=identifier,
-            payload_sha256=digest,
+            payload_sha256=preview.payload_sha256,
             destination=sink.destination,
             received_at=receipt.received_at,
         )

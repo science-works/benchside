@@ -25,7 +25,10 @@ restore route. Those sessions may instead support a private file artifact with
 exact downloads and version-guarded uploads; inspect
 [Claude file memory](claude-file-memory.md) before ruling out Claude-native storage.
 Do not create a notebook first and discover this during readback. Keep an existing
-Docs notebook intact; a new store is not a restoration or an automatic migration.
+Docs notebook intact and read-only; a new store is not a restoration or an
+automatic migration. Prefer a chosen durable local folder in Claude Code. If an
+existing project is blocked, only a separately chosen new project may start in a
+new store; continue the existing discussion explicitly unsaved.
 
 Use the following checks separately. Report what actually passed, what failed
 and what has not been tested; do not infer capabilities from a plan name.
@@ -113,7 +116,8 @@ on a new host, not permission to copy or relocate research records.
   conditional writes, readback and an exact data-transfer route to/from the
   execution environment. Inline tool text that the model must retype is an
   experimental route, even if a small test passes; explain that limitation
-  before selection. ChatGPT Pages, private Claude file artifacts and Claude Docs are examples;
+  before selection. ChatGPT Pages and private Claude file artifacts are supported examples;
+  do not offer Claude Docs for new notebooks or ongoing recording.
   account capabilities decide availability. A Library upload alone is insufficient.
 - **Connected storage:** ask which actual service/location. Google Drive and
   Google Cloud Storage are different services. Inspect the installed connector

@@ -55,7 +55,9 @@ class ExportService(Service):
         edits = edits or {}
         if set(edits) - {o.id for o in covered}:
             raise ValidationError("Edits must refer to selected observations")
-        withheld = [o.id for o in unshared if o not in covered]
+        # A scoped review must not reveal unrelated projects through omissions.
+        withheld = [o.id for o in unshared if o not in covered
+                    and (only is None or o.id in only)]
         redaction_errors = []
         batches, batch = [], []
         for observation in covered:
@@ -119,6 +121,33 @@ class ExportService(Service):
                     exported_at=datetime.now(UTC),
                 )
             raise ConsentRequiredError("An exact reviewed preview and its approval are required")
+        previous = self.check_preview(preview=preview, approved_sha256=approved_sha256)
+        if previous is not None:
+            return previous
+        receipt = self.sink.send(preview.payload)
+        event = ObservationsExported(
+            id=new_event_id(),
+            grant_id=grant.id,
+            observation_ids=preview.observation_ids,
+            payload_sha256=preview.payload_sha256,
+            destination=preview.destination,
+            received_at=receipt.received_at if receipt else None,
+        )
+        self.journal.append(CONSENT_LEDGER_PROJECT, event)
+        return ExportRecord(
+            grant_id=grant.id,
+            observation_ids=preview.observation_ids,
+            payload_sha256=preview.payload_sha256,
+            exported_at=event.recorded_at,
+            destination=event.destination,
+            received_at=event.received_at,
+        )
+
+    def check_preview(self, *, preview: ExportPreview, approved_sha256: str | None):
+        """Read-only send validation; return an existing receipt for exact retries."""
+        grant = self.consent.active_grant()
+        if grant is None:
+            raise ConsentRequiredError("No active consent grant; nothing was shared")
         if preview.grant_id != grant.id:
             raise ConsentRequiredError("The consent changed; review the export again")
         digest = self._digest(preview.payload)
@@ -144,24 +173,7 @@ class ExportService(Service):
                 raise ConsentRequiredError("Observation selection changed; review the export again")
         if any(f.tier == "HIGH" for f in self.redactor.scan(preview.payload)):
             raise ValidationError("Sensitive content remains; edit and review before sending")
-        receipt = self.sink.send(preview.payload)
-        event = ObservationsExported(
-            id=new_event_id(),
-            grant_id=grant.id,
-            observation_ids=ids,
-            payload_sha256=digest,
-            destination=preview.destination,
-            received_at=receipt.received_at if receipt else None,
-        )
-        self.journal.append(CONSENT_LEDGER_PROJECT, event)
-        return ExportRecord(
-            grant_id=grant.id,
-            observation_ids=ids,
-            payload_sha256=digest,
-            exported_at=event.recorded_at,
-            destination=event.destination,
-            received_at=event.received_at,
-        )
+        return None
 
     def _payload(self, observations: list[dict]) -> str:
         schema = "benchside.gaps.v2" if self.contributor_id else "benchside.gaps.v1"

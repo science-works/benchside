@@ -32,7 +32,9 @@ unchanged, including on inner action failure. Load `result.markdown` from that f
 as data when constructing a guarded document-tool request; see [native memory](native-memory.md).
 The file is a temporary transfer aid, not durable memory or a save confirmation.
 Native requests accept an optional `document_limit_bytes` (32768–190000) for a
-store that holds less than the default; Claude Docs uses 65536. Omit it elsewhere.
+store that holds less than the default. Omit it for ordinary file artifacts.
+The limit remains available for validating older exports; Claude Docs is no longer
+a supported notebook store.
 Use a fresh filename per call; an existing file is refused before the action runs.
 If writing fails after execution, the full response is printed with
 `response_file_error`: preserve it and check what completed before retrying.
@@ -199,7 +201,9 @@ checkpoints without opening a consultation. Notebook records use `kind:"note"`
 or `kind:"evidence"`; evidence needs `sources` identifying actually inspected
 material or an explicit researcher report. `notebook.decide` preserves the
 researcher's wording, accepts `supersedes` only within this project, and requires
-a nonempty decision/rationale. Notebook-only events do not inflate role usage.
+a nonempty decision. Its `rationale` is optional: omit it when not supplied,
+rather than invent a reason or enter placeholder text. Reading views show
+“Rationale not stated” for an absent reason. Notebook-only events do not inflate role usage.
 Use role actions once a role is active; do not switch to notebook actions to bypass
 an active role's recording or close requirements.
 

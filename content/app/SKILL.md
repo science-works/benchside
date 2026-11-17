@@ -160,6 +160,13 @@ workflow problems, usability feedback and usage counts. They can change choices
 on request; do not repeatedly prompt after a decline or deferral. Declining any
 choice must not affect scientific assistance.
 
+When an offer is accepted, pass its exact `observation_ids` as `only` to
+`sharing.preview`; never open an unrestricted review of other projects. First
+read `sharing.drafts` for existing pending reports. Do not silently replace one:
+ask whether to keep/review it, combine the new items, or replace it, following
+the sharing guide. A new chat or failed send resumes the stored draft, not a
+regenerated preview. Readiness is not approval to send.
+
 Read [the sharing guide](references/sharing.md) before changing consent or sending.
 Model-derived gaps must exclude private scientific findings and research-specific
 details; public tool/dataset names and versions can remain. Share only the general workflow information allowed by

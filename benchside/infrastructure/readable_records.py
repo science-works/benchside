@@ -181,7 +181,9 @@ def export_project(paths, journal, project_id):
         superseded = {d.supersedes for d in project.decisions if d.supersedes}
         for decision in project.decisions:
             if decision.id not in superseded:
-                blocks.extend([(0, decision.decision), (0, "Reason: " + decision.rationale)])
+                blocks.extend([(0, decision.decision),
+                               (0, "Reason: " + decision.rationale if decision.rationale
+                                else "Rationale not stated")])
     else:
         blocks.append((0, "No scientific records yet."))
     blocks.append((1, "Complete saved history"))

@@ -249,27 +249,30 @@ def _validate_project(project):
         _fail("Invalid native project document ID or title")
 
 
-def _has_gap_context(value):
-    """Include JSONL journals, frozen draft JSON and operation results in the gate.
-
-    Older packages must refuse a context-bearing notebook instead of silently
-    discarding nested fields when replaying their older event models.
-    """
+def _contains_feature(value, predicate, markers):
+    """Walk nested values and encoded JSON/JSONL consistently for schema gates."""
     if isinstance(value, dict):
-        if value.get("schema") == "benchside.gaps.v3" or ("kind" in value and "context" in value):
-            return True
-        return any(_has_gap_context(item) for item in value.values())
+        return predicate(value) or any(
+            _contains_feature(item, predicate, markers) for item in value.values()
+        )
     if isinstance(value, list):
-        return any(_has_gap_context(item) for item in value)
-    if isinstance(value, str) and ("context" in value or "benchside.gaps.v3" in value):
+        return any(_contains_feature(item, predicate, markers) for item in value)
+    if isinstance(value, str) and any(marker in value for marker in markers):
         for line in [value, *value.splitlines()]:
             try:
                 decoded = json.loads(line)
             except (ValueError, TypeError):
                 continue
-            if not isinstance(decoded, str) and _has_gap_context(decoded):
+            if not isinstance(decoded, str) and _contains_feature(decoded, predicate, markers):
                 return True
     return False
+
+
+def _has_gap_context(value):
+    return _contains_feature(
+        value, lambda v: v.get("schema") == "benchside.gaps.v3"
+        or ("kind" in v and "context" in v), ("context", "benchside.gaps.v3"),
+    )
 
 
 def _document_limit(request):
@@ -284,62 +287,29 @@ def _document_limit(request):
 
 
 def _has_extended_research(value):
-    """Gate 0.4 values in files, frozen payloads and cached results for older clients."""
-    if isinstance(value, dict):
-        if isinstance(value.get("discipline"), list) or any(
-            value.get(key) == "pi-hypothesis" for key in ("role", "benchside_role", "persona_id")
-        ):
-            return True
-        return any(_has_extended_research(item) for item in value.values())
-    if isinstance(value, list):
-        return any(_has_extended_research(item) for item in value)
-    if isinstance(value, str) and ("discipline" in value or "pi-hypothesis" in value):
-        for line in [value, *value.splitlines()]:
-            try:
-                decoded = json.loads(line)
-            except (ValueError, TypeError):
-                continue
-            if not isinstance(decoded, str) and _has_extended_research(decoded):
-                return True
-    return False
+    return _contains_feature(
+        value, lambda v: isinstance(v.get("discipline"), list) or any(
+            v.get(key) == "pi-hypothesis" for key in ("role", "benchside_role", "persona_id")
+        ), ("discipline", "pi-hypothesis"),
+    )
 
 
 def _has_workflow_features(value):
-    if isinstance(value, dict):
-        if (value.get("schema") == "benchside.gaps.v4" or value.get("kind") == "workflow_problem"
-            or value.get("scope") == "all_workflow" or "sharing_offer" in value
-            or ("consultation_id" in value and "gap" in value and value.get("basis", "unknown") != "unknown")
-            or ("consultation_id" in value and value["consultation_id"] is None)):
-            return True
-        return any(_has_workflow_features(v) for v in value.values())
-    if isinstance(value, list):
-        return any(_has_workflow_features(v) for v in value)
-    if isinstance(value, str) and any(s in value for s in ("workflow_problem", "all_workflow", "consultation_id", "benchside.gaps.v4", "sharing_offer")):
-        for line in [value, *value.splitlines()]:
-            try:
-                parsed = json.loads(line)
-            except (ValueError, TypeError):
-                continue
-            if not isinstance(parsed, str) and _has_workflow_features(parsed):
-                return True
-    return False
+    return _contains_feature(
+        value, lambda v: (
+            v.get("schema") == "benchside.gaps.v4" or v.get("kind") == "workflow_problem"
+            or v.get("scope") == "all_workflow" or "sharing_offer" in v
+            or ("consultation_id" in v and "gap" in v and v.get("basis", "unknown") != "unknown")
+            or ("consultation_id" in v and v["consultation_id"] is None)
+        ), ("workflow_problem", "all_workflow", "consultation_id", "benchside.gaps.v4", "sharing_offer"),
+    )
 
 
 def _has_item_offers(value):
-    if isinstance(value, dict):
-        offer = value.get("sharing_offer")
-        return (isinstance(offer, dict) and "observation_ids" in offer) or any(
-            _has_item_offers(v) for v in value.values()
-        )
-    if isinstance(value, list):
-        return any(_has_item_offers(v) for v in value)
-    if isinstance(value, str) and "sharing_offer" in value:
-        try:
-            decoded = json.loads(value)
-        except (ValueError, TypeError):
-            return False
-        return not isinstance(decoded, str) and _has_item_offers(decoded)
-    return False
+    return _contains_feature(
+        value, lambda v: isinstance(v.get("sharing_offer"), dict)
+        and "observation_ids" in v["sharing_offer"], ("sharing_offer",),
+    )
 
 
 def _minimum_schema(body):
@@ -791,7 +761,8 @@ def journal_view(app, project_id, projects, revision, history="recent"):
     label = "All" if history == "all" else "Recent"
     lines.append(f"## {label} decisions")
     for decision in recall["recent_decisions"]:
-        lines.extend([_quote(decision["decision"]), _quote(decision["rationale"])])
+        lines.extend([_quote(decision["decision"]),
+                      _quote(decision["rationale"] or "Rationale not stated")])
     lines.extend(["", f"## {label} research questions and answers"])
     for question in recall["recent_questions"]:
         lines.extend([_quote(question["question"]), _quote(question["answer"] or "Unresolved")])

@@ -116,6 +116,17 @@ Context-bearing legacy gap types use `benchside.gaps.v3`; submissions containing
 keep their supported format.
 
 - `sharing.status` returns current choices, including gap permission `scope`.
+- `sharing.drafts` is read-only; optional `channel` filters gaps, feedback or usage.
+  It returns each pending draft's `id`, `channel` and complete stored `preview`
+  (`payload`, `payload_sha256`, `destination`, `observation_ids`, `withheld`,
+  `redaction_findings`), plus `sendable` and `problems` (codes/messages).
+  Receipted drafts are excluded. `sendable` means current local checks allow an
+  attempt, not approval or proof of network access. Listing does not grant consent,
+  change state, retry a request or send anything. On a fresh chat or failed send,
+  use this action to redisplay the exact stored report and obtain/verify its
+  exact-content approval; retry that same ID and checksum. Never regenerate a
+  report merely to discover or retry it. Explain non-sendable reports using their
+  returned problems; send rechecks all conditions and the approval digest.
 - `sharing.check_in` takes the selected `project_id` and `session_id`. At a natural
   pause it returns `offer:true`, `channel:"gaps"`, `observation_ids` and a count only when consent
   covers new pending problems. It remembers the offer, even if declined, and
@@ -128,7 +139,12 @@ keep their supported format.
   Do not omit `only`: an unrestricted preview can include other projects. The
   count and selection cover newly offered problems in this project, not items
   left out of an earlier offer. Broader review requires the researcher's request.
-  Requested review is always available via `sharing.preview`, even after deferral.
+  Requested review is always available, even after deferral. Before preparing a
+  new preview, check `sharing.drafts`. If a gaps report is pending, ask whether
+  to keep/review that report, combine the new problems with it, or replace it.
+  Combining uses the union of the stored and newly offered IDs; do not quietly
+  broaden to other projects. A failed/uncertain send must be retried as-is before
+  combining/replacing, since changing its bytes can defeat receipt deduplication.
 - `sharing.consent` takes `channel` (`gaps`, `feedback`, `usage`) and boolean
   `enabled`. New gap consent takes `scope:"all_workflow"`, without `kinds`. Legacy
   `kinds` grants remain restricted. Call only after the researcher chooses.
@@ -138,13 +154,20 @@ keep their supported format.
 - `sharing.preview` takes `channel`. Gaps optionally take `only: [observation IDs]`
   and `edits: {observation ID: reviewed gap object}`; feedback takes `feedback_id`
   and optionally an edited `comment`; usage optionally takes `week` (Monday date).
+  Gaps also take `replace_draft_ids` only after agreement to edit, combine or
+  replace pending reports: pass the exact IDs of the drafts being replaced. An
+  identical preview reuses its draft. A changed gaps preview refuses to discard
+  a pending draft without this explicit replacement selection. Save and review
+  the replacement normally; approving an old digest does not approve a new one.
 - The preview returns one or more drafts, each containing its exact `payload`,
   `destination`, `payload_sha256` and draft `id`. Display the complete content of
   each draft in readable form, including every text field and usage count, plus the
   recipient. Explain that redaction cannot catch all identifying research details.
   If automatic scrubbing makes one observation invalid, its ID is listed in
   `withheld` with a reason in `redaction_findings`; other valid items remain
-  reviewable. Explain omissions, and offer to edit that specific item separately.
+  reviewable. Explain only redaction omissions among the selected observations,
+  and offer to edit that specific item separately. Never look up or describe
+  unrelated projects because a legacy draft's `withheld` includes other IDs.
   Never silently drop the warning, undo redaction or claim all problems were sent.
   If the researcher edits anything, prepare and show a new draft.
 - After explicit approval, call `sharing.send` with that `draft_id` and its

@@ -27,16 +27,18 @@ def record_checkpoint(app, project_id, action, request):
     identifier = uuid4().hex
     match action:
         case "notebook.decide":
-            for key in ("decision", "rationale"):
-                if not isinstance(request.get(key), str) or not request[key].strip():
-                    raise ValidationError(f"A notebook decision needs {key}")
+            if not isinstance(request.get("decision"), str) or not request["decision"].strip():
+                raise ValidationError("A notebook decision needs decision")
+            rationale = request.get("rationale", "")
+            if not isinstance(rationale, str):
+                raise ValidationError("A decision rationale must be text or omitted")
             supersedes = request.get("supersedes")
             identifier = f"d-{identifier}"
             event = DecisionRecorded(
                 **common,
                 decision_id=identifier,
                 decision=request["decision"],
-                rationale=request["rationale"],
+                rationale=rationale if rationale.strip() else "",
                 supersedes=supersedes,
             )
             # Setup registers a project before its first scientific journal event.
