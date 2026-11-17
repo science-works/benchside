@@ -3,8 +3,10 @@
 import json
 import re
 
+from pydantic import ValidationError as SchemaError
+
 from benchside.domain.shared.error import ValidationError
-from benchside.domain.shared.model.gap import GapContext
+from benchside.domain.shared.model.gap import GapContext, WorkflowProblem
 
 MAX_BYTES = 512 * 1024
 MAX_OBSERVATIONS = 1000
@@ -17,7 +19,17 @@ GAP_FIELDS = {
 }
 
 
-def validate_gap(gap: dict, *, allow_context: bool = True) -> None:
+def validate_gap(gap: dict, *, allow_context: bool = True, allow_workflow: bool = True) -> None:
+    if isinstance(gap, dict) and gap.get("kind") == "workflow_problem" and allow_workflow:
+        if any(key in gap and gap[key] is None for key in ("labels", "context", "deidentified_excerpt", "workaround_status")) or gap.get("context") == {}:
+            raise ValidationError("Omit unknown optional workflow fields")
+        if "context" in gap:
+            validate_gap({"kind": "missing_index", "question": "", "context": gap["context"]}, allow_workflow=False)
+        try:
+            WorkflowProblem.model_validate_json(json.dumps(gap), strict=True)
+        except (SchemaError, TypeError, ValueError) as err:
+            raise ValidationError("Invalid workflow problem") from err
+        return
     if (
         not isinstance(gap, dict)
         or not isinstance(gap.get("kind"), str)
@@ -58,7 +70,8 @@ def validate_payload(payload: str) -> dict:
         data = json.loads(payload)
     except (TypeError, json.JSONDecodeError) as err:
         raise ValidationError("Invalid export JSON") from err
-    contextual = isinstance(data, dict) and data.get("schema") == "benchside.gaps.v3"
+    workflow = isinstance(data, dict) and data.get("schema") == "benchside.gaps.v4"
+    contextual = workflow or (isinstance(data, dict) and data.get("schema") == "benchside.gaps.v3")
     linked = isinstance(data, dict) and (
         data.get("schema") == "benchside.gaps.v2" or (contextual and "contributor_id" in data)
     )
@@ -75,6 +88,7 @@ def validate_payload(payload: str) -> dict:
         "benchside.gaps.v1",
         "benchside.gaps.v2",
         "benchside.gaps.v3",
+        "benchside.gaps.v4",
     } or not isinstance(observations, list):
         raise ValidationError("Invalid export schema")
     if not 1 <= len(observations) <= MAX_OBSERVATIONS:
@@ -100,5 +114,5 @@ def validate_payload(payload: str) -> dict:
         if identifier in seen:
             raise ValidationError("Repeated observation identifier")
         seen.add(identifier)
-        validate_gap(observation["gap"], allow_context=contextual)
+        validate_gap(observation["gap"], allow_context=contextual, allow_workflow=workflow)
     return data

@@ -8,8 +8,11 @@ or repeated upload/download is involved. Never send the notebook to the collecto
 ## Layout and discovery
 
 In ChatGPT, use a private **Benchside** Space, a **Benchside private memory** Page,
-and one readable journal Page per research project. In Claude, use the equivalent
-private native Docs and an index document when folders are unavailable. Discover
+and one readable journal Page per research project. In Claude, use a private
+file artifact when its exact file tools are available. Claude Code normally uses
+a chosen durable local folder. Claude Docs is not a supported notebook store
+for new setup or ongoing recording; leave older Docs intact and read-only.
+Use an index document when folders are unavailable. Discover
 existing documents using the host's native list/search tools before creating any.
 If several notebooks or projects match, let the researcher choose; never select
 by a title alone. A renamed document retains its identity.
@@ -21,9 +24,11 @@ create it in the host's explicitly private location or explain the missing acces
 Readable project journals are private too; no sharing permissions are changed.
 
 The notebook holds one fenced JSON block. The runtime selects its schema label:
-v1 for basic state, v2 for replay checkpoints, v3 for workflow context, and
-`benchside.native.v4` for multi-discipline profiles or the `pi-hypothesis` role.
-The current runtime reads all four. Update every app sharing a notebook before
+v1 for basic state, v2 for replay checkpoints, v3 for workflow context,
+`benchside.native.v4` for multi-discipline profiles or the `pi-hypothesis` role,
+`benchside.native.v5` for general workflow reports and earlier sharing check-ins,
+and `benchside.native.v6` for per-observation sharing-offer memory.
+The current runtime reads all six. Update every app sharing a notebook before
 using newer formats. Older 0.4.0 notebooks that saved these research values under
 v1-v3 remain readable and receive the appropriate label on their next save.
 An older runtime must be updated when it reports `native_update_required`; never
@@ -48,64 +53,34 @@ For dependable storage, both directions must transfer exact data without the
 model retyping an encoded payload. A returned file, or host-supported
 programmatic tool composition, can provide this bridge; a literal path passed
 to a text-only tool cannot. A successful small-notebook test does not establish
-that a larger notebook will transfer reliably.
+that a larger notebook will transfer reliably. Establish the read-to-file or
+programmatic bridge before creating a notebook, even if uploads already work.
+Matching a server export digest against a locally reconstructed candidate can
+attest that those bytes were stored, but does not retrieve them for a fresh chat.
+It is not the documented readback: do not pass a reconstructed candidate to
+`native.confirm` as though it were fetched content, or claim restoration from it.
 
-The Claude 0.2.0 test on 29 October failed to restore an existing notebook after
-the model corrupted a long inline payload while copying it. The runtime rejected
-the copy and the source document was not changed. The Claude Docs file route
-below avoids retyping and passed synthetic tests the same day. Copying a payload
-inline remains experimental. Check capabilities in each host/account rather than
-assuming them.
+Never retype encoded state to work around a missing file bridge. Historical
+small-notebook successes do not establish current account capabilities.
 
 - **ChatGPT Pages:** read the notebook's complete state block with `read_page`.
   Retain its block ID/hash and any returned stream kind. Replace only that block
   with `edit_page` / `replace_block_markdown`, passing `expected_hash` from the
   read. Omit `base_sequence` if the read did not return `through_sequence`.
   Use ordinary Markdown, not Agent Instructions. Inspect every operation receipt.
-- **Claude Docs:** create, readback, guarded update and fresh-chat discovery were
-  verified on 23 October 2026; exact file transfer on 29 October. Inspect the
-  actual tool schemas and guide in the current account before using them.
-  - Discovery: `Artifact` listing with type `Docs` (or scope `mine`) shows titles
-    and short links, not IDs. `mcp__Claude_Docs__read` on a link returns its stable
-    ID as `frame.slug`; match it to the saved notebook ID. A title only identifies
-    candidates. `query` lists comments; it is not discovery.
-  - Size: keep the snapshot in one dedicated code block. A Claude Docs block holds
-    at most 65,536 characters, so pass `"document_limit_bytes":65536` with every
-    `native.inspect`, `native.run` and `native.batch` request. At capacity, keep the
-    notebook and offer archival or local storage; never split the block.
-  - Read: an outline read of the content node (`payload {"projection":"outline"}`)
-    gives `rev` and the block's full session-prefixed ID and `h` without the
-    payload. Then `mcp__Claude_Docs__create` with `object:"blob"`, `engine:"blob"`,
-    `payload {"from":{"object":"file","id":"<tab id>"},"format":"markdown"}`. Its
-    `rev` must equal the outline `rev`; otherwise repeat both. `Artifact` `read`
-    with the doc link as `url` and the returned asset ID as `path` saves the export
-    as a file. Pass that file's text as `document`.
-  - Write: save `result.markdown` from the `--response-file` response to a new
-    file. Upload it with `Artifact` publish (`url` = doc link, `asset:true`,
-    `file_path`) and check the reported sha256 matches the file. `create` a blob
-    with `payload {"asset":"<asset id>"}`, then `mcp__Claude_Docs__update` with a
-    `replace` of the state block carrying `ifHash`, `ifRev` and
-    `"with":{"from":{"kind":"blob","id":"blob/<id>"},"as":"markdown"}`. Check
-    `verdict:allow`, read back as above and run `native.confirm`.
-  - A stale guard returns `guard_mismatch` or `block_gone` and changes nothing:
-    reread and reconcile rather than removing the guard. A failed `native.confirm`
-    is not proof of corruption: another conversation may have saved a valid newer
-    notebook after this save. Preserve the candidate and readback files, reread,
-    and validate the current notebook. Keep valid newer state and reconcile the
-    original operation; never replace it with an older candidate's blob, even
-    with a fresh guard. Recover from a known-good blob only for verified corruption
-    attributable to this write, when its returned revision still matches the
-    current document and both current guards are available. Otherwise stop and
-    preserve the versions for explicit recovery. Each save attaches its export
-    and upload files to the doc; this is expected. Never write through an
-    unguarded artifact update.
-  - Without these file tools the only route is retyping the payload inline. That
-    is experimental: explain it before offering Claude Docs, and stop rather than
-    retry after a checksum failure.
-  The installed review plugin also passed methods-role recording, fresh-chat
-  discovery/resumption and project isolation in this account on 23 October.
-  If another account lacks these operations, explain the missing capability
-  rather than using an ephemeral execution folder or silently overwriting a Doc.
+- **Claude private file artifacts:** the 16 November investigation verified
+  exact file reads, file-backed writes and rejection of stale writes for ordinary
+  artifacts (`made_from_type:false`). This is a different tool route from Docs,
+  using the same Benchside snapshot and runtime. See
+  [Claude file memory](claude-file-memory.md) for the tool contract, privacy,
+  project locators and conflict handling. Inspect capabilities in this account
+  first. Never convert or replace an existing Docs notebook automatically.
+- **Older Claude Docs:** do not create, update or automatically migrate them.
+  Show an inaccessible candidate as “may hold earlier Benchside projects; cannot
+  be restored through this route”. Do not quietly recreate that project elsewhere.
+  Continue with unsaved discussion, or let the researcher explicitly start a
+  separate new project in a verified store. See the
+  [older-notebook note](claude-file-memory.md#older-claude-docs-and-duplicate-copies).
 
 - **Google Docs through Google Drive:** the connected Google Drive tools were
   tested with private synthetic documents on 23 October 2026. Create a native
@@ -235,14 +210,20 @@ the readable journal between these steps. Never defer records across user turns
 or invent answers to complete a batch. Read-only batches require no save.
 For ordinary private recording, reuse the complete readback and its current guard
 from the last confirmed save in this conversation instead of immediately reading
-the same block again. Reread on a new conversation, execution reset or conflict,
+the same block again. These are an inseparable pair: never combine a cached
+notebook with a newer metadata-only guard. For Claude file artifacts, journal/index
+patches must start from that paired version; only their successful, state-preserving
+patch chain may advance the cached guard. A conflict on any file requires rereading
+the notebook and its version together before further writes. Reread on a new conversation, execution reset or conflict,
 and immediately before any submission to recheck current consent. A stale guard
 must still fail. Refresh the derived journal once after a group of scientific
 records changes, not for consent-only changes or every read-only recall.
 
 It takes the same `document`, `workspace_id` and `operation_id` as `native.run`,
-plus 1–16 `steps`. Each has a unique short `id`, an ordinary `request`, and a
-`project_document` only for setup. A value `{"$ref":"setup.project_id"}` uses a
+plus 1–16 `steps`. Each has a unique `id` of 1–32 characters: start with a lowercase
+letter, then use lowercase letters, digits or underscores (`[a-z][a-z0-9_]{0,31}`),
+for example `review_a`, not `reviewA` or `review-a`. Each step has an ordinary
+`request`, and a `project_document` only for setup. A value `{"$ref":"setup.project_id"}` uses a
 prior step's result. For example, after an explicit decision to participate later:
 
 ```json
@@ -338,8 +319,11 @@ rejected while retained; an expired ID fails closed instead of repeating it.
 4. Read back the state block. Call `native.confirm` with the candidate's
    workspace ID, revision and digest. Only `saved:true` confirms the save.
 5. After confirmation, update the selected readable project journal with
-   `project_journal.markdown`, preserving unrelated user notes and using its own
-   current guard. Keep the generated view in a dedicated section. If this view
+   `project_journal.markdown`, preserving unrelated user notes. For a separate
+   journal document, use its own current guard. For a Claude file artifact,
+   all files share one version: use the guard paired with confirmed notebook
+   bytes, following [the file-artifact protocol](claude-file-memory.md), never
+   a newer metadata-only version. Keep the generated view in a dedicated section. If this view
    update fails, the notebook is still saved; refresh through `recall` next time.
 6. Explain an inner action failure accurately. A candidate can contain failure
    counters even when the action failed; saving those does not make it succeed.
@@ -404,6 +388,10 @@ explicitly, stop sharing and preserve the notebook while moving to larger privat
 storage; never claim consent has been durably changed from an unsuccessful save.
 
 Sharing still requires the exact preview approval described in `sharing.md`.
+Use read-only `sharing.drafts` with `channel:"gaps"` and the current `project_id`
+to recover exact pending workflow reports in a new chat (specify `channel:"feedback"`
+or `"usage"` for those store-wide reports);
+do not regenerate a preview to find a draft or retry a send.
 Read current native consent and the approved draft immediately before
 `sharing.send`; pass the original draft ID and approved digest. Only the selected
 payload goes to the collector. Network receipt and native save are separate:
@@ -427,3 +415,18 @@ Discover the same notebook and journal, restore with `native.run`, and verify th
 actual structured recall and open sitting. Create project B and check isolation.
 Also test a conflicting write, failed readback, revoked sharing consent and an
 exact-payload submission retry. Repeat for every advertised host/account type.
+
+## Workflow/notebook compatibility
+
+Broad workflow reports, all-workflow consent and notebook-only checkpoints require
+`benchside.native.v5`. Update every app sharing the notebook before using these
+features; older packages must refuse the newer notebook rather than lose fields.
+Native `batch` supports notebook actions and read-only `sharing.drafts`,
+`sharing.status` and `sharing.history`; a batch containing only reads leaves the
+notebook unchanged. Previews and sends remain separate. `sharing.check_in` is a separate normal
+`native.run` action: save and confirm its changed candidate before showing an offer.
+Per-observation offer memory uses v6 so earlier review builds cannot overwrite
+the new reminder state. Update every app sharing that notebook. Older v5 offers
+remain readable; their first check-in conservatively remembers currently pending
+items without repeating an uncertain old offer. Explicit requested review remains
+available, and subsequent new observations can trigger an offer.

@@ -1,16 +1,13 @@
-"""The gap taxonomy.
+"""Workflow observations, with legacy types and an open-ended description format.
 
-Kernel rather than domain-owned: consultation records gaps as they occur,
-export reads them. A gap is the *shape* of a workflow breakdown, captured as a
-closed sum at the moment it happens rather than distilled from prose later.
-
-Free text describes tooling and process only -- never a hypothesis, a result,
-or data. Redaction and consent are enforced by the export domain.
+General reports retain optional descriptive labels and reviewed, de-identified
+excerpts. Labels are analytical hints, never a topic allowlist or consent gate.
+Private scientific findings and identifiers do not belong in shared text.
 """
 
 from typing import Literal
 
-from pydantic import ConfigDict, field_validator, model_serializer
+from pydantic import ConfigDict, Field, field_validator, model_serializer, model_validator
 
 from benchside.domain.shared.model.value import ValueObject
 
@@ -82,8 +79,60 @@ class MissingIndex(ContextualGap):
     kind: Literal["missing_index"] = "missing_index"
 
 
-Gap = MissingTool | UnfindableData | ManualToil | DeadEnd | MissingIndex
+# Suggested analytical labels, not an allowlist or consent boundary.
+WORKFLOW_LABELS = (
+    "software_data", "equipment_access", "materials_procurement",
+    "coordination", "methods_training", "other",
+)
+
+
+def has_workflow_text(value: str) -> bool:
+    # ECMAScript trim (the receiver) also treats U+FEFF as whitespace.
+    # Check presence without changing any stored/reviewed payload bytes.
+    return any(not c.isspace() and c != "\ufeff" for c in value)
+
+
+class WorkflowProblem(ContextualGap):
+    """Any workflow problem, including ones outside suggested labels."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    kind: Literal["workflow_problem"] = "workflow_problem"
+    description: str
+    labels: tuple[str, ...] = Field(default=(), max_length=20)
+    deidentified_excerpt: str | None = None
+    workaround_status: Literal[
+        "model_suggested", "researcher_tried", "researcher_reported_helpful"
+    ] | None = None
+
+    @field_validator("description", "deidentified_excerpt")
+    @classmethod
+    def useful_text(cls, value):
+        if value is not None and (not has_workflow_text(value) or len(value.encode("utf-16-le")) // 2 > 2000):
+            raise ValueError("Workflow text needs 1–2000 UTF-16 characters")
+        return value
+
+    @field_validator("labels")
+    @classmethod
+    def descriptive_labels(cls, values):
+        if len(set(values)) != len(values) or any(
+            not has_workflow_text(v) or len(v.encode("utf-16-le")) // 2 > 100 for v in values
+        ):
+            raise ValueError("Labels must be distinct text of 1–100 UTF-16 characters")
+        return values
+
+    @model_validator(mode="after")
+    def status_needs_workaround(self):
+        if self.workaround_status and not (self.context and self.context.workaround and has_workflow_text(self.context.workaround)):
+            raise ValueError("A workaround status needs a described workaround")
+        return self
+
+    @model_serializer(mode="wrap")
+    def optional_fields(self, handler):
+        return {k: v for k, v in handler(self).items() if v is not None and (k != "context" or v)}
+
+
+Gap = MissingTool | UnfindableData | ManualToil | DeadEnd | MissingIndex | WorkflowProblem
 
 GAP_KINDS: frozenset[str] = frozenset(
-    {"missing_tool", "unfindable_data", "manual_toil", "dead_end", "missing_index"}
+    {"missing_tool", "unfindable_data", "manual_toil", "dead_end", "missing_index", "workflow_problem"}
 )

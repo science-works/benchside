@@ -186,6 +186,7 @@ class JournalObservationReader:
                             id=event.observation_id,
                             project_id=event.project_id,
                             gap=event.gap,
+                            basis=event.basis,
                         )
                     )
         return found
@@ -220,6 +221,7 @@ class JournalConsentRepository:
                         Grant(
                             id=event.grant_id,
                             gap_kinds=event.gap_kinds,
+                            scope=event.scope,
                             granted_at=event.recorded_at,
                         )
                     )

@@ -98,7 +98,7 @@ def _recall_lines(project_id) -> list[str]:
     if recall.current_hypothesis:
         lines.append(f"Current hypothesis: {recall.current_hypothesis}")
     lines += [f"Open question: {q}" for q in recall.open_questions]
-    lines += [f"Decided: {d.decision} — {d.rationale}" for d in recall.recent_decisions]
+    lines += [f"Decided: {d.decision} — {d.rationale or 'Rationale not stated'}" for d in recall.recent_decisions]
     for record in recall.recent_records:
         lines.append(f"{record.kind}: {record.summary}")
         lines.extend(f"  {detail}" for detail in record.details)

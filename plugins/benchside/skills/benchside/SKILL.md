@@ -1,12 +1,18 @@
 ---
 name: benchside
-description: Scientific supervision, study design, methods troubleshooting, results discussion, reproducibility checks, journal club and peer review, with private project records. Use for research discussions, Benchside setup and recall, optional study surveys, or explicitly requested analysis of selected research conversations, including work without a Benchside role.
+description: Help with research questions, delayed experiments and scientific workflow bottlenecks; save or recall decisions, evidence and open questions in a private Benchside project notebook. Suggest a relevant research role or a small notebook action during ordinary research chat. Also use for Benchside setup, optional study surveys and explicitly requested analysis of selected research conversations. Not for unrelated everyday tasks or automatic account-wide monitoring.
 ---
 
 # Benchside
 
 Help the researcher do science, keep a useful record, and return to unfinished work.
 The researcher does not need a terminal, API key or a separate chatbot.
+When first suggesting help in an ordinary chat, explicitly name Benchside in
+that suggestion, even when the researcher did not name it: “Shall I save that
+decision in your Benchside project notebook?” Do not offer an unnamed notebook.
+A paraphrase is not an exact quote. Preserve supplied decision wording verbatim;
+label any proposed rationale as inference rather than the researcher's reason.
+Do not present inferred consequences as reported facts.
 
 Researchers can propose their own scientific role profiles through pull requests
 to the Benchside repository. A future community resource would help researchers
@@ -18,6 +24,10 @@ For surveys or analysis of selected research activity, read [the metascience
 guide](references/metascience.md) and use its independent workflow. Do not start
 a research role or consultation just to run that workflow. All choices start off;
 there is no account-wide log listener or implicit permission to read chats.
+
+On first introduction, use [the approved explanation](references/introduction.md).
+For ordinary-chat suggestions or host setup, read [discovery](references/discovery.md).
+Offer a small Benchside notebook action when that is enough; a role is optional.
 
 ## Start or return
 
@@ -82,7 +92,11 @@ Offer optional broad discipline (choose any that apply) and career-stage categor
 separately whether to include them in reviewed usage reports; preserve existing
 choices and never infer a demographic answer. Skipping does not affect any role.
 
-Run `recall`, then use the role the researcher requested. Otherwise suggest one
+Run `recall` for the selected project. For notebook-only work, use `notebook.decide`,
+`notebook.record`, `notebook.question` or `notebook.answer` without starting a role.
+Say “your Benchside project notebook” in suggestions. Once recording is agreed,
+keep meaningful checkpoints without repeatedly asking. For a role discussion,
+use the role the researcher requested, or suggest one
 relevant role in plain language when it would materially help the current task:
 for example, “Would you like to work through the study design together?” Briefly
 say what it adds, and let the researcher decline or continue normally. Do not
@@ -107,7 +121,7 @@ Recall normally shows the latest five decisions and records, with total counts.
 When asked about older work, use `recall` with `history:all` for the selected
 project. Do not describe an item outside the recent view as missing or lost.
 
-Call `start` for the role. It resumes an unambiguous open sitting or starts one.
+For an agreed role discussion, call `start` for the role. It resumes an unambiguous open sitting or starts one.
 Save meaningful checkpoints as the conversation progresses: the researcher's
 actual decisions and reasons (`decide`), unresolved research questions (`question`),
 and their answers when settled (`answer`). Use returned question IDs, not invented
@@ -131,17 +145,36 @@ can be opened with `new_sitting:true` without changing or closing the old one.
 
 ## Optional sharing
 
+Help diagnose practical workflow friction when it is relevant to the researcher's
+objective: equipment, materials, procurement, access, coordination and methods or
+training as well as software/data. Use what they have already said; at most one
+useful follow-up at a pause, with “or something else?” when offering possible causes.
+Do not mine every scientific question for a problem or make up a bottleneck.
+
 Offer research-participation choices during first setup as described above. At a
-natural stopping point, offer a review for the choices the researcher enabled:
+natural stopping point, use `sharing.check_in` for new pending workflow problems
+in the selected project. Its offer is remembered even if declined or deferred;
+never loop the check or bypass it with a new session. It sends nothing. Offer a review
+only when it returns `offer:true`; other enabled choices retain their own timing:
 workflow problems, usability feedback and usage counts. They can change choices
 on request; do not repeatedly prompt after a decline or deferral. Declining any
 choice must not affect scientific assistance.
+
+When an offer is accepted, pass its exact `observation_ids` as `only` to
+`sharing.preview`, with the current `project_id`; never open an unrestricted
+review of other projects. First read `sharing.drafts` with `channel:"gaps"` and
+that same `project_id` for existing pending reports. Do not silently replace one:
+ask whether to keep/review it, combine the new items, or replace it, following
+the sharing guide. A new chat or failed send resumes the stored draft, not a
+regenerated preview. Readiness is not approval to send.
 
 Read [the sharing guide](references/sharing.md) before changing consent or sending.
 Model-derived gaps must exclude private scientific findings and research-specific
 details; public tool/dataset names and versions can remain. Share only the general workflow information allowed by
 the sharing guide's optional context fields. Capture versions, workarounds and
-impact from what the researcher already says; at most one useful follow-up at a
+impact from what the researcher already says. Distinguish model-suggested workarounds,
+researcher-tried ones and researcher-reported helpful ones; never infer success.
+An optional excerpt must be de-identified before recording, as in the sharing guide; at most one useful follow-up at a
 natural pause, with no requirement to fill missing fields. Follow
 the sharing guides. Recording local observations is not permission to send them. Review each exact
 prepared payload with the researcher, allow edits/exclusions, then send only the

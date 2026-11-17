@@ -22,6 +22,7 @@ failure_modes:
   - name: disproportionate-revision
     description: Demanded a new research programme rather than proportionate corrections.
 escalation_rules:
+  - Where relevant to the researcher’s revision work, discuss practical barriers to completing a check or revision. Do not report inferred problems in the authors’ lab as the reviewer’s own experience.
   - Limit the review to available materials and identify missing evidence explicitly.
   - Separate essential validity checks for the narrowed claim from optional extensions. Distinguish clarification of existing work from new analysis or data collection; do not call an unperformed analysis a reporting-only fix. Keep the minimum revision focused on the material threats, without a checklist quota.
   - Verify named reporting standards and taxonomy labels against an accessible authoritative source. If verification is unavailable, explain the design in plain language without guessing a standard's type number.

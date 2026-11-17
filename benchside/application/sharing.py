@@ -25,6 +25,7 @@ from benchside.domain.export.service.consent import ConsentService
 from benchside.domain.export.service.export import ExportService
 from benchside.domain.export.service.reporting import ReportingService, week_start
 from benchside.domain.shared.error import (
+    BenchsideError,
     ConsentRequiredError,
     NotFoundError,
     ValidationError,
@@ -98,6 +99,12 @@ class SharingFlow:
 
     @property
     def export(self):
+        service = self._export_service()
+        service.contributor_id = contributor_id(self.paths) if self._policy_grant("gaps") else None
+        return service
+
+    def _export_service(self):
+        """Validation/reads must not create a contributor identity."""
         service = ExportService(
             observations=CombinedObservationReader(self.journal, self.paths),
             consent=self.consent,
@@ -106,7 +113,6 @@ class SharingFlow:
             ledger=self.ledger,
             journal=self.journal,
         )
-        service.contributor_id = contributor_id(self.paths) if self._policy_grant("gaps") else None
         return service
 
     def _get_sink(self, channel):
@@ -198,7 +204,7 @@ class SharingFlow:
         grant = self.consent.active_grant()
         installation = self.paths.home / "reporting" / "installation.json"
         return {
-            "gaps": {"enabled": bool(grant), "kinds": sorted(grant.gap_kinds) if grant else []},
+            "gaps": {"enabled": bool(grant), "kinds": sorted(grant.gap_kinds) if grant else [], "scope": grant.scope if grant else None},
             "feedback": {"enabled": bool(self.reporting.active_grant("feedback"))},
             "usage": {"enabled": bool(self.reporting.active_grant("usage"))},
             "linking": "random_contributor_id",
@@ -216,7 +222,7 @@ class SharingFlow:
             else None,
         }
 
-    def set_consent(self, channel, enabled, *, kinds=None):
+    def set_consent(self, channel, enabled, *, kinds=None, scope="kinds"):
         if channel == "gaps":
             active = self.consent.active_grant()
             if not enabled:
@@ -224,17 +230,19 @@ class SharingFlow:
                     self.consent.revoke()
                 self._accept_policy(channel, None)
                 return
+            if scope not in {"kinds", "all_workflow"} or (scope == "all_workflow" and kinds):
+                raise ValidationError("Choose all_workflow scope or legacy kinds, not both")
             selected = frozenset(kinds or ())
-            if active and active.gap_kinds == selected and self._policy_grant(channel) == active.id:
+            if active and active.scope == scope and active.gap_kinds == selected and self._policy_grant(channel) == active.id:
                 return
             # Validate before revoking an existing grant.
             from benchside.domain.shared.model.gap import GAP_KINDS
 
-            if not selected or not selected <= GAP_KINDS:
+            if scope == "kinds" and (not selected or not selected <= GAP_KINDS):
                 raise ValidationError("Choose one or more valid workflow observation kinds")
             if active:
                 self.consent.revoke()
-            self.consent.grant(grant_id=f"g-{uuid.uuid4().hex}", gap_kinds=selected)
+            self.consent.grant(grant_id=f"g-{uuid.uuid4().hex}", gap_kinds=selected, scope=scope)
             self._accept_policy(channel, self.consent.active_grant().id)
         elif channel in {"feedback", "usage"}:
             if enabled and self.reporting.active_grant(channel) and not self._policy_grant(channel):
@@ -247,7 +255,54 @@ class SharingFlow:
     def feedback(self, **values):
         return self.reporting.record_feedback(Feedback(id=uuid.uuid4().hex, **values))
 
-    def prepare(self, channel, *, only=None, edits=None, feedback_id=None, comment=None, week=None):
+    def check_in(self, project_id, session_id):
+        """Offer review at a host-chosen pause; never send or create consent.
+
+        Remember an offer, including one the researcher declines, so reopening a
+        chat doesn't repeat it. Only new pending material can produce a new offer.
+        """
+        from benchside.domain.shared.model.ids import user_project_id
+        from benchside.infrastructure.session_context import validate_session_id
+
+        project_id = user_project_id(project_id).root
+        validate_session_id(session_id)
+        project_path = self.paths.home / "app-projects" / f"{project_id}.json"
+        session_path = self.paths.home / "app-sessions" / f"{session_id}.json"
+        if not project_path.is_file() or not session_path.is_file():
+            raise ValidationError("Select a Benchside project and session before checking in")
+        if json.loads(session_path.read_text())["project_id"] != project_id:
+            raise ValidationError("This session belongs to another project")
+        grant = self.consent.active_grant()
+        if grant is None or self._policy_grant("gaps") != grant.id:
+            return {"offer": False}
+        unshared = [o for o in self.export.observations.list_unshared()
+                    if o.project_id.root == project_id]
+        pending = {str(o.id) for o in unshared if grant.covers(o.gap)}
+        if not pending:
+            return {"offer": False}
+        config = json.loads(project_path.read_text())
+        previous = config.get("sharing_offer", {})
+        if previous and "observation_ids" not in previous:
+            # Old review builds retained only a whole-set digest. It cannot tell
+            # which remaining items were declined after a partial submission.
+            # Establish a conservative baseline once; explicit review still works.
+            config["sharing_offer"] = {
+                "observation_ids": sorted(pending), "session_id": previous["session_id"]
+            }
+            atomic_json(project_path, config)
+            return {"offer": False}
+        offered = set(previous.get("observation_ids", [])) & {str(o.id) for o in unshared}
+        new = sorted(pending - offered)
+        if not new or previous.get("session_id") == session_id:
+            return {"offer": False}
+        config["sharing_offer"] = {
+            "observation_ids": sorted(offered | pending), "session_id": session_id
+        }
+        atomic_json(project_path, config)
+        return {"offer": True, "channel": "gaps", "pending": len(new), "observation_ids": new}
+
+    def prepare(self, channel, *, only=None, edits=None, feedback_id=None, comment=None,
+                week=None, replace_draft_ids=None, project_id=None):
         grant = self.consent.active_grant() if channel == "gaps" else None
         active = grant.id if grant else self.reporting.active_grant(channel)
         if active and self._policy_grant(channel) != active:
@@ -256,9 +311,30 @@ class SharingFlow:
                 "Explain this change and renew this sharing choice before preparing a new submission."
             )
         if channel == "gaps":
+            owners = self._observation_projects()
+            consent_withheld = []
+            if project_id is not None:
+                selected = {identifier for identifier, owner in owners.items() if owner == project_id}
+                if only is not None and set(only) - selected:
+                    raise ValidationError("Selected observations must belong to this Benchside project")
+                if only is None:
+                    unshared = [o for o in self.export.observations.list_unshared()
+                                if str(o.id) in selected]
+                    only = [str(o.id) for o in unshared if grant and grant.covers(o.gap)]
+                    consent_withheld = [o.id for o in unshared if not grant or not grant.covers(o.gap)]
             previews = self.export.previews(only=only, edits=edits)
+            if consent_withheld:
+                # Local review metadata only: never include another project's IDs
+                # or add unconsented observations to the outgoing payload.
+                previews = tuple(preview.model_copy(update={
+                    "withheld": tuple(dict.fromkeys((*preview.withheld, *consent_withheld))),
+                }) for preview in previews)
             if not any(preview.observation_ids for preview in previews):
-                raise ValidationError("No selected, unshared workflow observations to preview")
+                reasons = [reason for preview in previews for reason in preview.redaction_findings]
+                if consent_withheld:
+                    reasons.append(f"{len(consent_withheld)} observation(s) withheld by current sharing consent")
+                raise ValidationError("No selected, unshared workflow observations to preview"
+                                      + ("; " + "; ".join(reasons) if reasons else ""))
         else:
             if channel not in {"feedback", "usage"}:
                 raise ValidationError("Unknown sharing channel")
@@ -309,7 +385,10 @@ class SharingFlow:
                     old
                     for old in existing
                     if old.channel == channel
-                    and old.preview == preview
+                    and (old.preview == preview or (
+                        channel == "gaps"
+                        and old.preview.model_copy(update={"withheld": preview.withheld}) == preview
+                    ))
                     and old.demographics_revision == profile_revision
                 ),
                 None,
@@ -321,14 +400,63 @@ class SharingFlow:
                     preview=preview,
                     demographics_revision=profile_revision,
                 )
-            atomic_json(self._draft_path(draft.id), draft.model_dump(mode="json"))
+            else:
+                # Withheld IDs are local review metadata. Refresh them without
+                # replacing an otherwise identical report or its approval digest.
+                draft = draft.model_copy(update={"preview": preview})
             drafts.append(draft)
-        # One review flow per channel. Save the whole replacement batch first;
+        retained = {draft.id for draft in drafts}
+        if channel == "gaps":
+            projects = {project_id} if project_id is not None else {
+                owners.get(str(identifier)) for preview in previews for identifier in preview.observation_ids
+            }
+            agreed_replacements = set(replace_draft_ids or ())
+            pending = set()
+            for item in self.drafts(channel="gaps"):
+                draft_projects = {owners.get(identifier) for identifier in item["preview"]["observation_ids"]}
+                if not projects.intersection(draft_projects):
+                    continue
+                # An exact, explicitly named obsolete-grant draft can be retired
+                # without forcing the researcher to combine projects again.
+                # Other readiness failures do not relax cross-project protection.
+                obsolete_grant = grant is not None and item["preview"]["grant_id"] != str(grant.id)
+                retire_obsolete = obsolete_grant and item["id"] in agreed_replacements
+                if draft_projects - projects and not retire_obsolete:
+                    guidance = (
+                        "Its original consent is no longer active. With explicit agreement, "
+                        f"include this exact ID in replace_draft_ids (CLI: --replace-draft {item['id']}) "
+                        "to retire this combined preview and prepare a report for this project. "
+                        "The other project's original observations stay private and unshared."
+                        if obsolete_grant else
+                        "It has current consent and cannot be replaced from one project's scope. "
+                        "Keep it unchanged; explicitly request an all-project review to view or resume it."
+                    )
+                    raise ValidationError(
+                        f"Combined report {item['id']} includes this project and other projects. " + guidance,
+                        code="cross_project_draft",
+                    )
+                pending.add(item["id"])
+            replacing = pending - retained
+            if replacing and set(replace_draft_ids or ()) != replacing:
+                raise ValidationError(
+                    "A pending workflow report would be replaced. Read sharing.drafts "
+                    "(CLI: bench share drafts) for this project; "
+                    "ask whether to keep, send, combine or replace it, then pass the exact "
+                    "replace_draft_ids (CLI: --replace-draft <id>, repeat for each draft) "
+                    "only for an agreed replacement.",
+                    code="pending_draft_exists",
+                )
+            if replace_draft_ids and set(replace_draft_ids) != replacing:
+                raise ValidationError("Pending reports changed; read sharing.drafts again")
+        for draft in drafts:
+            atomic_json(self._draft_path(draft.id), draft.model_dump(mode="json"))
+        # One workflow review per project. Save the whole replacement batch first;
         # keep other channels, original observations/feedback and receipt ledgers.
         # Identical previews reuse their ID so failed-send retries keep exact bytes.
-        retained = {draft.id for draft in drafts}
         for old in existing:
-            if old.channel == channel and old.id not in retained:
+            if old.channel == channel and old.id not in retained and (
+                channel != "gaps" or old.id in replacing
+            ):
                 self._draft_path(old.id).unlink()
         return drafts
 
@@ -375,34 +503,65 @@ class SharingFlow:
             )
         return SubmissionDraft.model_validate_json(path.read_text())
 
-    def send(self, identifier, approved_sha256):
-        try:
-            draft = self.load(identifier)
-            if draft.channel == "gaps":
-                active = self.consent.active_grant()
-                grant = active.id if active else None
-            else:
-                grant = self.reporting.active_grant(draft.channel)
-            if not grant or grant != draft.preview.grant_id:
-                raise ConsentRequiredError("Sharing consent changed; review the submission again")
-            sink = self._get_sink(draft.channel)
-            digest = ExportService._digest(draft.preview.payload)
-            if (
-                digest != draft.preview.payload_sha256
-                or digest != approved_sha256
-                or draft.preview.destination != sink.destination
+    def _observation_projects(self):
+        return {str(o.id): o.project_id.root for o in self._export_service().observations.list_all()}
+
+    def drafts(self, *, channel=None, project_id=None):
+        """List exact pending reports and current eligibility, without writes or sends."""
+        if channel is not None and channel not in {"gaps", "feedback", "usage"}:
+            raise ValidationError("Unknown sharing channel")
+        received = {(r["channel"], r["payload_sha256"], r["destination"])
+                    for r in self.history()}
+        owners = self._observation_projects() if project_id is not None else {}
+        result = []
+        for path in sorted((self.paths.home / "sharing/drafts").glob("*.json")):
+            draft = SubmissionDraft.model_validate_json(path.read_text())
+            if channel is not None and draft.channel != channel:
+                continue
+            if project_id is not None and draft.channel == "gaps" and (
+                not draft.preview.observation_ids
+                or {owners.get(str(i)) for i in draft.preview.observation_ids} != {project_id}
             ):
-                raise ValidationError(
-                    "Approve the exact payload and destination in the current preview",
-                    code="submission_invalid",
-                )
-            if draft.channel == "gaps":
-                return self.export.export(
-                    preview=draft.preview,
-                    approved_sha256=approved_sha256,
-                )
+                continue
+            if (draft.channel, draft.preview.payload_sha256, draft.preview.destination) in received:
+                continue
+            problems = []
+            try:
+                self._check_draft(draft, draft.preview.payload_sha256)
+            except BenchsideError as error:
+                problems.append({"code": error.code, "message": error.message})
+            except (ValueError, TypeError, KeyError):
+                problems.append({"code": "submission_invalid",
+                                 "message": "Stored report is invalid; preserve it and review before sending"})
+            result.append({**draft.model_dump(mode="json"), "sendable": not problems,
+                           "problems": problems})
+        return result
+
+    def _check_draft(self, draft, approved_sha256):
+        """Shared readiness/send checks. This method never records or transmits."""
+        if draft.channel == "gaps":
+            active = self.consent.active_grant()
+            grant = active.id if active else None
+        else:
+            grant = self.reporting.active_grant(draft.channel)
+        if not grant or grant != draft.preview.grant_id:
+            raise ConsentRequiredError("Sharing consent changed; review the submission again")
+        if self._policy_grant(draft.channel) != grant:
+            raise ConsentRequiredError("Sharing policy changed; renew this choice and review again")
+        sink = self._get_sink(draft.channel)
+        digest = ExportService._digest(draft.preview.payload)
+        if (digest != draft.preview.payload_sha256 or digest != approved_sha256
+            or draft.preview.destination != sink.destination):
+            raise ValidationError(
+                "Approve the exact payload and destination in the current preview",
+                code="submission_invalid",
+            )
+        if draft.channel == "gaps":
+            self._export_service().check_preview(
+                preview=draft.preview, approved_sha256=approved_sha256,
+            )
+        else:
             if draft.channel == "usage":
-                # Never send an old week revision after a newer local snapshot.
                 from benchside.domain.export.model.reporting import UsagePayload
 
                 data = UsagePayload.model_validate_json(draft.preview.payload).model_dump()
@@ -411,11 +570,23 @@ class SharingFlow:
                         "Demographic preferences changed; review a new usage preview"
                     )
                 current = self.paths.home / "reporting" / f"usage-{data['week']}.json"
-                if (
-                    current.exists()
-                    and json.loads(current.read_text())["revision"] > data["revision"]
-                ):
+                if current.exists() and json.loads(current.read_text())["revision"] > data["revision"]:
                     raise ValidationError("A newer usage snapshot exists; review that version")
+            self.reporting.check_preview(
+                channel=draft.channel, preview=draft.preview, approved_sha256=approved_sha256,
+                sink=sink, redactor=self.redactor,
+            )
+        return sink
+
+    def send(self, identifier, approved_sha256):
+        try:
+            draft = self.load(identifier)
+            sink = self._check_draft(draft, approved_sha256)
+            if draft.channel == "gaps":
+                return self.export.export(
+                    preview=draft.preview,
+                    approved_sha256=approved_sha256,
+                )
             return self.reporting.send(
                 channel=draft.channel,
                 preview=draft.preview,

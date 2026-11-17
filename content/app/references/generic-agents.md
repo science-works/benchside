@@ -39,6 +39,9 @@ missing access, host approval, a storage/project choice or participation choices
 If the host requires manual interaction, name the exact blocker and smallest
 necessary action; do not turn setup into a terminal tutorial by default.
 
+For ordinary-chat suggestions, follow [skill discovery](discovery.md), including
+OpenCode and hosts with a persistent-instruction mechanism rather than a skill menu.
+
 ## Host qualification: isolated synthetic testing
 
 This section is for maintainers qualifying a host, not ordinary researcher setup.

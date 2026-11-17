@@ -219,6 +219,7 @@ class ConsultationService(Service):
         consultation_id: ConsultationId,
         observation_id: ObservationId,
         gap: Gap,
+        basis: str = "unknown",
     ) -> None:
         """Record where the workflow broke down.
 
@@ -235,6 +236,7 @@ class ConsultationService(Service):
                 consultation_id=consultation_id,
                 observation_id=observation_id,
                 gap=gap,
+                basis=basis,
             ),
         )
 

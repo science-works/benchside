@@ -6,8 +6,10 @@ broad "yes" to contributing needs a choice of categories before consent is saved
 Declining or deciding later leaves unchosen options off; do not repeatedly prompt
 on return. At natural stopping points, offer reviews for enabled choices.
 
-1. Workflow observations: edited descriptions of missing tools, hard-to-find data,
-   repeated manual work, dead ends and missing indexes. No project or conversation IDs.
+1. Workflow observations: reviewed descriptions of scientific workflow problems
+   of any type, including equipment, materials, procurement, coordination, methods,
+   training, software and data. Optional labels never limit the topics accepted.
+   No project or conversation IDs.
 2. Feedback: the researcher's ease-of-use rating (1–5), whether they would use
    Benchside again (`yes`, `no`, `unsure`), and an optional comment. Never infer a
    rating from their conversation. No sitting or gap identifiers.
@@ -28,7 +30,8 @@ stores have separate IDs. Legacy received observations are not retroactively lin
 
 Before preparing any model-derived free-text observation or feedback comment, remove scientific
 results, hypotheses, measurements, identifying sample/data details, detailed
-protocols or analyses, source passages and project-specific names. Describe the
+protocols or analyses and project-specific names. Never send raw transcripts or
+unredacted source passages; the optional de-identified excerpt follows the rules below. Describe the
 general workflow need instead, or omit the item if generalising it would change
 its meaning. Public software/dataset names, versions and general failure details
 may remain: “Fiji 2.16 loses channel names on export” is useful workflow information.
@@ -50,6 +53,42 @@ Data goes to Science Works' collector. These choices are separate from private
 scientific records. An installation is not necessarily a person. Revoking consent
 stops future submissions; it does not delete previously received data.
 
+## Broad workflow reports and evidence
+
+For new problems use `kind:"workflow_problem"` with a nonempty `description`.
+Do not force a problem into the older five-kind taxonomy. Add optional multiple
+`labels` when helpful: `software_data`, `equipment_access`, `materials_procurement`,
+`coordination`, `methods_training`, `other`. Use `other` or omit labels when none
+fits. New descriptive labels are also accepted (up to 20 distinct labels, 100
+UTF-16 characters each). They are initial suggestions, not consent filters,
+evidence of prevalence, or final analysis groups. No category questionnaire.
+Description and optional excerpt are each at most 2000 UTF-16 characters.
+
+`context` retains the optional fields below. When a workaround is described,
+`workaround_status` can be `model_suggested`, `researcher_tried`, or
+`researcher_reported_helpful`. Use the last only for an explicit report of benefit,
+retaining any limitations in the workaround text. A proposed solution is not a
+tried one; trying it is not proof it helped. Omit status when unknown.
+
+An optional `deidentified_excerpt` preserves a short actual conversation passage
+that substantiates the workflow problem. Before recording it, replace names,
+identifiers, confidential information and research-specific details with
+`[redacted]`. Keep the remaining words verbatim; never invent a quote or rewrite
+it as though the researcher said it. Do not send a source ID, path, full transcript
+or an unredacted duplicate. Public tool names may remain when relevant and safe.
+Check indirect identification too. If the remaining passage is revealing or
+misleading, omit it and retain the generalised description. Automatic pattern
+scrubbing is supplementary; it cannot recognise every name or scientific secret.
+The researcher reviews the exact excerpt, description, labels, context and basis
+before any send. Private scientific notebook records remain unchanged.
+
+New grants use `scope:"all_workflow"`, separately from descriptive labels. Older
+category-restricted grants remain restricted; explain and obtain a renewed choice
+before broadening them. A label never grants permission. The runtime selects
+`benchside.gaps.v4` for broad reports; legacy formats stay supported. Deploy the
+matching receiver and reporting support before releasing this client. A failed
+send stays pending; never drop fields or downgrade a report to bypass rejection.
+
 ## Calls
 
 Workflow gaps can include an optional `context` object. Supported text fields are
@@ -66,23 +105,87 @@ Capture useful context already given in the conversation. At a natural pause,
 ask at most one short follow-up if it would materially clarify the problem, such
 as what workaround they use. Do not ask a checklist, repeatedly fill missing
 fields, or interrupt the research to complete a report. Missing context is fine.
-Context-bearing submissions use `benchside.gaps.v3`; the adapter chooses this
-automatically. Older submissions and gaps without context keep their format.
+Examples in these guides illustrate the schema; they are not evidence about the
+researcher. Do not fill optional impact/frequency fields from an example or a
+likely consequence: a cancelled booking does not establish wasted materials,
+repeated preparation or a measured delay. Omit such details unless reported or
+observed. For `gap`/`notebook.gap`, put `basis` beside `gap` in the request, not
+inside the gap object; preserve known provenance when correcting a validation error.
+Context-bearing legacy gap types use `benchside.gaps.v3`; submissions containing
+`workflow_problem` use v4. The adapter chooses automatically. Older submissions
+keep their supported format.
 
-- `sharing.status` returns current choices.
+- `sharing.status` returns current choices, including gap permission `scope`.
+- `sharing.drafts` is read-only; `channel` filters gaps, feedback or usage.
+  For gaps (or an omitted channel), pass the current `project_id`. Only workflow
+  drafts belonging entirely to that project are returned. Feedback and usage are
+  store-wide, so request those channels explicitly when resuming them. An explicit
+  researcher request to review across projects may use `all_projects:true` instead
+  of `project_id`; never use this to bypass project separation automatically.
+  It returns each pending draft's `id`, `channel` and complete stored `preview`
+  (`payload`, `payload_sha256`, `destination`, `observation_ids`, `withheld`,
+  `redaction_findings`), plus `sendable` and `problems` (codes/messages).
+  Receipted drafts are excluded. `sendable` means current local checks allow an
+  attempt, not approval or proof of network access. Listing does not grant consent,
+  change state, retry a request or send anything. On a fresh chat or failed send,
+  use this action to redisplay the exact stored report and obtain/verify its
+  exact-content approval; retry that same ID and checksum. Never regenerate a
+  report merely to discover or retry it. Explain non-sendable reports using their
+  returned problems; send rechecks all conditions and the approval digest.
+- `sharing.check_in` takes the selected `project_id` and `session_id`. At a natural
+  pause it returns `offer:true`, `channel:"gaps"`, `observation_ids` and a count only when consent
+  covers new pending problems. It remembers the offer, even if declined, and
+  offers at most once per session; another chat alone does not reset it. It never
+  sends data or creates a draft. Only call when ready to show the offer, not as a
+  background poll. “You mentioned a recurring booking problem and a workaround.
+  Would you like Benchside to prepare a short report for you to review before
+  sharing it with Science Works?” Use inference wording when not researcher-reported.
+  If accepted, pass those exact `observation_ids` as `only` and the current
+  `project_id` to `sharing.preview`. Do not omit `only` for an offered review. The
+  count and selection cover newly offered problems in this project, not items
+  left out of an earlier offer. Broader review requires the researcher's request.
+  Requested review is always available, even after deferral. Before preparing a
+  new preview, check `sharing.drafts` for that same project. If its gaps report is pending, ask whether
+  to keep/review that report, combine the new problems with it, or replace it.
+  Combining uses the union of the stored and newly offered IDs; do not quietly
+  broaden to other projects. A failed/uncertain send must be retried as-is before
+  combining/replacing, since changing its bytes can defeat receipt deduplication.
 - `sharing.consent` takes `channel` (`gaps`, `feedback`, `usage`) and boolean
-  `enabled`. For gaps also supply `kinds`, selected from the five supported kinds.
-  Only call after the researcher makes that choice.
+  `enabled`. New gap consent takes `scope:"all_workflow"`, without `kinds`. Legacy
+  `kinds` grants remain restricted. Call only after the researcher chooses.
 - `sharing.feedback` takes `feedback: {role, host, surface, ease, would_use_again, comment}`.
   Unknown role/app/surface values use `unknown`. Returns an independently generated
   feedback ID. This saves locally and sends nothing.
-- `sharing.preview` takes `channel`. Gaps optionally take `only: [observation IDs]`
+- `sharing.preview` takes `channel`. Gaps require the current `project_id` (or
+  explicitly requested `all_projects:true`) and optionally take `only: [observation IDs]`
   and `edits: {observation ID: reviewed gap object}`; feedback takes `feedback_id`
   and optionally an edited `comment`; usage optionally takes `week` (Monday date).
+  Gaps also take `replace_draft_ids` only after agreement to edit, combine or
+  replace pending reports: pass the exact IDs of the drafts being replaced. An
+  identical preview reuses its draft; new withheld IDs alone refresh the local
+  list without replacing an otherwise identical report. A changed gaps preview
+  refuses to discard a pending draft without this explicit replacement selection. Save and review
+  the replacement normally; approving an old digest does not approve a new one.
+  Other projects' drafts are preserved. A combined-report refusal gives its draft
+  ID without exposing another project's content. If its grant is obsolete, use
+  that ID for an explicitly agreed replacement; no all-project payload review is
+  needed just to discover the ID. Explain that only the old preview is retired,
+  and original observations remain private and available for separate review.
+  A combined report with current consent stays protected; viewing or resuming it
+  requires an explicitly requested all-project review.
+  CLI equivalents: `bench share drafts` and `bench share preview --replace-draft <id>`
+  (repeat the replacement flag for each agreed batch). Both default to the current
+  project; `--project <name>` selects another, and `--all-projects` requests a broader review.
 - The preview returns one or more drafts, each containing its exact `payload`,
   `destination`, `payload_sha256` and draft `id`. Display the complete content of
   each draft in readable form, including every text field and usage count, plus the
   recipient. Explain that redaction cannot catch all identifying research details.
+  If automatic scrubbing makes one observation invalid, its ID is listed in
+  `withheld` with a reason in `redaction_findings`; other valid items remain
+  reviewable. Explain only redaction omissions among the selected observations,
+  and offer to edit that specific item separately. Never look up or describe
+  unrelated projects because a legacy draft's `withheld` includes other IDs.
+  Never silently drop the warning, undo redaction or claim all problems were sent.
   If the researcher edits anything, prepare and show a new draft.
 - After explicit approval, call `sharing.send` with that `draft_id` and its
   `approved_sha256`. Do not replace the payload, infer approval, or send subsequent

@@ -120,7 +120,7 @@ def _show(ui: UI, project, sittings) -> None:
         decision = project.decisions[-1]
         ui.section("latest decision", meta=decision.id)
         ui.block(decision.decision)
-        ui.block(f"because — {decision.rationale}", dim=True)
+        ui.block(f"because — {decision.rationale}" if decision.rationale else "Rationale not stated", dim=True)
         if len(project.decisions) > 1:
             ui.detail(f"({len(project.decisions) - 1} earlier — bench journal decisions)")
 
@@ -188,7 +188,7 @@ def _decisions(ui: UI, project) -> None:
         ui.info("no decisions yet")
         return
     rows = [
-        [d.id, d.decision, d.rationale, f"supersedes {d.supersedes}" if d.supersedes else ""]
+        [d.id, d.decision, d.rationale or "Rationale not stated", f"supersedes {d.supersedes}" if d.supersedes else ""]
         for d in project.decisions
     ]
     ui.table(["ID", "DECISION", "BECAUSE", "NOTES"], rows)

@@ -1,8 +1,11 @@
 # App adapter
 
-Sharing previews retain one current review batch per channel. A replacement
-preview supersedes earlier drafts in that channel, so approve only the current
-preview. An identical preview reuses its draft ID; failed sends retain those
+Workflow previews retain a current review batch per project. Pass `project_id`
+when listing or preparing gaps; `all_projects:true` is reserved for an explicit
+researcher request to review across projects. Replacing a pending workflow report
+requires its exact `replace_draft_ids`. Other projects' drafts stay intact.
+Feedback and usage retain one current review batch per channel.
+An identical preview reuses its draft ID; failed sends retain those
 exact bytes for retry. Original private observations/feedback and submitted
 receipt history remain available.
 
@@ -32,7 +35,9 @@ unchanged, including on inner action failure. Load `result.markdown` from that f
 as data when constructing a guarded document-tool request; see [native memory](native-memory.md).
 The file is a temporary transfer aid, not durable memory or a save confirmation.
 Native requests accept an optional `document_limit_bytes` (32768–190000) for a
-store that holds less than the default; Claude Docs uses 65536. Omit it elsewhere.
+store that holds less than the default. Omit it for ordinary file artifacts.
+The limit remains available for validating older exports; Claude Docs is no longer
+a supported notebook store.
 Use a fresh filename per call; an existing file is refused before the action runs.
 If writing fails after execution, the full response is printed with
 `response_file_error`: preserve it and check what completed before retrying.
@@ -142,6 +147,47 @@ integration test. The project source and researcher journals are separate.
   `role_update_available:true` means its saved role version differs from the installed
   definition. Use a new sitting for the changed rules when the researcher wants that.
 
+## General workflow problems
+
+New observations use `kind:"workflow_problem"`. This complete request shows the
+field placement for recording outside a role; substitute the actual project and
+session IDs. The example assumes the researcher explicitly said the quoted
+sentence and described trying the workaround. Never copy example facts into a
+real report.
+
+```json
+{
+  "action": "notebook.gap",
+  "project_id": "<returned project ID>",
+  "session_id": "<returned session ID>",
+  "basis": "researcher_reported",
+  "gap": {
+    "kind": "workflow_problem",
+    "description": "An instrument booking was cancelled after materials were prepared.",
+    "labels": ["equipment_access", "coordination"],
+    "deidentified_excerpt": "The booking was cancelled after I prepared materials.",
+    "context": {
+      "workaround": "Tried confirming availability the day before; benefit unknown."
+    },
+    "workaround_status": "researcher_tried"
+  }
+}
+```
+
+Within `gap`, only `kind` and `description` are required. `labels` may be empty or include
+`other` or new descriptive text; they never control acceptance or permission.
+`deidentified_excerpt` and `workaround_status` are optional. Follow
+[sharing](sharing.md) for provenance, excerpt redaction and exact review.
+`gap` and `notebook.gap` optionally take `basis` (`researcher_reported`,
+`model_inferred`, `unknown`) at the request's top level, **beside** `gap`, never
+inside it. For an active role use `action:"gap"` and add its `sitting_id`;
+`metascience.gap` uses its documented week/token envelope with `basis` beside
+`gap`. If validation rejects misplaced `basis`, move it to the correct level;
+do not discard known provenance or change it to `unknown` to get past an error.
+Omit unreported context. Cancellation after preparation does not establish that
+materials were wasted or preparation repeated. No raw logs are sent.
+Legacy gap objects below remain supported for saved integrations.
+
 ## Recording
 
 Survey actions are described in [metascience](metascience.md).
@@ -151,7 +197,20 @@ researcher. Pass it on both calls for answers containing links. It applies only
 to those answers, is neither persisted nor submitted, and never overrides other
 sensitive-text checks. Ordinary answers still use the study agreement.
 
-Every recording request includes the returned `project_id`, `session_id` and
+Outside a role, `notebook.decide`, `notebook.question`, `notebook.answer`,
+`notebook.record` and `notebook.gap` take `project_id` and `session_id`, with the
+same corresponding fields below, **without** `sitting_id`. They write private
+checkpoints without opening a consultation. Notebook records use `kind:"note"`
+or `kind:"evidence"`; evidence needs `sources` identifying actually inspected
+material or an explicit researcher report. `notebook.decide` preserves the
+researcher's wording, accepts `supersedes` only within this project, and requires
+a nonempty decision. Its `rationale` is optional: omit it when not supplied,
+rather than invent a reason or enter placeholder text. Reading views show
+“Rationale not stated” for an absent reason. Notebook-only events do not inflate role usage.
+Use role actions once a role is active; do not switch to notebook actions to bypass
+an active role's recording or close requirements.
+
+Role recording requests include the returned `project_id`, `session_id` and
 `sitting_id`. IDs for new records are generated by the runtime; quote returned IDs.
 
 | Action | Additional fields |
@@ -162,7 +221,7 @@ Every recording request includes the returned `project_id`, `session_id` and
 | `record` | `record: {kind, summary, details: [...], sources: [...]}` |
 | `critique` | `target: {kind: "claim", claim, ground}`, `{kind: "method", step, flaw}`, or `{kind: "interpretation", result, alternative}` |
 | `resolve` | `critique_id`, `resolution`: `design_revised`, `rebutted`, or `accepted_as_limitation` |
-| `decide` | `decision`, `rationale`; optional `supersedes` |
+| `decide` | `decision`; optional `rationale` and `supersedes`. Omitted/null rationale stays unstated; do not invent one. |
 | `gap` | `gap` object described below |
 | `close` | `converged`: true/false, `detail`: agreed outcome or explicit abandonment reason |
 

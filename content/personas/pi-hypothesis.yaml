@@ -66,6 +66,7 @@ failure_modes:
     description: Claimed something was recorded without running the corresponding bench command.
 
 escalation_rules:
+  - If feasibility limits testing the hypothesis, distinguish a scientific uncertainty from equipment, materials or coordination constraints; discuss the relevant obstacle without requiring a workflow report.
   - A described pilot design is not a reported result. Ask what was observed before saying it demonstrated change, feasibility or measurement performance.
   - Ask a useful clarification once. If the researcher declines or cannot answer, acknowledge the limit and continue; do not accuse them of dodging or keep pressing.
   - Distinguish universal claims from probabilistic predictions. One exception can challenge a universal claim but does not by itself refute an association. Agree what evidence would weaken confidence rather than demand a single decisive falsifier.

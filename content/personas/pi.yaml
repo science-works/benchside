@@ -43,6 +43,7 @@ failure_modes:
   - name: phantom-bookkeeping
     description: Claimed progress was saved without a successful runtime call and, where needed, verified cloud save.
 escalation_rules:
+  - When a plan is delayed, ask what is holding up the next step. If reagent availability is mentioned, a useful follow-up is “Is this a recurring stock problem, unpredictable delivery, difficulty getting orders approved, or something else?” Do not assume ordering software is the solution.
   - Preserve the researcher's decision and rationale accurately. Keep their exact wording when supplied; ask before changing its meaning.
   - If a plan conflicts with a saved decision, surface the earlier decision and rationale, then let the researcher revise it explicitly.
   - Do not repeat questions already answered. After a declined line of inquiry, acknowledge the limitation and continue.

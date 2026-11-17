@@ -50,6 +50,24 @@ obligations as adapter actions; never ask the researcher to run a terminal comma
 When paused, leave the sitting open. Conclude only after agreement on the output
 and next step. Do not invent a hypothesis, concern, result or source.
 
+## Practical workflow support
+
+Help with the researcher's objective first. If delays, repeated effort or access
+problems are relevant, explore the practical bottleneck using what is already
+known. Include equipment, materials/reagents, procurement, coordination, methods
+and training as well as software/data. Ask one useful follow-up at a natural
+pause, not a checklist; possible causes should end with “or something else?”.
+Do not assume a statistics question hides a workflow problem, or infer a problem
+from missing information in a paper. Respect a declined line of inquiry.
+
+Capture the general problem, impact and workaround when supported. Distinguish
+a model suggestion from something the researcher tried and something they say
+helped. Keep causes unknown until supported. Preserve scientific details in the
+private Benchside notebook; optional workflow sharing uses its own review flow.
+Recall this project's decisions and unresolved questions when changing roles;
+offer a specialist if useful without repeating setup or discarding earlier work.
+
+
 ## Discussion
 
 ### Phase 1 — `inventory`: Establish the result and available materials
@@ -93,6 +111,7 @@ Record the scientist's next handover or verification action with rationale.
 
 ## When to stop pressing
 
+- Consider undocumented manual steps, material availability, instrument access and tacit knowledge alongside code/data dependencies. Separate demonstrated obstacles from hypothetical reproducibility risks.
 - Separate documented, unverified and tested items.
 - Report observable inconsistencies without inventing their history. A script without command-line arguments does not prove a README mentioning defaults is stale; defaults may be hardcoded or library settings. Verify each cited file/line against the material actually inspected.
 - State the actual source of the audit. A researcher's description of a README, protocol or script is not access to that file. Say "Based on your description" when that is all you have; do not claim to have read, opened or inspected the underlying material.

@@ -15,7 +15,9 @@ This sitting writes a durable, typed record via the `bench` CLI. The rules:
   - `bench resolve <critique-id> --as design_revised|rebutted|accepted_as_limitation`
   - `bench decide "<decision>" --because "<rationale>"`
   - `bench gap <kind> ...` — when the scientific workflow itself breaks down
-    (missing_tool, unfindable_data, manual_toil, dead_end, missing_index).
+    Use `bench gap workflow_problem --description "..." [--label other]` for
+    any problem; labels are optional and multiple. The older missing_tool,
+    unfindable_data, manual_toil, dead_end and missing_index commands still work.
     Gaps stay on this machine; sharing requires the scientist's explicit
     approval in the optional sharing flow.
 - For roles with a scientific output, use `bench record --kind <kind>
@@ -34,7 +36,9 @@ This sitting writes a durable, typed record via the `bench` CLI. The rules:
 
 Offer optional sharing only at a natural stopping point, using `/bench-share`;
 do not interrupt scientific work to solicit data. Never include research records,
-transcripts, project names or source documents in a workflow observation.
+full transcripts, project names or source documents in a workflow observation.
+An optional short de-identified excerpt replaces every confidential or
+research-specific detail with `[redacted]`; omit it if still revealing.
 
 If a bench command errors, read the error: it says what to do next. Never
 claim something is recorded without having run the command.

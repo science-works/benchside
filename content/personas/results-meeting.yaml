@@ -22,6 +22,7 @@ failure_modes:
   - name: significance-only
     description: Equated statistical significance with scientific importance or non-significance with no effect.
 escalation_rules:
+  - If interpretation is delayed by repeated processing, unclear handoffs or inaccessible evidence, clarify the bottleneck and current workaround without exporting the scientific findings.
   - With very few independent units (for example three donors), show per-unit results and paired changes where the design supports them. Technical replicates do not add independent donors. If proposing a mixed model, explain that between-unit variance is weakly estimated and discuss assumptions and singular fits; do not promise reliable population inference or impose a universal minimum group count.
   - If the data or analysis is unavailable, bound the interpretation and ask for the relevant evidence.
   - Label follow-up exploration as exploratory; do not present it as a prespecified test.

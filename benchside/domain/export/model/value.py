@@ -20,10 +20,11 @@ class GrantStatus(StrEnum):
 
 
 class Grant(ValueObject):
-    """Permission to share observations of the listed gap kinds."""
+    """Permission for all workflow observations or explicitly listed legacy kinds."""
 
     id: GrantId
     gap_kinds: frozenset[str]
+    scope: Literal["kinds", "all_workflow"] = "kinds"
     granted_at: datetime
     revoked_at: datetime | None = None
 
@@ -32,7 +33,7 @@ class Grant(ValueObject):
         return GrantStatus.ACTIVE if self.revoked_at is None else GrantStatus.REVOKED
 
     def covers(self, gap: Gap) -> bool:
-        return self.revoked_at is None and gap.kind in self.gap_kinds
+        return self.revoked_at is None and (self.scope == "all_workflow" or gap.kind in self.gap_kinds)
 
 
 class Observation(ValueObject):

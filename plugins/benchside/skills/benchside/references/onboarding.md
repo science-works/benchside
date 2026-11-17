@@ -4,6 +4,9 @@ Use this flow on first use and when the researcher asks to change storage. Do no
 infer a storage preference from the model or app name. Setup has two independent
 choices: where private research records live, and optional contributions to Science Works.
 
+Use [the short introduction](introduction.md) if it has not already been shown;
+then continue the setup the researcher agreed to.
+
 ## Inspect capabilities, then verify the researcher's choices
 
 Inspect the current host's actual tools and installed connectors. Check code
@@ -15,6 +18,17 @@ Run the execution check and inspect storage tools without writing first. Offer
 candidate stores as available but not yet verified. Only after the researcher
 chooses a store may setup create its labelled synthetic test project and perform
 the write/readback probe. Keep existing records and participation choices intact.
+For cloud notebooks, first identify an actual read-to-file or programmatic
+transfer into the runtime as well as the upload path. Some Claude sessions can
+upload files but return saved Docs only as inline text. That is not a dependable
+restore route. Those sessions may instead support a private file artifact with
+exact downloads and version-guarded uploads; inspect
+[Claude file memory](claude-file-memory.md) before ruling out Claude-native storage.
+Do not create a notebook first and discover this during readback. Keep an existing
+Docs notebook intact and read-only; a new store is not a restoration or an
+automatic migration. Prefer a chosen durable local folder in Claude Code. If an
+existing project is blocked, only a separately chosen new project may start in a
+new store; continue the existing discussion explicitly unsaved.
 
 Use the following checks separately. Report what actually passed, what failed
 and what has not been tested; do not infer capabilities from a plan name.
@@ -77,6 +91,11 @@ separately and replace only the managed installation after checking the new copy
 do not delete unknown files. Keep private record storage in place and reopen the
 same project after the update.
 
+Update every app and agent sharing that storage, including local folders. Older
+0.4.2 apps may show new notebook-only records as missing even though the files are
+intact. Restart long-running hosts (including Claude Code desktop) after updating
+their plugin/runtime, then verify recall in each app before recording more work.
+
 ## Ask where records should live
 
 Offer only locations the host can actually access, and explain which still need
@@ -102,7 +121,8 @@ on a new host, not permission to copy or relocate research records.
   conditional writes, readback and an exact data-transfer route to/from the
   execution environment. Inline tool text that the model must retype is an
   experimental route, even if a small test passes; explain that limitation
-  before selection. ChatGPT Pages and Claude Docs are examples;
+  before selection. ChatGPT Pages and private Claude file artifacts are supported examples;
+  do not offer Claude Docs for new notebooks or ongoing recording.
   account capabilities decide availability. A Library upload alone is insufficient.
 - **Connected storage:** ask which actual service/location. Google Drive and
   Google Cloud Storage are different services. Inspect the installed connector
@@ -147,8 +167,13 @@ do not create an empty app project and call it restored. Shared setup preserves
 existing journals and custom role skills. Recognized generated legacy skills
 become explicit-invocation-only, so automatic role selection uses this shared flow.
 
-Keep the returned session ID for this conversation. Record the selected notebook
-locator in the host's durable setup context, not just in the execution sandbox.
+Keep the returned session ID for this conversation. Make the notebook discoverable
+through the chosen store's actual durable listing/index, not a temporary sandbox
+path. For Claude file artifacts, use the owner-scoped title/metadata search and
+saved project index in [claude-file-memory.md](claude-file-memory.md). For other
+stores, verify their document/folder listing or a user-approved persistent setup
+index; do not assume an unspecified host memory mechanism. Give the researcher
+the notebook link, and ask for that link on return if discovery is unavailable.
 Run the appropriate save/readback probe and test discovery in a fresh conversation.
 A same-process test is useful but does not establish fresh-chat continuity. Report
 what was verified and what still needs the researcher to reopen a chat.
@@ -189,14 +214,16 @@ with enabling categories; ask only if the response is contradictory:
 
 | Choice | What participation means |
 |---|---|
-| Workflow observations | Review descriptions of missing tools/data, repeated manual work, dead ends and missing indexes before sharing them. |
+| Workflow observations | Review problems of any type: equipment, materials, coordination, methods, software or data. Labels are optional. |
 | Usability feedback | Optionally give a rating and comment after using Benchside; do not ask for an experience rating during setup. |
 | Usage counts | Share reviewed counts of consultations, roles, app/version information and failures. A random installation ID helps estimate repeat use; no research text is included. |
 | Optional surveys | Receive occasional study invitations, at most one per seven days; each survey explains its purpose, data use and retention before participation. |
 | Selected-conversation analysis | Privately analyse up to 20 relevant conversations from the previous complete week, randomly selected or researcher-chosen. Find workflow problems for reviewed gap sharing; activity categories provide optional supporting context. |
 
 Explain that model-derived problem reports exclude private findings, hypotheses,
-measurements, sample identifiers, detailed protocols and source passages. Public
+measurements, sample identifiers, detailed protocols and unredacted source passages.
+An optional short workflow excerpt replaces confidential and research-specific
+details with `[redacted]`; omit it if still revealing. Public
 software/dataset names and versions can remain when they explain a workflow
 problem. Raw transcripts never go to Science Works. Researcher-written survey
 answers are sent as written under the agreement for that study; do not copy or
@@ -218,6 +245,9 @@ Anthropic's cloud (claude.ai or Claude Desktop chat), tell them once how to allo
 that domain (steps in [sharing](sharing.md)); until then, reviewed items stay
 saved and unsent. This never blocks setup. In Claude Code the commands run on
 their own computer, so say nothing. Elsewhere, mention it only if a send is blocked.
+For workflow observations use `sharing.consent` with `scope:"all_workflow"`,
+without category restrictions. Existing category-restricted grants stay restricted
+until the researcher explicitly renews this broader choice.
 Record only explicit choices with the existing consent actions and persist them
 before enabling the corresponding work. Do not grant every category from a vague
 "yes". Declining or deferring leaves unchosen options off and never blocks setup
@@ -260,7 +290,7 @@ question if the conversation has not already answered it:
 
 > What are you working on, and what would you like help with first?
 
-Use that answer to suggest a role; all eight remain available. Do not require a
+Use that answer to suggest a useful role or notebook-only help; all eight roles remain available. Do not require a
 fixed role, institution, email address or demographic profile. Ask for source
 documents or more scientific detail when the actual task needs them.
 
@@ -284,7 +314,7 @@ change scientific advice; adapt advice to the actual task and stated preferences
 
 Finish with one brief confirmation of the project, storage/readable-record link,
 saved participation choices and any unverified capability. Then move to the
-research question and a relevant role; do not recite the role menu, internal IDs,
+research question and a useful role or small notebook action; do not recite the role menu, internal IDs,
 state names or the same continuity caveat repeatedly. Keep those details for
 troubleshooting when needed. Translate internal critique states into ordinary
 language and map the researcher's answer to the appropriate action yourself.
