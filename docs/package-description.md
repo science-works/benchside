@@ -35,8 +35,10 @@ synthetic record. Installing the Python package alone does not complete that set
 The package is named **benchside**; its command is **bench**. Upgrade with
 `uv tool upgrade benchside` or `python -m pip install --upgrade benchside`, then
 rerun the same `bench setup` command to refresh the installed skill. Keep private
-records in their existing location. Every app sharing a notebook upgraded by
-0.4.1 must use **0.4.1 or newer**, including apps previously running 0.4.0.
+records in their existing location. **Update every app sharing a Benchside store
+to 0.4.3 together**, including apps using the same local directory. Older cloud
+clients refuse the new notebook format; older local clients can omit new record
+types from their views. Reopen the existing project and verify recall after updating.
 
 ## Research roles and records
 
@@ -44,6 +46,11 @@ records in their existing location. Every app sharing a notebook upgraded by
 - Study-design consultant and methods troubleshooter
 - Results discussant and reproducibility auditor
 - Journal-club discussant and scientific peer reviewer
+
+Benchside can also offer to save a decision, evidence or an open question during
+ordinary research chat without starting a role. All roles share the selected
+project's records and can explore practical workflow delays involving materials,
+equipment, coordination, methods, software or data.
 
 The agent selects a suitable role with the researcher. Decisions and research
 records remain in the chosen private store, with ODT/Markdown reading copies
