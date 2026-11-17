@@ -138,15 +138,35 @@ There was no approval, replacement, combining or send.
 - Draft: `49a415f8b6c846bb961c61ab960c3599`
 - Payload SHA-256: `bd31f9982d813485a40c6f348beb31c7f8f6d67b6bd3a0a32ed1a059c2ec6792`
 
-A separate fresh-chat restore check is pending. It will receive only the notebook
-and project names, not their links, IDs, decision or draft contents. Its requested
-operations are read-only. The first run did not exercise `sharing.check_in`, so
-its snapshot legitimately remained v5; the earlier reminder tests cover v6.
+A [separate fresh-chat restore check](https://claude.ai/chat/d6ba4d07-efe9-4873-9894-f8b02e471cb7)
+passed after browser access resumed. It received only the notebook and project
+names, not their links, IDs, decision or draft contents. It loaded the installed
+guides, verified the wheel and dependency hashes, located the owner-only artifact
+through artifact listing/search, and fetched `memory/state.md` exactly. It used
+`native.inspect` and individual read-only calls for recall, drafts, sharing status
+and receipt history. The original decision and pending report were recovered;
+the visible digest computation matched the original payload SHA-256 above.
+
+The before/after files fetched from Claude compared byte-for-byte equal (`cmp`),
+with file SHA-256 `9bccdb5514a62bc0648bc771a29f993ce8dd36298c2fa074c293e07f68d94ecd`.
+The final `native.inspect` still returned revision 3, the same snapshot digest,
+generation 0 and the same project ID. All four successful runtime reads returned
+`changed:false`; no new session, preview, consent change or artifact write was
+performed. Nothing was approved or sent to Science Works.
+
+Two test-script errors were recovered safely: a `native.batch` containing sharing
+reads was refused as private-actions-only without a change, and a shell summary
+printer had a quoting error after the reads had run. The agent used individual
+`native.run` calls and read their response files with a corrected printer. These
+did not modify the notebook or require a Benchside code/package change. The test
+did not exercise `sharing.check_in`, so the snapshot legitimately remained v5;
+the earlier reminder tests cover v6.
 
 The upload handoff exposed a host UI mismatch: the existing plugin's “Upload new
 version” dialog filtered for `.skill`/`SKILL.md` and greyed out the plugin ZIP.
-The user instead used the main Plugins → Add → Upload plugin route. The ZIP
-remained unchanged; renaming it to `.skill` is not a fix.
+The user was directed to the main Plugins → Add → Upload plugin route, and the
+installed version was subsequently verified. The ZIP remained unchanged;
+renaming it to `.skill` is not a fix.
 
 ## Release gates
 
@@ -156,8 +176,8 @@ retained. They are historical evidence for the unchanged version-pair protocol,
 not a substitute for the updated-package check. Older Claude Docs export and
 migration are not supported beta routes. No existing test notebook was migrated.
 
-Before inviting beta testers: finish the fresh-chat Claude check, review this
-client and both companion PRs, update the reporting client pin, deploy compatible
+Before inviting beta testers: review this client and both companion PRs,
+update the reporting client pin, deploy compatible
 receiver/reporting support, and verify one clearly synthetic production flow
 under the agreed test-data exclusion. Then publish matching client packages.
 All apps sharing one notebook must update together. These app checks use the
