@@ -1,8 +1,11 @@
 # App adapter
 
-Sharing previews retain one current review batch per channel. A replacement
-preview supersedes earlier drafts in that channel, so approve only the current
-preview. An identical preview reuses its draft ID; failed sends retain those
+Workflow previews retain a current review batch per project. Pass `project_id`
+when listing or preparing gaps; `all_projects:true` is reserved for an explicit
+researcher request to review across projects. Replacing a pending workflow report
+requires its exact `replace_draft_ids`. Other projects' drafts stay intact.
+Feedback and usage retain one current review batch per channel.
+An identical preview reuses its draft ID; failed sends retain those
 exact bytes for retry. Original private observations/feedback and submitted
 receipt history remain available.
 
@@ -218,7 +221,7 @@ Role recording requests include the returned `project_id`, `session_id` and
 | `record` | `record: {kind, summary, details: [...], sources: [...]}` |
 | `critique` | `target: {kind: "claim", claim, ground}`, `{kind: "method", step, flaw}`, or `{kind: "interpretation", result, alternative}` |
 | `resolve` | `critique_id`, `resolution`: `design_revised`, `rebutted`, or `accepted_as_limitation` |
-| `decide` | `decision`, `rationale`; optional `supersedes` |
+| `decide` | `decision`; optional `rationale` and `supersedes`. Omitted/null rationale stays unstated; do not invent one. |
 | `gap` | `gap` object described below |
 | `close` | `converged`: true/false, `detail`: agreed outcome or explicit abandonment reason |
 

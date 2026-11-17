@@ -30,7 +30,7 @@ def test_fresh_native_chat_lists_exact_pending_report_without_save(monkeypatch):
     before = book.document
     fresh = Notebook()
     fresh.document, fresh.workspace_id = before, book.workspace_id
-    listed = fresh.run({"action": "sharing.drafts"})
+    listed = fresh.run({"action": "sharing.drafts", "channel": "feedback"})
     assert listed["ok"] and not listed["changed"]
     assert fresh.document == before
     assert listed["result"][0]["id"] == draft["id"]
@@ -151,3 +151,99 @@ def test_item_offer_schema_detection_in_jsonl_and_nested_payloads():
         "sharing_offer": {"observation_ids": ["synthetic-observation"]},
     }) + "\n"
     assert _has_item_offers({"files": {"test.jsonl": lines}})
+
+
+def test_pending_reports_are_isolated_by_project(paths):
+    app = App(paths)
+    a, b = setup(app, "a"), setup(app, "b")
+    first = app.run({"action": "notebook.gap", **a, "gap": problem(description="A booking delay")})["recorded"]
+    other = app.run({"action": "notebook.gap", **b, "gap": problem(description="B confidential workflow")})["recorded"]
+    flow = SharingFlow(paths)
+    flow.set_consent("gaps", True, scope="all_workflow")
+    b_draft = flow.prepare("gaps", only=[other])[0]
+    b_bytes = flow._draft_path(b_draft.id).read_bytes()
+    # Old clients with an explicit item selection also get a project-scoped guard.
+    a_draft = flow.prepare("gaps", only=[first])[0]
+    before = files(paths)
+    listed = app.run({"action": "sharing.drafts", "channel": "gaps", **a})
+    assert [d["id"] for d in listed] == [a_draft.id]
+    assert "B confidential" not in json.dumps(listed) and other not in json.dumps(listed)
+    assert files(paths) == before
+    new = app.run({"action": "notebook.gap", **a, "gap": problem(description="A new delay")})["recorded"]
+    with pytest.raises(BenchsideError):
+        app.run({"action": "sharing.preview", "channel": "gaps", **a,
+                 "only": [new], "replace_draft_ids": [b_draft.id]})
+    combined = app.run({"action": "sharing.preview", "channel": "gaps", **a,
+                        "replace_draft_ids": [a_draft.id]})[0]
+    assert set(combined["preview"]["observation_ids"]) == {first, new}
+    assert flow._draft_path(b_draft.id).read_bytes() == b_bytes
+    assert not flow._draft_path(a_draft.id).exists()
+    with pytest.raises(BenchsideError):
+        app.run({"action": "sharing.preview", "channel": "gaps", **a, "only": [other]})
+    with pytest.raises(BenchsideError):
+        app.run({"action": "sharing.drafts", "channel": "gaps"})
+    assert len(app.run({"action": "sharing.drafts", "channel": "gaps", "all_projects": True})) == 2
+
+
+@pytest.mark.parametrize("role", [False, True])
+@pytest.mark.parametrize("reason", [{}, {"rationale": None}])
+def test_decisions_allow_unstated_reason(paths, role, reason):
+    app = App(paths)
+    ctx = setup(app)
+    action = "notebook.decide"
+    if role:
+        ctx["sitting_id"] = app.run({"action": "start", **ctx, "role": "pi"})["sitting"]["id"]
+        action = "decide"
+    app.run({"action": action, **ctx, "decision": "Check bookings", **reason})
+    assert app.run({"action": "recall", "project_id": ctx["project_id"]})["recent_decisions"][0]["rationale"] == ""
+
+
+@pytest.mark.parametrize("field", ["description", "deidentified_excerpt", "labels"])
+def test_bom_only_workflow_fields_are_rejected_before_save(paths, field):
+    app = App(paths)
+    ctx = setup(app)
+    value = [" \ufeff "] if field == "labels" else " \ufeff "
+    with pytest.raises(BenchsideError):
+        app.run({"action": "notebook.gap", **ctx, "gap": problem(**{field: value})})
+
+
+def test_native_read_batch_restores_only_current_project_report_without_changes():
+    from tests.unit.application.test_native_batch import batch
+
+    book = Notebook()
+    a = book.setup("a")
+    b = book.setup("b")
+    book.run({"action": "sharing.consent", "channel": "gaps", "enabled": True, "scope": "all_workflow"})
+    saved = {}
+    for ctx in (a, b):
+        context = {k: ctx[k] for k in ("project_id", "session_id")}
+        book.run({"action": "notebook.gap", **context, "gap": problem(description=f"Synthetic workflow {ctx['project_id']}")})
+        saved[ctx["project_id"]] = book.run({"action": "sharing.preview", "channel": "gaps", **context})["result"][0]
+    original = book.document
+    result = batch(original, [
+        {"id": "drafts", "request": {"action": "sharing.drafts", "channel": "gaps", "project_id": a["project_id"]}},
+        {"id": "status", "request": {"action": "sharing.status"}},
+        {"id": "history", "request": {"action": "sharing.history"}},
+    ])
+    assert result["ok"] and not result["changed"] and result["markdown"] == original
+    listed = result["result"]["steps"]["drafts"]
+    assert [d["id"] for d in listed] == [saved[a["project_id"]]["id"]]
+    assert b["project_id"] not in json.dumps(listed)
+
+
+def test_old_combined_draft_requires_explicit_cross_project_review(paths):
+    app = App(paths)
+    a, b = setup(app, "a"), setup(app, "b")
+    for ctx in (a, b):
+        app.run({"action": "notebook.gap", **ctx, "gap": problem()})
+    flow = SharingFlow(paths)
+    flow.set_consent("gaps", True, scope="all_workflow")
+    combined = flow.prepare("gaps")[0]
+    before = files(paths)
+    assert app.run({"action": "sharing.drafts", "channel": "gaps", **a}) == []
+    with pytest.raises(BenchsideError) as caught:
+        app.run({"action": "sharing.preview", "channel": "gaps", **a})
+    assert caught.value.code == "cross_project_draft" and files(paths) == before
+    explicit = app.run({"action": "sharing.drafts", "channel": "gaps", "all_projects": True})
+    assert explicit[0]["preview"] == combined.preview.model_dump(mode="json")
+    assert files(paths) == before

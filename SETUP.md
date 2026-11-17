@@ -228,3 +228,9 @@ use 0.4.1 or newer**, including apps previously using 0.4.0. Preserve
 custom files; do not unzip a package over a source installation, whose saved
 runtime pointer could keep launching the older version. See the
 [full update guidance](content/app/references/onboarding.md).
+
+For the upcoming workflow/notebook beta, update **every app and agent sharing
+the same local folder as well as a cloud notebook**. Older 0.4.2 apps can omit
+the new notebook-only records from their views without deleting them. Restart
+Claude Code desktop and other long-running hosts after updating so they load the
+new plugin/runtime, then verify recall in each app before continuing.

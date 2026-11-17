@@ -144,6 +144,18 @@ class App:
         if any((directory / ".git").exists() for directory in (home, *home.parents)):
             raise InvalidStateError("Benchside's journal must be stored outside Git")
 
+    @staticmethod
+    def _sharing_scope(request):
+        project = request.get("project_id")
+        all_projects = request.get("all_projects", False)
+        if type(all_projects) is not bool or (all_projects and project is not None):
+            raise ValidationError("Choose a Benchside project or an explicit all-project review")
+        if not all_projects and (not isinstance(project, str) or not project):
+            raise ValidationError(
+                "Provide the current Benchside project_id. Use all_projects:true only "
+                "when the researcher explicitly requests a review across projects."
+            )
+
     def _dispatch(self, action, request):
         if action in {"records.preferences", "records.configure"}:
             from benchside.infrastructure.readable_records import configure, preferences
@@ -207,7 +219,9 @@ class App:
                 case "sharing.status":
                     return flow.status()
                 case "sharing.drafts":
-                    return flow.drafts(channel=request.get("channel"))
+                    if request.get("channel") in {None, "gaps"}:
+                        self._sharing_scope(request)
+                    return flow.drafts(channel=request.get("channel"), project_id=request.get("project_id"))
                 case "sharing.consent":
                     if type(request.get("enabled")) is not bool:
                         raise ValidationError("Consent enabled must be true or false")
@@ -220,6 +234,8 @@ class App:
                 case "sharing.feedback":
                     return flow.feedback(**request["feedback"]).model_dump(mode="json")
                 case "sharing.preview":
+                    if request["channel"] == "gaps":
+                        self._sharing_scope(request)
                     return [
                         d.model_dump(mode="json")
                         for d in flow.prepare(
@@ -230,6 +246,7 @@ class App:
                             comment=request.get("comment"),
                             week=request.get("week"),
                             replace_draft_ids=request.get("replace_draft_ids"),
+                            project_id=request.get("project_id"),
                         )
                     ]
                 case "sharing.send":
@@ -439,12 +456,14 @@ class App:
                         resolution=Resolution(request["resolution"]),
                     )
                 case "decide":
+                    from benchside.application.notebook import decision_rationale
+
                     identifier = f"d-{identifier}"
                     self.service.record_decision(
                         **common,
                         decision_id=identifier,
                         decision=request["decision"],
-                        rationale=request["rationale"],
+                        rationale=decision_rationale(request),
                         supersedes=request.get("supersedes"),
                     )
                 case "gap":

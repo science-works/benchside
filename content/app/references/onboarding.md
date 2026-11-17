@@ -91,6 +91,11 @@ separately and replace only the managed installation after checking the new copy
 do not delete unknown files. Keep private record storage in place and reopen the
 same project after the update.
 
+Update every app and agent sharing that storage, including local folders. Older
+0.4.2 apps may show new notebook-only records as missing even though the files are
+intact. Restart long-running hosts (including Claude Code desktop) after updating
+their plugin/runtime, then verify recall in each app before recording more work.
+
 ## Ask where records should live
 
 Offer only locations the host can actually access, and explain which still need

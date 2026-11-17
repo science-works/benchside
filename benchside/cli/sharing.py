@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from benchside.application.sharing import SharingFlow
-from benchside.cli.runtime import current_paths
+from benchside.cli.runtime import current_paths, resolve_project
 from benchside.domain.shared.error import ConsentRequiredError
 
 
@@ -13,6 +13,9 @@ def cmd_sharing(args):
     channel = getattr(args, "channel", "gaps")
     if args.action == "status":
         print(json.dumps(flow.status(), indent=2))
+    elif args.action == "drafts":
+        project_id = None if args.all_projects else resolve_project(args.project).root
+        print(json.dumps(flow.drafts(channel=channel, project_id=project_id), indent=2))
     elif args.action == "grant":
         kinds = [k.strip() for k in (args.kinds or "").split(",") if k.strip()]
         flow.set_consent(channel, True, kinds=kinds)
@@ -44,6 +47,8 @@ def cmd_sharing(args):
             feedback_id=args.feedback_id,
             comment=args.comment,
             week=args.week,
+            replace_draft_ids=args.replace_draft,
+            project_id=None if args.all_projects else resolve_project(args.project).root,
         )
         for draft in drafts:
             print(draft.preview.payload)

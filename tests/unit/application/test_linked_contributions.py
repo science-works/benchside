@@ -17,6 +17,8 @@ from tests.unit.application.test_sharing import Collector
 
 
 def test_selected_conversation_problems_use_reviewed_gap_flow(flow, paths):
+    from benchside.application.app import App
+
     batch = record_batch(flow, 1)
     token = next(iter(batch["selected"]))
     gap = {
@@ -35,7 +37,10 @@ def test_selected_conversation_problems_use_reviewed_gap_flow(flow, paths):
     with pytest.raises(BenchsideError):
         sharing.prepare("gaps")
     sharing.set_consent("gaps", True, kinds=["missing_tool"])
-    draft = sharing.prepare("gaps")[0]
+    draft = sharing.prepare("gaps", project_id="reporting-ledger", only=[problem["recorded"]])[0]
+    listed = App(paths).run({"action": "sharing.drafts", "channel": "gaps",
+                            "project_id": "reporting-ledger"})
+    assert listed[0]["preview"] == draft.preview.model_dump(mode="json")
     data = json.loads(draft.preview.payload)
     assert data["observations"] == [
         {

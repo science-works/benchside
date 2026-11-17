@@ -807,6 +807,8 @@ BATCH_ACTIONS = {
     "participation.status",
     "participation.set",
     "sharing.status",
+    "sharing.drafts",
+    "sharing.history",
     "sharing.consent",
     "metascience.status",
     "metascience.consent",

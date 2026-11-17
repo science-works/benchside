@@ -116,7 +116,12 @@ Context-bearing legacy gap types use `benchside.gaps.v3`; submissions containing
 keep their supported format.
 
 - `sharing.status` returns current choices, including gap permission `scope`.
-- `sharing.drafts` is read-only; optional `channel` filters gaps, feedback or usage.
+- `sharing.drafts` is read-only; `channel` filters gaps, feedback or usage.
+  For gaps (or an omitted channel), pass the current `project_id`. Only workflow
+  drafts belonging entirely to that project are returned. Feedback and usage are
+  store-wide, so request those channels explicitly when resuming them. An explicit
+  researcher request to review across projects may use `all_projects:true` instead
+  of `project_id`; never use this to bypass project separation automatically.
   It returns each pending draft's `id`, `channel` and complete stored `preview`
   (`payload`, `payload_sha256`, `destination`, `observation_ids`, `withheld`,
   `redaction_findings`), plus `sendable` and `problems` (codes/messages).
@@ -135,12 +140,12 @@ keep their supported format.
   background poll. “You mentioned a recurring booking problem and a workaround.
   Would you like Benchside to prepare a short report for you to review before
   sharing it with Science Works?” Use inference wording when not researcher-reported.
-  If accepted, pass those exact `observation_ids` as `only` to `sharing.preview`.
-  Do not omit `only`: an unrestricted preview can include other projects. The
+  If accepted, pass those exact `observation_ids` as `only` and the current
+  `project_id` to `sharing.preview`. Do not omit `only` for an offered review. The
   count and selection cover newly offered problems in this project, not items
   left out of an earlier offer. Broader review requires the researcher's request.
   Requested review is always available, even after deferral. Before preparing a
-  new preview, check `sharing.drafts`. If a gaps report is pending, ask whether
+  new preview, check `sharing.drafts` for that same project. If its gaps report is pending, ask whether
   to keep/review that report, combine the new problems with it, or replace it.
   Combining uses the union of the stored and newly offered IDs; do not quietly
   broaden to other projects. A failed/uncertain send must be retried as-is before
@@ -151,7 +156,8 @@ keep their supported format.
 - `sharing.feedback` takes `feedback: {role, host, surface, ease, would_use_again, comment}`.
   Unknown role/app/surface values use `unknown`. Returns an independently generated
   feedback ID. This saves locally and sends nothing.
-- `sharing.preview` takes `channel`. Gaps optionally take `only: [observation IDs]`
+- `sharing.preview` takes `channel`. Gaps require the current `project_id` (or
+  explicitly requested `all_projects:true`) and optionally take `only: [observation IDs]`
   and `edits: {observation ID: reviewed gap object}`; feedback takes `feedback_id`
   and optionally an edited `comment`; usage optionally takes `week` (Monday date).
   Gaps also take `replace_draft_ids` only after agreement to edit, combine or
@@ -159,6 +165,11 @@ keep their supported format.
   identical preview reuses its draft. A changed gaps preview refuses to discard
   a pending draft without this explicit replacement selection. Save and review
   the replacement normally; approving an old digest does not approve a new one.
+  Other projects' drafts are preserved. An older combined report may require an
+  explicitly requested all-project review; do not expose it in one project's chat.
+  CLI equivalents: `bench share drafts` and `bench share preview --replace-draft <id>`
+  (repeat the replacement flag for each agreed batch). Both default to the current
+  project; `--project <name>` selects another, and `--all-projects` requests a broader review.
 - The preview returns one or more drafts, each containing its exact `payload`,
   `destination`, `payload_sha256` and draft `id`. Display the complete content of
   each draft in readable form, including every text field and usage count, plus the

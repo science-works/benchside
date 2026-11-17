@@ -243,8 +243,11 @@ error descriptions can remain. Remove private findings, measurements, sample
 identifiers, hypotheses, detailed protocols and unredacted source passages. A short `deidentified_excerpt`
 is optional under the sharing guide; never copy raw text into it.
 
-Review candidates through `sharing.preview` for `channel:"gaps"`, with edits and
-exclusions, then send only the approved draft. This uses the same collector and
+Review candidates through `sharing.preview` for `channel:"gaps"`, with
+`project_id:"reporting-ledger"` (the private selected-conversation candidate store),
+the reviewed candidate IDs as `only`, and any edits/exclusions. Use the same scope
+for `sharing.drafts`; do not open an all-project review of unrelated notebooks.
+Then send only the approved draft. This uses the same collector and
 reviewed problem format as a Benchside role; optional labels never limit which
 workflow problems can be recorded. The submission records
 `origin:"selected_conversation"` and the evidence basis, never source IDs or logs.

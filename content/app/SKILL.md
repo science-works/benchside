@@ -161,8 +161,9 @@ on request; do not repeatedly prompt after a decline or deferral. Declining any
 choice must not affect scientific assistance.
 
 When an offer is accepted, pass its exact `observation_ids` as `only` to
-`sharing.preview`; never open an unrestricted review of other projects. First
-read `sharing.drafts` for existing pending reports. Do not silently replace one:
+`sharing.preview`, with the current `project_id`; never open an unrestricted
+review of other projects. First read `sharing.drafts` with `channel:"gaps"` and
+that same `project_id` for existing pending reports. Do not silently replace one:
 ask whether to keep/review it, combine the new items, or replace it, following
 the sharing guide. A new chat or failed send resumes the stored draft, not a
 regenerated preview. Readiness is not approval to send.

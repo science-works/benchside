@@ -386,7 +386,9 @@ explicitly, stop sharing and preserve the notebook while moving to larger privat
 storage; never claim consent has been durably changed from an unsuccessful save.
 
 Sharing still requires the exact preview approval described in `sharing.md`.
-Use read-only `sharing.drafts` to recover exact pending reports in a new chat;
+Use read-only `sharing.drafts` with `channel:"gaps"` and the current `project_id`
+to recover exact pending workflow reports in a new chat (specify `channel:"feedback"`
+or `"usage"` for those store-wide reports);
 do not regenerate a preview to find a draft or retry a send.
 Read current native consent and the approved draft immediately before
 `sharing.send`; pass the original draft ID and approved digest. Only the selected
@@ -417,7 +419,9 @@ exact-payload submission retry. Repeat for every advertised host/account type.
 Broad workflow reports, all-workflow consent and notebook-only checkpoints require
 `benchside.native.v5`. Update every app sharing the notebook before using these
 features; older packages must refuse the newer notebook rather than lose fields.
-Native `batch` supports notebook actions. `sharing.check_in` is a separate normal
+Native `batch` supports notebook actions and read-only `sharing.drafts`,
+`sharing.status` and `sharing.history`; a batch containing only reads leaves the
+notebook unchanged. Previews and sends remain separate. `sharing.check_in` is a separate normal
 `native.run` action: save and confirm its changed candidate before showing an offer.
 Per-observation offer memory uses v6 so earlier review builds cannot overwrite
 the new reminder state. Update every app sharing that notebook. Older v5 offers

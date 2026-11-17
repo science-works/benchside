@@ -302,7 +302,7 @@ class SharingFlow:
         return {"offer": True, "channel": "gaps", "pending": len(new), "observation_ids": new}
 
     def prepare(self, channel, *, only=None, edits=None, feedback_id=None, comment=None,
-                week=None, replace_draft_ids=None):
+                week=None, replace_draft_ids=None, project_id=None):
         grant = self.consent.active_grant() if channel == "gaps" else None
         active = grant.id if grant else self.reporting.active_grant(channel)
         if active and self._policy_grant(channel) != active:
@@ -311,6 +311,14 @@ class SharingFlow:
                 "Explain this change and renew this sharing choice before preparing a new submission."
             )
         if channel == "gaps":
+            owners = self._observation_projects()
+            if project_id is not None:
+                selected = {identifier for identifier, owner in owners.items() if owner == project_id}
+                if only is not None and set(only) - selected:
+                    raise ValidationError("Selected observations must belong to this Benchside project")
+                if only is None:
+                    only = [str(o.id) for o in self.export.observations.list_unshared()
+                            if str(o.id) in selected]
             previews = self.export.previews(only=only, edits=edits)
             if not any(preview.observation_ids for preview in previews):
                 reasons = [reason for preview in previews for reason in preview.redaction_findings]
@@ -381,11 +389,26 @@ class SharingFlow:
             drafts.append(draft)
         retained = {draft.id for draft in drafts}
         if channel == "gaps":
-            pending = {item["id"] for item in self.drafts(channel="gaps")}
+            projects = {project_id} if project_id is not None else {
+                owners.get(str(identifier)) for preview in previews for identifier in preview.observation_ids
+            }
+            pending = set()
+            for item in self.drafts(channel="gaps"):
+                draft_projects = {owners.get(identifier) for identifier in item["preview"]["observation_ids"]}
+                if not projects.intersection(draft_projects):
+                    continue
+                if draft_projects - projects:
+                    raise ValidationError(
+                        "An older combined report includes this project and other projects. "
+                        "Keep it unchanged; explicitly request an all-project review to resume it.",
+                        code="cross_project_draft",
+                    )
+                pending.add(item["id"])
             replacing = pending - retained
             if replacing and set(replace_draft_ids or ()) != replacing:
                 raise ValidationError(
-                    "A pending workflow report would be replaced. Read sharing.drafts; "
+                    "A pending workflow report would be replaced. Read sharing.drafts "
+                    "(CLI: bench share drafts) for this project; "
                     "ask whether to keep, send, combine or replace it, then pass the exact "
                     "replace_draft_ids only for an agreed replacement.",
                     code="pending_draft_exists",
@@ -394,11 +417,13 @@ class SharingFlow:
                 raise ValidationError("Pending reports changed; read sharing.drafts again")
         for draft in drafts:
             atomic_json(self._draft_path(draft.id), draft.model_dump(mode="json"))
-        # One review flow per channel. Save the whole replacement batch first;
+        # One workflow review per project. Save the whole replacement batch first;
         # keep other channels, original observations/feedback and receipt ledgers.
         # Identical previews reuse their ID so failed-send retries keep exact bytes.
         for old in existing:
-            if old.channel == channel and old.id not in retained:
+            if old.channel == channel and old.id not in retained and (
+                channel != "gaps" or old.id in replacing
+            ):
                 self._draft_path(old.id).unlink()
         return drafts
 
@@ -445,16 +470,25 @@ class SharingFlow:
             )
         return SubmissionDraft.model_validate_json(path.read_text())
 
-    def drafts(self, *, channel=None):
+    def _observation_projects(self):
+        return {str(o.id): o.project_id.root for o in self._export_service().observations.list_all()}
+
+    def drafts(self, *, channel=None, project_id=None):
         """List exact pending reports and current eligibility, without writes or sends."""
         if channel is not None and channel not in {"gaps", "feedback", "usage"}:
             raise ValidationError("Unknown sharing channel")
         received = {(r["channel"], r["payload_sha256"], r["destination"])
                     for r in self.history()}
+        owners = self._observation_projects() if project_id is not None else {}
         result = []
         for path in sorted((self.paths.home / "sharing/drafts").glob("*.json")):
             draft = SubmissionDraft.model_validate_json(path.read_text())
             if channel is not None and draft.channel != channel:
+                continue
+            if project_id is not None and draft.channel == "gaps" and (
+                not draft.preview.observation_ids
+                or {owners.get(str(i)) for i in draft.preview.observation_ids} != {project_id}
+            ):
                 continue
             if (draft.channel, draft.preview.payload_sha256, draft.preview.destination) in received:
                 continue

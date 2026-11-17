@@ -213,7 +213,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("decide", help="record a durable decision")
     p.add_argument("decision")
-    p.add_argument("--because", required=True)
+    p.add_argument("--because", default="", help="researcher's rationale, if stated")
     p.add_argument("--supersedes", default=None)
     p.set_defaults(run=cmd_decide)
 
@@ -294,12 +294,21 @@ def build_parser() -> argparse.ArgumentParser:
     share = p.add_subparsers(dest="action", required=True, metavar="<action>")
     a = share.add_parser("status", help="grant state")
     a.add_argument("--json", action="store_true")
+    a = share.add_parser("drafts", help="read exact pending reports; sends nothing")
+    a.add_argument("--channel", choices=["gaps", "feedback", "usage"], default="gaps")
+    group = a.add_mutually_exclusive_group()
+    group.add_argument("--project", help="project name; defaults to the current project")
+    group.add_argument("--all-projects", action="store_true", help="explicitly review across projects")
     a = share.add_parser("grant", help="consent to sharing listed gap kinds")
     a.add_argument("--kinds", help=f"comma-separated from: {sorted(GAP_KINDS)}")
     a.add_argument("--channel", choices=["gaps", "feedback", "usage"], default="gaps")
     a = share.add_parser("revoke", help="withdraw consent")
     a.add_argument("--channel", choices=["gaps", "feedback", "usage", "all"], default="gaps")
     a = share.add_parser("preview", help="the exact bytes an export would send; sends nothing")
+    group = a.add_mutually_exclusive_group()
+    group.add_argument("--project", help="project name; defaults to the current project")
+    group.add_argument("--all-projects", action="store_true", help="explicitly review across projects")
+    a.add_argument("--replace-draft", action="append", help="exact pending draft ID to replace after agreement; repeat for each batch")
     a.add_argument("--channel", choices=["gaps", "feedback", "usage"], default="gaps")
     a.add_argument("--only", action="append")
     a.add_argument(
@@ -707,7 +716,7 @@ def cmd_recall(args) -> int:
     for q in recall.open_questions:
         args.ui.warn(f"open: {q}")
     for d in recall.recent_decisions:
-        args.ui.detail(f"decided: {d.decision} — {d.rationale}")
+        args.ui.detail(f"decided: {d.decision} — {d.rationale or 'Rationale not stated'}")
     for record in recall.recent_records:
         args.ui.detail(f"{record.kind}: {record.summary}")
         for detail in record.details:

@@ -86,6 +86,12 @@ WORKFLOW_LABELS = (
 )
 
 
+def has_workflow_text(value: str) -> bool:
+    # ECMAScript trim (the receiver) also treats U+FEFF as whitespace.
+    # Check presence without changing any stored/reviewed payload bytes.
+    return any(not c.isspace() and c != "\ufeff" for c in value)
+
+
 class WorkflowProblem(ContextualGap):
     """Any workflow problem, including ones outside suggested labels."""
 
@@ -101,7 +107,7 @@ class WorkflowProblem(ContextualGap):
     @field_validator("description", "deidentified_excerpt")
     @classmethod
     def useful_text(cls, value):
-        if value is not None and (not value.strip() or len(value.encode("utf-16-le")) // 2 > 2000):
+        if value is not None and (not has_workflow_text(value) or len(value.encode("utf-16-le")) // 2 > 2000):
             raise ValueError("Workflow text needs 1–2000 UTF-16 characters")
         return value
 
@@ -109,14 +115,14 @@ class WorkflowProblem(ContextualGap):
     @classmethod
     def descriptive_labels(cls, values):
         if len(set(values)) != len(values) or any(
-            not v.strip() or len(v.encode("utf-16-le")) // 2 > 100 for v in values
+            not has_workflow_text(v) or len(v.encode("utf-16-le")) // 2 > 100 for v in values
         ):
             raise ValueError("Labels must be distinct text of 1–100 UTF-16 characters")
         return values
 
     @model_validator(mode="after")
     def status_needs_workaround(self):
-        if self.workaround_status and not (self.context and self.context.workaround and self.context.workaround.strip()):
+        if self.workaround_status and not (self.context and self.context.workaround and has_workflow_text(self.context.workaround)):
             raise ValueError("A workaround status needs a described workaround")
         return self
 

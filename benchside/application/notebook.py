@@ -19,6 +19,15 @@ from benchside.domain.shared.event import new_event_id
 from benchside.domain.shared.model.gap import Gap
 
 
+def decision_rationale(request):
+    rationale = request.get("rationale")
+    if rationale is None:
+        return ""
+    if not isinstance(rationale, str):
+        raise ValidationError("A decision rationale must be text or omitted")
+    return rationale if rationale.strip() else ""
+
+
 def record_checkpoint(app, project_id, action, request):
     if request.get("sitting_id"):
         raise ValidationError("Notebook actions do not take a sitting; use the role action instead")
@@ -29,9 +38,7 @@ def record_checkpoint(app, project_id, action, request):
         case "notebook.decide":
             if not isinstance(request.get("decision"), str) or not request["decision"].strip():
                 raise ValidationError("A notebook decision needs decision")
-            rationale = request.get("rationale", "")
-            if not isinstance(rationale, str):
-                raise ValidationError("A decision rationale must be text or omitted")
+            rationale = decision_rationale(request)
             supersedes = request.get("supersedes")
             identifier = f"d-{identifier}"
             event = DecisionRecorded(
