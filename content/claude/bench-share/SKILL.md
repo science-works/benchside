@@ -32,6 +32,8 @@ Workflow previews and `bench share drafts` default to the current project. Use
 `--project <project ID>` to select another project, or `--all-projects` only for
 an explicitly requested review across projects. The preview includes only
 consented items and lists withheld IDs locally; withheld content is not sent.
+New withheld items alone refresh that local list without replacing an otherwise
+identical pending report.
 
 Use `bench share drafts` to redisplay the exact pending payload, destination,
 digest and current send readiness. If a new preview would replace a pending
@@ -40,12 +42,14 @@ run `bench share preview --replace-draft <id>`; repeat `--replace-draft` for eac
 draft being replaced, with `--only`/`--edits` if needed. Replacement is not approval
 to send. Other projects' reports must remain unchanged.
 
-An older combined-project draft requires `bench share drafts --all-projects`
-for an explicitly requested review. If its original consent has been revoked or
-superseded, an agreed replacement can retire that exact draft while preparing a
-report for one project. Explain that the old combined preview is being replaced;
-the original observations in every project remain private and can be reviewed
-separately. A combined draft with current consent stays protected.
+An older combined-project draft's refusal names its draft ID without showing
+another project's content. If its original consent has been revoked or superseded,
+use that ID for an agreed replacement while preparing a report for one project;
+no all-project payload review is required just to find the ID. Explain that the
+old combined preview is being retired; the original observations in every project
+remain private and can be reviewed separately. A combined draft with current
+consent stays protected. Use `bench share drafts --all-projects` only if the
+researcher explicitly requests to view or resume the combined report.
 
 Show the complete prepared content, recipient and any redaction findings.
 Usage includes a random installation ID, weekly counts, role/app/version

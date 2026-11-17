@@ -81,3 +81,27 @@ Merge order remains: reviewed client; repin reporting to the final merged main
 SHA, merge and verify its import; merge/deploy receiver; register and send the
 approved synthetic test and verify its reporting exclusion; publish packages.
 Those steps are not authorized by this fixes-only follow-up.
+
+## Small follow-up after the `3197894` re-review
+
+Both remaining usability findings were reproduced with regression tests before
+fixing them (three new cases failed):
+
+- Re-previewing after recording a new unconsented item now reuses the existing
+  draft ID and refreshes its local withheld list. The payload, digest, destination,
+  grant, included observation IDs and redaction findings must still match exactly.
+  Changed outgoing content still requires an explicit replacement; consent is not
+  expanded and another project's withheld items remain invisible.
+- A combined-report refusal now gives just the blocking draft ID, without project
+  IDs, observation IDs or report content. When its grant is obsolete, the message
+  explains exact-ID replacement after agreement; no all-project payload review is
+  needed just to discover that ID. A combined draft with current consent remains
+  protected. App and CLI instructions describe both cases consistently.
+
+Verification: **36 focused pending-report tests** and **690 full-suite tests**
+pass on Python 3.14.0. CI-style lint, role compilation (eight unchanged), generated
+app instructions and whitespace checks pass. Tests use temporary stores and mock
+collectors; no production data was sent. No cloud app was reinstalled or newly
+tested for these two local runtime/message changes. Earlier live acceptance and
+review.7 archive evidence above retain their original scope. Nothing was merged,
+deployed or published, and the solution-discovery worktree was left untouched.

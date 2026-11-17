@@ -272,6 +272,68 @@ def test_limited_grant_previews_covered_items_and_withholds_only_current_project
     assert not flow.sinks["gaps"].sent and flow.history() == []
 
 
+def test_new_unconsented_item_refreshes_withheld_without_replacing_identical_report(paths):
+    app = App(paths)
+    a, b = setup(app, "a"), setup(app, "b")
+    app.run({"action": "notebook.gap", **a, "gap": {
+        "kind": "manual_toil", "task": "Synthetic copying", "frequency": "weekly",
+    }})
+    flow = SharingFlow(paths, sinks={"gaps": Collector("gaps")})
+    flow.set_consent("gaps", True, kinds=["manual_toil"])
+    original = flow.prepare("gaps", project_id=a["project_id"])[0]
+    withheld = app.run({"action": "notebook.gap", **a, "gap": problem()})["recorded"]
+    other = app.run({"action": "notebook.gap", **b,
+                     "gap": problem(description="B distinctive private delay")})["recorded"]
+
+    refreshed = flow.prepare("gaps", project_id=a["project_id"])[0]
+    assert refreshed.id == original.id
+    assert refreshed.preview.model_dump(exclude={"withheld"}) == original.preview.model_dump(exclude={"withheld"})
+    assert tuple(map(str, refreshed.preview.withheld)) == (withheld,)
+    assert withheld not in refreshed.preview.payload
+    listed = flow.drafts(channel="gaps", project_id=a["project_id"])
+    assert len(listed) == 1 and listed[0]["id"] == original.id
+    assert listed[0]["preview"] == refreshed.preview.model_dump(mode="json")
+    assert other not in json.dumps(listed) and "B distinctive" not in json.dumps(listed)
+    assert not flow.sinks["gaps"].sent and flow.history() == []
+
+
+@pytest.mark.parametrize("obsolete", [False, True])
+def test_combined_draft_error_identifies_report_without_disclosing_other_project(paths, obsolete):
+    app = App(paths)
+    a, b = setup(app, "a"), setup(app, "b")
+    ids = []
+    for ctx in (a, b):
+        ids.append(app.run({"action": "notebook.gap", **ctx, "gap": {
+            "kind": "manual_toil", "task": "Distinctive private copying", "frequency": "weekly",
+        }})["recorded"])
+    flow = SharingFlow(paths, sinks={"gaps": Collector("gaps")})
+    flow.set_consent("gaps", True, kinds=["manual_toil"])
+    combined = flow.prepare("gaps")[0]
+    if obsolete:
+        flow.set_consent("gaps", True, scope="all_workflow")
+    before = files(paths)
+
+    with pytest.raises(BenchsideError) as caught:
+        flow.prepare("gaps", project_id=a["project_id"])
+    message = str(caught.value)
+    assert caught.value.code == "cross_project_draft" and files(paths) == before
+    assert combined.id in message
+    assert all(value not in message for value in [*ids, b["project_id"], "Distinctive private copying"])
+    if obsolete:
+        assert "replace_draft_ids" in message and f"--replace-draft {combined.id}" in message
+        # The exact ID in the refusal suffices; no all-project payload review is needed.
+        replacement = flow.prepare("gaps", project_id=a["project_id"],
+                                   replace_draft_ids=[combined.id])[0]
+        assert tuple(map(str, replacement.preview.observation_ids)) == (ids[0],)
+        assert ids[1] not in replacement.model_dump_json()
+    else:
+        assert "current consent" in message
+        with pytest.raises(BenchsideError):
+            flow.prepare("gaps", project_id=a["project_id"], replace_draft_ids=[combined.id])
+        assert files(paths) == before
+    assert not flow.sinks["gaps"].sent and flow.history() == []
+
+
 @pytest.mark.parametrize("scope", ["a", "b", "all_projects_a_only"])
 def test_revoked_combined_draft_can_be_explicitly_retired_without_combining_projects(paths, scope):
     app = App(paths)

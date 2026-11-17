@@ -162,11 +162,17 @@ keep their supported format.
   and optionally an edited `comment`; usage optionally takes `week` (Monday date).
   Gaps also take `replace_draft_ids` only after agreement to edit, combine or
   replace pending reports: pass the exact IDs of the drafts being replaced. An
-  identical preview reuses its draft. A changed gaps preview refuses to discard
-  a pending draft without this explicit replacement selection. Save and review
+  identical preview reuses its draft; new withheld IDs alone refresh the local
+  list without replacing an otherwise identical report. A changed gaps preview
+  refuses to discard a pending draft without this explicit replacement selection. Save and review
   the replacement normally; approving an old digest does not approve a new one.
-  Other projects' drafts are preserved. An older combined report may require an
-  explicitly requested all-project review; do not expose it in one project's chat.
+  Other projects' drafts are preserved. A combined-report refusal gives its draft
+  ID without exposing another project's content. If its grant is obsolete, use
+  that ID for an explicitly agreed replacement; no all-project payload review is
+  needed just to discover the ID. Explain that only the old preview is retired,
+  and original observations remain private and available for separate review.
+  A combined report with current consent stays protected; viewing or resuming it
+  requires an explicitly requested all-project review.
   CLI equivalents: `bench share drafts` and `bench share preview --replace-draft <id>`
   (repeat the replacement flag for each agreed batch). Both default to the current
   project; `--project <name>` selects another, and `--all-projects` requests a broader review.

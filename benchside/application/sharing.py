@@ -385,7 +385,10 @@ class SharingFlow:
                     old
                     for old in existing
                     if old.channel == channel
-                    and old.preview == preview
+                    and (old.preview == preview or (
+                        channel == "gaps"
+                        and old.preview.model_copy(update={"withheld": preview.withheld}) == preview
+                    ))
                     and old.demographics_revision == profile_revision
                 ),
                 None,
@@ -397,6 +400,10 @@ class SharingFlow:
                     preview=preview,
                     demographics_revision=profile_revision,
                 )
+            else:
+                # Withheld IDs are local review metadata. Refresh them without
+                # replacing an otherwise identical report or its approval digest.
+                draft = draft.model_copy(update={"preview": preview})
             drafts.append(draft)
         retained = {draft.id for draft in drafts}
         if channel == "gaps":
@@ -412,15 +419,20 @@ class SharingFlow:
                 # An exact, explicitly named obsolete-grant draft can be retired
                 # without forcing the researcher to combine projects again.
                 # Other readiness failures do not relax cross-project protection.
-                retire_obsolete = (grant is not None
-                                   and item["preview"]["grant_id"] != str(grant.id)
-                                   and item["id"] in agreed_replacements)
+                obsolete_grant = grant is not None and item["preview"]["grant_id"] != str(grant.id)
+                retire_obsolete = obsolete_grant and item["id"] in agreed_replacements
                 if draft_projects - projects and not retire_obsolete:
+                    guidance = (
+                        "Its original consent is no longer active. With explicit agreement, "
+                        f"include this exact ID in replace_draft_ids (CLI: --replace-draft {item['id']}) "
+                        "to retire this combined preview and prepare a report for this project. "
+                        "The other project's original observations stay private and unshared."
+                        if obsolete_grant else
+                        "It has current consent and cannot be replaced from one project's scope. "
+                        "Keep it unchanged; explicitly request an all-project review to view or resume it."
+                    )
                     raise ValidationError(
-                        "An older combined report includes this project and other projects. "
-                        "Keep it unchanged; explicitly request an all-project review to resume it. "
-                        "If its consent is no longer active, its exact draft ID may be explicitly "
-                        "replaced with a report for this project; the other project's records stay private.",
+                        f"Combined report {item['id']} includes this project and other projects. " + guidance,
                         code="cross_project_draft",
                     )
                 pending.add(item["id"])
