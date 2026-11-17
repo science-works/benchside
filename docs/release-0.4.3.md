@@ -56,3 +56,27 @@ Private scientific records are not sent to Science Works. Workflow sharing
 requires applicable consent and approval of the exact de-identified report.
 Solution discovery remains a separate prototype and is not included. This is
 a GitHub/PyPI release, not a new public plugin-directory listing.
+
+### Production acceptance — 17 November 2026
+
+- Receiver main `df150dd` deployed as Worker version
+  `379dec95-29ee-4949-bf09-f9eaaa461465`, after 96 receiver tests and TypeScript
+  validation passed. Existing EU bucket bindings and rate limits were retained.
+- A fresh 0.4.3 wheel generated two explicitly synthetic v4 workflow observations.
+  The preview excluded a separate private notebook decision. The report hash was
+  registered in the reporting exclusion ledger before sending.
+- The normal approved-send path received a matching production receipt; retrying
+  the identical bytes returned `duplicate` with two observations and the same
+  receipt timestamp.
+- [Exact receipt verification](https://github.com/LauraRyanSW/tools-science-works/actions/runs/44167579511)
+  read the stored object and checked its complete SHA-256. The synthetic GitHub
+  report retained both complete gap objects, including labels, de-identified
+  excerpt, workaround status and context. Access requires repository membership.
+- [Normal reporting import](https://github.com/LauraRyanSW/tools-science-works/actions/runs/44167587923)
+  succeeded against production storage using its incremental checkpoint. The
+  synthetic report was absent from normal analysis. Daily reporting remains
+  enabled at 06:17 UTC; aggregate updates still require review before publication.
+
+The receipt SHA-256 is
+`c75c751947dd0d24cdb44bb8f1f0901bab08271c64ceedaec2842503876c583b`.
+No real research content was submitted for this test.
