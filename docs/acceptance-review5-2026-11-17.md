@@ -107,12 +107,48 @@ notebook. Running the packaged runtime over that downloaded content confirmed
 - Notebook: `cd406f9ff8dbb6338d2e5d907a42417ded699789bfcc5fcce619072a93834ade`
 - Readiness: `sendable:true`, no local problems. No approval or send.
 
-## Claude and release gates
+## Installed Claude
 
-The review.5 Claude ZIP is prepared. Its installed check is **pending upload**:
-Chrome's automated uploader reports missing file-URL permission, and the user
-has been asked to upload it in the open update dialog. Claude still showed
-review.4 at the last check. Do not describe review.5 as tested in Claude yet.
+The user uploaded the review.5 Claude plugin. The plugin detail page showed
+`v0.4.3-review.5`, and the [fresh acceptance chat](https://claude.ai/chat/82c908b6-c8a5-453f-b1ca-2bf6eb36126d)
+verified the exact bundled wheel hash above. It created a separate owner-only
+file artifact, `SYNTHETIC-BENCHSIDE-REVIEW5-20261117`, without changing any earlier
+notebook or Claude Doc. Both `read` and `folder_audience` were `owner`.
+
+The agent saved “Book the synthetic microscope on Tuesday.” without a rationale;
+the stored reason remained empty and its Markdown journal rendered “Rationale
+not stated”. It recorded a two-day microscope-access delay with a cancellation
+list that the researcher reported helped once, and prepared a preview selecting
+only that observation. It then recorded a separate reagent-delivery delay.
+
+Attempting a preview for just the new observation without `replace_draft_ids`
+returned `pending_draft_exists` and `changed:false`. Read-only `sharing.drafts`
+recovered the original draft and full payload unchanged. The visible tool traces
+showed guarded file patches, fetched state files and successful `native.confirm`
+checks through revision 3. Journal patches used their paired state versions.
+There was no approval, replacement, combining or send.
+
+- Artifact slug: `87aca1d7-5386-4a49-906d-e4a9f4589f9f`
+- Artifact version: `1794927047-52f8`
+- Workspace: `1cbb0ef9dbed43f7a7660bdc38852dc5`
+- Project: `p-7cfee7b8e26cfea98dd78ab1caa33fbb`
+- Native snapshot: revision 3, `benchside.native.v5`
+- Snapshot SHA-256: `3be913cdc6d306e5a6bac8832579bc0e1e0375e304ef1880ebf4588982256258`
+- State file SHA-256: `9bccdb5514a62bc0648bc771a29f993ce8dd36298c2fa074c293e07f68d94ecd`
+- Draft: `49a415f8b6c846bb961c61ab960c3599`
+- Payload SHA-256: `bd31f9982d813485a40c6f348beb31c7f8f6d67b6bd3a0a32ed1a059c2ec6792`
+
+A separate fresh-chat restore check is pending. It will receive only the notebook
+and project names, not their links, IDs, decision or draft contents. Its requested
+operations are read-only. The first run did not exercise `sharing.check_in`, so
+its snapshot legitimately remained v5; the earlier reminder tests cover v6.
+
+The upload handoff exposed a host UI mismatch: the existing plugin's “Upload new
+version” dialog filtered for `.skill`/`SKILL.md` and greyed out the plugin ZIP.
+The user instead used the main Plugins → Add → Upload plugin route. The ZIP
+remained unchanged; renaming it to `.skill` is not a fix.
+
+## Release gates
 
 The earlier [review.4 live checks](acceptance-review4-apps-2026-11-17.md) proved
 file-artifact discovery and both two-chat conflict cases, with all six decisions
@@ -120,7 +156,7 @@ retained. They are historical evidence for the unchanged version-pair protocol,
 not a substitute for the updated-package check. Older Claude Docs export and
 migration are not supported beta routes. No existing test notebook was migrated.
 
-Before inviting beta testers: finish that Claude package check, review this
+Before inviting beta testers: finish the fresh-chat Claude check, review this
 client and both companion PRs, update the reporting client pin, deploy compatible
 receiver/reporting support, and verify one clearly synthetic production flow
 under the agreed test-data exclusion. Then publish matching client packages.
