@@ -312,16 +312,27 @@ class SharingFlow:
             )
         if channel == "gaps":
             owners = self._observation_projects()
+            consent_withheld = []
             if project_id is not None:
                 selected = {identifier for identifier, owner in owners.items() if owner == project_id}
                 if only is not None and set(only) - selected:
                     raise ValidationError("Selected observations must belong to this Benchside project")
                 if only is None:
-                    only = [str(o.id) for o in self.export.observations.list_unshared()
-                            if str(o.id) in selected]
+                    unshared = [o for o in self.export.observations.list_unshared()
+                                if str(o.id) in selected]
+                    only = [str(o.id) for o in unshared if grant and grant.covers(o.gap)]
+                    consent_withheld = [o.id for o in unshared if not grant or not grant.covers(o.gap)]
             previews = self.export.previews(only=only, edits=edits)
+            if consent_withheld:
+                # Local review metadata only: never include another project's IDs
+                # or add unconsented observations to the outgoing payload.
+                previews = tuple(preview.model_copy(update={
+                    "withheld": tuple(dict.fromkeys((*preview.withheld, *consent_withheld))),
+                }) for preview in previews)
             if not any(preview.observation_ids for preview in previews):
                 reasons = [reason for preview in previews for reason in preview.redaction_findings]
+                if consent_withheld:
+                    reasons.append(f"{len(consent_withheld)} observation(s) withheld by current sharing consent")
                 raise ValidationError("No selected, unshared workflow observations to preview"
                                       + ("; " + "; ".join(reasons) if reasons else ""))
         else:
@@ -392,15 +403,24 @@ class SharingFlow:
             projects = {project_id} if project_id is not None else {
                 owners.get(str(identifier)) for preview in previews for identifier in preview.observation_ids
             }
+            agreed_replacements = set(replace_draft_ids or ())
             pending = set()
             for item in self.drafts(channel="gaps"):
                 draft_projects = {owners.get(identifier) for identifier in item["preview"]["observation_ids"]}
                 if not projects.intersection(draft_projects):
                     continue
-                if draft_projects - projects:
+                # An exact, explicitly named obsolete-grant draft can be retired
+                # without forcing the researcher to combine projects again.
+                # Other readiness failures do not relax cross-project protection.
+                retire_obsolete = (grant is not None
+                                   and item["preview"]["grant_id"] != str(grant.id)
+                                   and item["id"] in agreed_replacements)
+                if draft_projects - projects and not retire_obsolete:
                     raise ValidationError(
                         "An older combined report includes this project and other projects. "
-                        "Keep it unchanged; explicitly request an all-project review to resume it.",
+                        "Keep it unchanged; explicitly request an all-project review to resume it. "
+                        "If its consent is no longer active, its exact draft ID may be explicitly "
+                        "replaced with a report for this project; the other project's records stay private.",
                         code="cross_project_draft",
                     )
                 pending.add(item["id"])
@@ -410,7 +430,8 @@ class SharingFlow:
                     "A pending workflow report would be replaced. Read sharing.drafts "
                     "(CLI: bench share drafts) for this project; "
                     "ask whether to keep, send, combine or replace it, then pass the exact "
-                    "replace_draft_ids only for an agreed replacement.",
+                    "replace_draft_ids (CLI: --replace-draft <id>, repeat for each draft) "
+                    "only for an agreed replacement.",
                     code="pending_draft_exists",
                 )
             if replace_draft_ids and set(replace_draft_ids) != replacing:

@@ -55,6 +55,9 @@ def cmd_sharing(args):
             args.ui.info(f"Review {draft.channel} draft {draft.id}")
             args.ui.detail(f"Destination: {draft.preview.destination}")
             args.ui.detail(f"Approval digest: {draft.preview.payload_sha256}")
+            if draft.preview.withheld:
+                args.ui.detail("Withheld observation IDs (not in this report): "
+                               + ", ".join(map(str, draft.preview.withheld)))
             for finding in draft.preview.redaction_findings:
                 args.ui.warn(finding)
         args.ui.warn("Redaction cannot detect all private research details. Review the full text.")

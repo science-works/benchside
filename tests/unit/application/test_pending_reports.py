@@ -247,3 +247,92 @@ def test_old_combined_draft_requires_explicit_cross_project_review(paths):
     explicit = app.run({"action": "sharing.drafts", "channel": "gaps", "all_projects": True})
     assert explicit[0]["preview"] == combined.preview.model_dump(mode="json")
     assert files(paths) == before
+
+
+def test_limited_grant_previews_covered_items_and_withholds_only_current_project(paths):
+    app = App(paths)
+    a, b = setup(app, "a"), setup(app, "b")
+    allowed = app.run({"action": "notebook.gap", **a, "gap": {
+        "kind": "manual_toil", "task": "Synthetic copying", "frequency": "weekly",
+    }})["recorded"]
+    withheld = app.run({"action": "notebook.gap", **a, "gap": problem()})["recorded"]
+    other = app.run({"action": "notebook.gap", **b, "gap": problem()})["recorded"]
+    flow = SharingFlow(paths, sinks={"gaps": Collector("gaps")})
+    flow.set_consent("gaps", True, kinds=["manual_toil"])
+    draft = flow.prepare("gaps", project_id=a["project_id"])[0]
+    assert tuple(map(str, draft.preview.observation_ids)) == (allowed,)
+    assert tuple(map(str, draft.preview.withheld)) == (withheld,)
+    assert other not in draft.model_dump_json()
+    assert withheld not in draft.preview.payload
+    before = files(paths)
+    for selection in ([withheld], [allowed, withheld], [other]):
+        with pytest.raises(BenchsideError):
+            flow.prepare("gaps", project_id=a["project_id"], only=selection)
+        assert files(paths) == before
+    assert not flow.sinks["gaps"].sent and flow.history() == []
+
+
+@pytest.mark.parametrize("scope", ["a", "b", "all_projects_a_only"])
+def test_revoked_combined_draft_can_be_explicitly_retired_without_combining_projects(paths, scope):
+    app = App(paths)
+    a, b, c = (setup(app, key) for key in ("a", "b", "c"))
+    recorded = {}
+    for key, ctx in (("a", a), ("b", b)):
+        recorded[key] = app.run({"action": "notebook.gap", **ctx, "gap": {
+            "kind": "manual_toil", "task": f"Synthetic {key} copying", "frequency": "weekly",
+        }})["recorded"]
+    flow = SharingFlow(paths, sinks={"gaps": Collector("gaps")})
+    flow.set_consent("gaps", True, kinds=["manual_toil"])
+    old = flow.prepare("gaps")[0]
+    flow.set_consent("gaps", True, scope="all_workflow")
+    assert not flow.drafts()[0]["sendable"]
+    app.run({"action": "notebook.gap", **c, "gap": problem()})
+    unrelated = flow.prepare("gaps", project_id=c["project_id"])[0]
+    unrelated_bytes = flow._draft_path(unrelated.id).read_bytes()
+    target = b if scope == "b" else a
+    options = ({"only": [recorded["a"]]} if scope == "all_projects_a_only"
+               else {"project_id": target["project_id"]})
+    before = files(paths)
+    with pytest.raises(BenchsideError):
+        flow.prepare("gaps", **options)
+    assert files(paths) == before
+    with pytest.raises(BenchsideError):
+        flow.prepare("gaps", **options, replace_draft_ids=[unrelated.id])
+    assert files(paths) == before
+    replacement = flow.prepare("gaps", **options, replace_draft_ids=[old.id])[0]
+    expected = recorded["b"] if scope == "b" else recorded["a"]
+    excluded = recorded["a"] if scope == "b" else recorded["b"]
+    assert tuple(map(str, replacement.preview.observation_ids)) == (expected,)
+    assert excluded not in replacement.model_dump_json()
+    assert not flow._draft_path(old.id).exists()
+    assert flow._draft_path(unrelated.id).read_bytes() == unrelated_bytes
+    # Retiring a stale report does not delete either project's underlying records.
+    after = files(paths)
+    for name, data in before.items():
+        if name.endswith("journal.jsonl"):
+            assert after[name] == data
+    other = a if scope == "b" else b
+    assert flow.prepare("gaps", project_id=other["project_id"])[0].preview.observation_ids
+    assert not flow.sinks["gaps"].sent and flow.history() == []
+
+
+@pytest.mark.parametrize("blocked_by", ["none", "destination", "digest"])
+def test_active_grant_combined_draft_stays_protected_even_with_exact_replacement_id(paths, blocked_by):
+    app = App(paths)
+    a, b = setup(app, "a"), setup(app, "b")
+    for ctx in (a, b):
+        app.run({"action": "notebook.gap", **ctx, "gap": problem()})
+    flow = SharingFlow(paths, sinks={"gaps": Collector("gaps")})
+    flow.set_consent("gaps", True, scope="all_workflow")
+    old = flow.prepare("gaps")[0]
+    if blocked_by == "destination":
+        flow.sinks["gaps"].destination += "/changed"
+    elif blocked_by == "digest":
+        data = old.model_dump(mode="json")
+        data["preview"]["payload_sha256"] = "0" * 64
+        flow._draft_path(old.id).write_text(json.dumps(data))
+    before = files(paths)
+    with pytest.raises(BenchsideError) as caught:
+        flow.prepare("gaps", project_id=a["project_id"], replace_draft_ids=[old.id])
+    assert caught.value.code == "cross_project_draft" and files(paths) == before
+    assert not flow.sinks["gaps"].sent
