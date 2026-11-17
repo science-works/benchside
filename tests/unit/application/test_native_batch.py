@@ -182,6 +182,40 @@ def test_invalid_batch_cannot_save_a_partial_project(change):
         steps[0]["project_document"]["document_id"] = "wrong"
     result = batch(original, steps)
     assert not result["ok"] and result["markdown"] == original
+    if change == "duplicate_id":
+        assert "rename the repeated ID and its $ref references" in result["error"]
+
+
+@pytest.mark.parametrize("identifier", ["reviewA", "1review", "review-a", "a" * 33])
+def test_invalid_step_id_explains_format_and_can_be_corrected_without_saving(identifier):
+    original = run_native({"action": "native.create"})["markdown"]
+    operation = uuid.uuid4().hex
+    steps = setup_steps()[:1]
+    steps[0]["id"] = identifier
+    rejected = batch(original, steps, operation)
+    assert not rejected["ok"] and not rejected["changed"]
+    assert rejected["markdown"] == original
+    assert "1–32 characters" in rejected["error"]
+    assert "lowercase letter" in rejected["error"]
+    assert "digits or underscores" in rejected["error"]
+    steps[0]["id"] = "review_a"
+    assert batch(original, steps, operation)["ok"]
+
+
+def test_empty_project_journals_identify_their_project_and_quote_title_markup():
+    views = []
+    for title in ("Synthetic optics A", "Synthetic optics B", "![image](url) <tag> & test"):
+        original = run_native({"action": "native.create"})["markdown"]
+        steps = setup_steps()[:1]
+        steps[0]["project_document"]["title"] = title
+        result = batch(original, steps)
+        assert result["ok"]
+        views.append(result["project_journal"]["markdown"])
+    assert views[0].startswith("# Benchside project journal\n\n> Synthetic optics A\n")
+    assert views[1].startswith("# Benchside project journal\n\n> Synthetic optics B\n")
+    assert "![image](url)" not in views[2]
+    assert "<tag>" not in views[2]
+    assert "&lt;tag&gt; &amp; test" in views[2]
 
 
 def test_declining_requires_active_permissions_to_be_revoked():

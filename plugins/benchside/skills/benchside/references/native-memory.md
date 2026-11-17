@@ -220,8 +220,10 @@ must still fail. Refresh the derived journal once after a group of scientific
 records changes, not for consent-only changes or every read-only recall.
 
 It takes the same `document`, `workspace_id` and `operation_id` as `native.run`,
-plus 1–16 `steps`. Each has a unique short `id`, an ordinary `request`, and a
-`project_document` only for setup. A value `{"$ref":"setup.project_id"}` uses a
+plus 1–16 `steps`. Each has a unique `id` of 1–32 characters: start with a lowercase
+letter, then use lowercase letters, digits or underscores (`[a-z][a-z0-9_]{0,31}`),
+for example `review_a`, not `reviewA` or `review-a`. Each step has an ordinary
+`request`, and a `project_document` only for setup. A value `{"$ref":"setup.project_id"}` uses a
 prior step's result. For example, after an explicit decision to participate later:
 
 ```json

@@ -126,7 +126,7 @@ A draft, B's original payload bytes, and the exact decision event. Evidence and
 full tool logs are `opencode/evidence.json` and `opencode/run.jsonl` under the
 private test directory. This was not a second fresh model conversation.
 
-## Minor usability observations
+## Minor usability observations and follow-up fixes
 
 - The Markdown returned by `native.journal_view` has no project title inside the
   content. Native Pages can supply it as a page title, but a standalone Markdown
@@ -135,7 +135,19 @@ private test directory. This was not a second fresh model conversation.
   the vague “Use a short unique batch step ID” refusal, then corrected it without
   a saved mutation. State the allowed format in the guide/error. The guard worked.
 
-These are recorded observations, not product changes made during this test.
+Both observations were fixed after the installed-app acceptance run. Readable
+journals now start with “Benchside project journal” and the project title as
+quoted, escaped text. The ID error and source/generated guide state the accepted
+format and give `review_a` as an example; duplicate IDs have a distinct message.
+Validation rules, saved notebook state and consent behavior are unchanged.
+
+Five new regression cases failed before the fixes and now pass. The targeted
+native-memory/batching/conflict/replay run passed 64 tests. The full suite passed
+677 tests in the sandbox; its one loopback-server test could not bind there and
+passed separately with local-port access, covering all 678 tests. Lint, role
+compilation and whitespace checks pass. The generated app guide is current.
+These small follow-up edits are tested locally; the installed review.6 ZIPs
+remain the exact candidate documented above, not a live test of the polish edits.
 
 ## Limits and next gate
 
@@ -148,7 +160,8 @@ These are recorded observations, not product changes made during this test.
 - Receiver PR #4 remains undeployed. Production submission/real-bucket import
   and the coordinated release order remain separate gates. No public release
   readiness is inferred from these private installed-app tests alone.
-- Source files and package bytes were not changed for this acceptance run.
+- Source files and package bytes were not changed during the installed-app
+  acceptance run. The subsequent small source/guide fixes are distinguished above.
 
 Local screenshots/transcripts and machine-readable evidence are retained at
 `/tmp/benchside-pr19-review6/`. Private chat links require the test account.

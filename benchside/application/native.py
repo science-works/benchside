@@ -9,6 +9,7 @@ Compression is for document size, not encryption or anonymisation.
 import base64
 import copy
 import hashlib
+import html
 import json
 import re
 import tempfile
@@ -739,7 +740,12 @@ def _quote(text):
 
 def journal_view(app, project_id, projects, revision, history="recent"):
     recall = app.run({"action": "recall", "project_id": project_id, "history": history})
+    title = projects.get(project_id, {}).get("title") or recall.get("title") or project_id
+    # A project title is user text, not Markdown links/images or HTML.
+    title = re.sub(r"([\\`*_\[\]{}()!#])", r"\\\1", html.escape(title, quote=False))
     lines = [
+        "# Benchside project journal",
+        _quote(title),
         f"Snapshot revision: {revision}.",
         (
             "This page is a readable view of that snapshot, not a live save status. "
@@ -891,9 +897,12 @@ def _execute_batch(app, body, steps):
             _fail("Invalid native batch step")
         identifier = step.get("id")
         if not isinstance(identifier, str) or not re.fullmatch(r"[a-z][a-z0-9_]{0,31}", identifier):
-            _fail("Use a short unique batch step ID")
+            _fail(
+                "Batch step IDs must be 1–32 characters: start with a lowercase letter, "
+                "then use lowercase letters, digits or underscores (for example, review_a)"
+            )
         if identifier in identifiers:
-            _fail("Use a short unique batch step ID")
+            _fail("Each batch step ID must be unique; rename the repeated ID and its $ref references")
         identifiers.add(identifier)
         command = step.get("request")
         if (
