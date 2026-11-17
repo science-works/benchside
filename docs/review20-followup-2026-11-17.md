@@ -73,7 +73,9 @@ reporting path before deploying the receiver that accepts them. Then perform
 one registered synthetic production submission plus a reporting run, and only
 then publish matching client packages.
 
-The review.5 installed Claude, ChatGPT and OpenCode evidence remains in the
-acceptance documents. It is not a live-app test of review.6: this follow-up's new
-project-scope instructions still need a focused installed-app check before beta
-invitations. No receiver deployment or real-bucket import was performed here.
+The focused **review.6 installed-app checks now pass** in Claude, ChatGPT Work and
+OpenCode. Both cloud apps also restored the correct project in a fresh chat using
+only notebook/project names, redisplayed its exact pending report, and left the
+notebook unchanged. See [review.6 acceptance evidence](acceptance-review6-apps-2026-11-17.md)
+for scope, hashes, private test links and two minor usability observations.
+No receiver deployment or real-bucket import was performed here.
