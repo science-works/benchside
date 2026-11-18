@@ -205,12 +205,27 @@ at any time.
 Use a short invitation, for example:
 
 > Would you like to contribute to Science Works' research on how AI is used in
-> science? You can choose what to contribute, keep everything private, or decide later.
+> science? You can enable all five options below, choose specific categories,
+> decide later, or decline all. You can change your choices at any time.
 
-A general expression of interest is not consent to every category. If interested,
-show the following choices together, with nothing preselected. Use multi-select
-when available, or accept a list in chat. “Decline all” is mutually exclusive
-with enabling categories; ask only if the response is contradictory:
+Briefly explain the five categories below and the privacy, review and random-ID
+terms before asking for a choice. Present these setup options in this exact order:
+
+1. **Enable all five** — choose workflow observations, usability feedback, usage
+   counts, survey invitations and private selected-conversation analysis together.
+2. **Choose specific categories** — select any of the five independently.
+3. **Decide later** — leave optional participation off for now.
+4. **Decline all** — leave optional participation off.
+
+Do not label any option “Recommended” or preselect one. If the host cannot show
+four neutral options, present the same choices in chat. A UI default, silence or
+a general “yes, I'm interested” is not an explicit all-five choice. Selecting
+**Enable all five** after the explanation is sufficient: do not ask five more
+yes/no questions or require another general confirmation. For **Choose specific
+categories**, use multi-select when available, or accept a list in chat. Declining
+or deferring is mutually exclusive with enabling categories; clarify only a
+contradictory response. Do not add a second participation screen when the first
+already offers the five independent choices and an explicit **Enable all five**.
 
 | Choice | What participation means |
 |---|---|
@@ -238,6 +253,23 @@ account-wide permission to read conversations.
 
 Follow [sharing](sharing.md) for the first three choices and
 [metascience](metascience.md) for invitations, analysis and sharing workflow categories.
+
+For an explicit **Enable all five** choice, save the same five independent
+permissions used for individual selection:
+
+- `sharing.consent`: `channel:"gaps"`, `enabled:true`, `scope:"all_workflow"`.
+- `sharing.consent`: `channel:"feedback"`, `enabled:true`.
+- `sharing.consent`: `channel:"usage"`, `enabled:true`.
+- `metascience.consent`: `choice:"invitations"`, `enabled:true`.
+- `metascience.consent`: `choice:"analysis"`, `enabled:true`.
+
+Then save `participation.set` with `response:"configured"`. Use the existing
+native batch/save protocol for cloud notebooks; verify the resulting statuses
+before claiming the choices are saved. This shortcut does not choose conversation
+sources, enable supporting activity-category sharing, include demographics,
+join a study, schedule analysis, or approve a submission. Keep those separate
+choices as described below, and preserve previously saved scopes/preferences.
+It does not change an existing instruction such as “do not send test data”.
 
 Sending needs network access to `ingest.benchside.science.works`. If the
 researcher turns on any choice that sends data and your commands run in

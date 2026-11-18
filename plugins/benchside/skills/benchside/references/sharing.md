@@ -3,6 +3,10 @@
 Offer these choices together in plain language during first setup, alongside the
 optional studies described in `onboarding.md`. Existing preferences persist. A
 broad "yes" to contributing needs a choice of categories before consent is saved.
+Offer **Enable all five**, **Choose specific categories**, **Decide later**, then
+**Decline all**, with no recommended or preselected answer. The explicit all-five
+choice in `onboarding.md` saves the five independent permissions after explaining
+them; it does not approve a report or require five further confirmations.
 Declining or deciding later leaves unchosen options off; do not repeatedly prompt
 on return. At natural stopping points, offer reviews for enabled choices.
 
