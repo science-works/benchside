@@ -36,7 +36,7 @@ The package is named **benchside**; its command is **bench**. Upgrade with
 `uv tool upgrade benchside` or `python -m pip install --upgrade benchside`, then
 rerun the same `bench setup` command to refresh the installed skill. Keep private
 records in their existing location. **Update every app sharing a Benchside store
-to 0.4.3 together**, including apps using the same local directory. Older cloud
+to 0.4.3 or newer together**, including apps using the same local directory. Older cloud
 clients refuse the new notebook format; older local clients can omit new record
 types from their views. Reopen the existing project and verify recall after updating.
 
@@ -57,6 +57,11 @@ records remain in the chosen private store, with ODT/Markdown reading copies
 for local storage. Optional sharing is disabled initially; scientific findings
 are excluded from metascience submissions. Workflow problems require review and
 approval. Survey participation is agreed before answering.
+
+Setup offers **Enable all five**, **Choose specific categories**, **Decide later**,
+then **Decline all**, with none recommended or preselected. The all-five shortcut
+saves participation preferences together; individual report approval, conversation
+source selection and each survey's study agreement remain separate.
 
 ## ChatGPT and Claude websites
 

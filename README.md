@@ -63,7 +63,7 @@ Researchers in different labs often lose time solving the same problem. We want 
 
 For example: *“My spreadsheet kept turning sample IDs into dates. Importing that column as text fixed it.”* Someone else can use that tip without seeing any proprietary data.
 
-With permission, we study these reports to understand where scientific workflows break down. You can separately opt into usage counts, feedback, surveys or analysis of selected conversations to help us understand **where language models help researchers and where they fall short**. You can change your choices later. [How participation works →](docs/getting-started.md#optional-sharing)
+With permission, we study these reports to understand where scientific workflows break down. You can separately opt into usage counts, feedback, surveys or analysis of selected conversations to help us understand **where language models help researchers and where they fall short**. Setup lets you enable all five options together, choose specific categories, decide later or decline all; none is recommended or preselected. You can change your choices later. [How participation works →](docs/getting-started.md#optional-sharing)
 
 ## Get involved
 

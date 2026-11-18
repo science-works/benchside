@@ -1,6 +1,6 @@
 ---
 name: bench-init
-description: Set up Benchside in Claude Code, choose where research records live, and make all seven scientific roles available. Use when the researcher asks to initialize Benchside in a local project.
+description: Set up Benchside in Claude Code, choose where research records live, and make all eight scientific roles available. Use when the researcher asks to initialize Benchside in a local project.
 ---
 
 # Set up Benchside
@@ -11,7 +11,7 @@ private native documents, or a compatible installed cloud connector. Do not choo
 local storage merely because this is Claude Code. The agent runs setup commands;
 the researcher need not use a terminal or provide a model API key.
 
-The shared Benchside skill contains all seven roles and uses its installed
+The shared Benchside skill contains all eight roles and uses its installed
 `scripts/benchside_app.py` entry, which remembers a source installation's runtime.
 Prefer this route for projects also used from another agent.
 List existing projects in the chosen store and reuse the selected project ID.
@@ -32,6 +32,10 @@ For existing legacy research, let the researcher choose to continue its CLI jour
 or explicitly migrate it. Do not create an empty app project and claim it restored
 their previous work.
 
-Optional reporting always requires separate consent, exact preview and approval.
+For optional participation, follow the shared onboarding choice order:
+**Enable all five**, **Choose specific categories**, **Decide later**, then
+**Decline all**, with no recommended or preselected answer. Explain the choices
+before accepting the all-five shortcut. Report previews and approvals, analysis
+source selection and each survey's study agreement remain separate.
 The shared onboarding flow also offers optional discipline/career-stage categories
 and a separate choice to include them in reviewed usage reports.

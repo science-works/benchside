@@ -41,6 +41,11 @@ Declining must not change scientific assistance. These choices are independent
 of gap, feedback and usage sharing. Private analysis works with sharing off.
 Candidate problems use the existing gap-sharing choice and review flow; activity
 sharing is not required. Do not infer consent from installation or silence.
+The explicit **Enable all five** setup choice in `onboarding.md` includes
+invitations and private analysis, together with gaps, feedback and usage. It does
+not include supporting activity-category sharing, conversation sources, study
+agreement or submission approval. Do not repeat the two setup questions after
+that informed choice; source selection and study agreements still happen when needed.
 Older analysis grants need the updated 20-conversation explanation; older unlinked
 sharing grants need the new ID explanation and a renewed explicit choice.
 

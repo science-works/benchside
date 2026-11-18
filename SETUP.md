@@ -167,7 +167,11 @@ inventing a second setup process. Ask only what is not already known:
 - **Which project?** List existing projects in that store and continue the
   selected one, or create a separate new project. Never merge projects by title.
 - **Optional metascience participation?** Explain the independent choices and
-  preserve existing preferences. Declining or deciding later never blocks use.
+  preserve existing preferences. Offer **Enable all five**, **Choose specific
+  categories**, **Decide later**, then **Decline all**, with no recommended or
+  preselected answer. Explain all five before accepting the all-five shortcut;
+  no five-question reconfirmation is needed. Declining or deciding later never
+  blocks use. Follow onboarding for the separate source and submission approvals.
 
 Offer the optional discipline/career-stage question as described in onboarding;
 it is not required. Then ask what the researcher wants help with and choose a

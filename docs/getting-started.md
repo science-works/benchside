@@ -211,8 +211,10 @@ installing the shared skill does not migrate records between them.
 ## Optional sharing
 
 During first setup, Benchside asks whether you would like to contribute to
-Science Works' metascience research. You can choose what to contribute, keep
-everything private, or decide later. The choices cover workflow observations,
+Science Works' metascience research. The options are **Enable all five**, **Choose
+specific categories**, **Decide later**, then **Decline all**, with none recommended
+or preselected. Enabling all saves the five choices together, without five extra
+confirmation questions. The choices cover workflow observations,
 usability feedback, usage counts, optional surveys and selected-conversation
 analysis. For analysis, you choose the sources and separately decide whether its
 workflow categories stay in your private notebook or are prepared for reviewed
